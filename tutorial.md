@@ -13,7 +13,7 @@ so that `$BOOST_ROOT/boost` is an existent path that contains all Boost headers.
 
 From `$MACH7_ROOT/code`:
 
-```
+```bash
 make       # to build .exe files from all the .cpp files in current folder and its subfolders.
 make test  # to run  all the .exe files in the current folder and its subfolders
 ```
