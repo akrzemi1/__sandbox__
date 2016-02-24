@@ -45,9 +45,9 @@ int read(Tank const& tank)
   Match(tank)
   {
   Case(C<TankA const>(tA))
-     return tA->va;
+    return tA->va;
   Case(C<TankB const>(tB))
-     return tB->vb;
+    return tB->vb;
   Otherwise()
     return -1;
   }
