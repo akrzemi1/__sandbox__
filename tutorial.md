@@ -19,3 +19,35 @@ make
 ```
 
 This builds a number of `*.exe` files, each representing a test to be run.
+
+
+Working with Boost.Variant
+--------------------------
+
+
+```c++
+#include <boost/variant.hpp>
+#include <mach7/type_switchN-patterns-xtl.hpp>
+#include <mach7/adapters/boost/adapt_boost_variant.hpp>
+#include <mach7/patterns/constructor.hpp>
+#include <mach7/patterns/primitive.hpp>
+
+struct TankA { int val; };
+struct TankB { int val; };
+using  Tank = boost::variant<TankA, TankB>;
+
+int interact(Tank const& tank)
+{
+  using mch::C;
+  mch::var<const TankA&> tankA;
+
+  Match(tank)
+  {
+  Case(C<const TankA>(tankA))
+     return 0;
+  Otherwise()
+    return -1;
+  }
+  EndMatch
+}
+```
