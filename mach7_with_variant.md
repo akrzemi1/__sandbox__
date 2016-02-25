@@ -97,7 +97,7 @@ With a hypothetical lanuage feature:
 ```c++
 int interact(Tank const& tank)
 {
-  switch (tank)
+  match (tank)
   {
   case (TankA const& ta): // by reference to const
     return ta.val;
@@ -128,5 +128,26 @@ int interact(Tank const& tank)
   };
   
   return boost::apply_visitor(v_interact{}, tank);
+}
+```
+
+With Mach7
+==========
+
+```c++
+int inspect(Tank const& tank)
+{
+  using mch::C;
+
+  Match(tank)
+  {
+    Case(C<TankA>())
+      return match0.val;
+    Case(C<TankB>())
+      return match0.val * 10;
+    Case(mch::_)               // does not compile
+      return -1;
+  }
+  EndMatch
 }
 ```
