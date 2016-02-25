@@ -82,33 +82,51 @@ int main()
 TBD
 ---
 
-```c++
-#include <boost/variant.hpp>
 
+
+```c++
 struct TankA { int val; };
 struct TankB { int val; };
-struct TankC { int val; };
+struct TankX { };
 
-typedef boost::variant<TankA, TankB, TankC> Tank;
+using  Tank = boost::variant<TankA, TankB, TankX>;
+```
 
-  struct v_interact : boost::static_visitor<int>
-  {
-      int operator()(TankA const& tankA) const {
-          return tankA.val;
-      }
-      // otherwise:
-      template <typename T> int operator()(T const&) const {
-          return -1;
-      }    
-  };
-
+With a hypothetical lanuage feature:
+------------------------------------
+```c++
 int interact(Tank const& tank)
 {
-  return boost::apply_visitor(v_interact{}, tank);
+  switch (tank)
+  {
+  case (TankA const& ta): // by reference to const
+    return ta.val;
+  case (TankB const& tb):
+    return tb.val * 10;
+  case (auto const&):     // any other type
+    return -1;
+  }
 }
+```
 
-int main()
+With Boost.Variant visitor:
+---------------------------
+```c++
+int interact(Tank const& tank)
 {
-  assert(interact(TankA{3}) == 3);
+  struct v_interact : boost::static_visitor<int>
+  {
+    int operator()(TankA const& ta) const {
+      return ta.val;
+    }
+    int operator()(TankB const& tb) const {
+      return tb.val * 10;
+    }
+    template <typename T> int operator()(T const&) const {
+      return -1;
+    }    
+  };
+  
+  return boost::apply_visitor(v_interact{}, tank);
 }
 ```
