@@ -58,13 +58,18 @@ int read(Tank const& tank)
 
   Match(tank)
   {
-  Case(C<TankA const>(tA))
-    return tA->va;
-  Case(C<TankB const>(tB))
-    return tB->vb;
-  Case(C<TankX const>())
-    return -1;
+    Case(C<TankA const>(tA))
+      return tA->va;
+    Case(C<TankB const>(tB))
+      return tB->vb + 10;
+    Case(C<TankX const>())
+      return -1;
   }
   EndMatch
+}
+
+int main()
+{
+  assert (read(TankB()) == 10);
 }
 ```
