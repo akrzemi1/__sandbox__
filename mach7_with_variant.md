@@ -4,6 +4,9 @@
 Working with Boost.Variant
 --------------------------
 
+### Conservative
+This works today
+
 ```c++
 #include <boost/variant.hpp>
 #include <mach7/type_switchN-patterns-xtl.hpp>
@@ -37,6 +40,8 @@ int main()
   assert (read(TankB()) == 10);
 }
 ```
+### Nice
+This works after my proposed changes.
 
 ```c++
 #include <boost/variant.hpp>
