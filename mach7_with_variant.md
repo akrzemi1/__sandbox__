@@ -14,7 +14,8 @@ Working with Boost.Variant
 
 struct TankA { int va = 0; };
 struct TankB { int vb = 0; };
-using  Tank = boost::variant<TankA, TankB>;
+struct TankX { };
+using  Tank = boost::variant<TankA, TankB, TankX>;
 
 int read(Tank const& tank)
 {
@@ -28,7 +29,7 @@ int read(Tank const& tank)
     return tA->va;
   Case(C<TankB const>(tB))
     return tB->vb;
-  Otherwise()
+  Case(C<TankX const>())
     return -1;
   }
   EndMatch
