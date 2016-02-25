@@ -11,6 +11,8 @@ so that `$BOOST_ROOT/boost` is an existent path that contains all Boost headers.
 
 ### Using `make`
 
+This only works on Unix-based systems.
+
 From `$MACH7_ROOT/code`:
 
 ```bash
