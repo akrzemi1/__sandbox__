@@ -78,3 +78,37 @@ int main()
   assert (read(TankB()) == 10);
 }
 ```
+
+TBD
+---
+
+```c++
+#include <boost/variant.hpp>
+
+struct TankA { int val; };
+struct TankB { int val; };
+struct TankC { int val; };
+
+typedef boost::variant<TankA, TankB, TankC> Tank;
+
+  struct v_interact : boost::static_visitor<int>
+  {
+      int operator()(TankA const& tankA) const {
+          return tankA.val;
+      }
+      // otherwise:
+      template <typename T> int operator()(T const&) const {
+          return -1;
+      }    
+  };
+
+int interact(Tank const& tank)
+{
+  return boost::apply_visitor(v_interact{}, tank);
+}
+
+int main()
+{
+  assert(interact(TankA{3}) == 3);
+}
+```
