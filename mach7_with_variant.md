@@ -143,3 +143,61 @@ class TankX { };
 
 using  Tank = boost::variant<TankA, TankB, TankX>;
 ```
+
+### With a hypothetical lanuage feature:
+
+```c++
+int volume(Tank const& tank)
+{
+  match (tank)
+  {
+  case (TankA const& ta):           // by reference to const
+    return ta.vol();                // sub-type reference has a name
+  case (TankB const& tb):
+    return tb.area() * tb.height();
+  case (auto const&):               // any other type
+    return 0;
+  }
+}
+```
+
+### With Boost.Variant visitor:
+
+
+```c++
+int volume(Tank const& tank)
+{
+  struct v_volume : boost::static_visitor<int>
+  {
+    int operator()(TankA const& ta) const {
+      return ta.vol();
+    }
+    int operator()(TankB const& tb) const {
+      return tb.area() * tb.height();
+    }
+    template <typename T> int operator()(T const&) const {
+      return 0;
+    }    
+  };
+  
+  return boost::apply_visitor(v_volume{}, tank);
+}
+```
+
+### With Mach7 (basic)
+
+```c++
+int volume(Tank const& tank)
+{
+  Match(tank)
+  {
+    Case(mch::C<TankA>())
+      return match0.vol();                    // match0 - a name out of thin air
+    Case(mch::C<TankB>())
+      return match0.area() * match0.height();
+    Case(mch::_)                              // does not compile
+      return 0;
+  }
+  EndMatch
+}
+```
