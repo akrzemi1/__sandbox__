@@ -110,4 +110,36 @@ int volume(Tank const& tank)
 
 Objection 1: It is a bit too tricky to my developer's sense. I want to see that I am accessing members.
 
-Objection 2: It will not work if I kave private members exposed by getter and setter functions.
+Objection 2: I have to put extra customization for `mch::bindings` for every variant type I use.
+
+Objection 3: It will not work if I kave private members exposed by getter and setter functions.
+
+
+Challenge 2 -- variant data members are private
+-----------------------------------------
+
+Given the following Variant:
+
+```c++
+class TankA
+{
+  int vol_;
+public:
+  explicit TankA(int v) : vol_(v) {}
+  int vol() const { return vol_; }
+};
+
+struct TankB
+{
+  int area_;
+  int height_;
+public:
+  explicit TankB(int a, int h) : area_(a), height_(h) {}
+  int area() const { return area_; }
+  int height() const { return height_; }
+};
+
+class TankX { };
+
+using  Tank = boost::variant<TankA, TankB, TankX>;
+```
