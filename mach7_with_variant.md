@@ -17,7 +17,23 @@ struct TankX { };
 using  Tank = boost::variant<TankA, TankB, TankX>;
 ```
 
+### With a hypothetical lanuage feature:
 
+Suppose there was a built-in statement in C++ to do a type switch, I would like to do this:
+```c++
+int volume(Tank const& tank)
+{
+  match (tank)
+  {
+  case (TankA const& ta):       // by reference to const
+    return ta.vol;              // sub-type reference has a name
+  case (TankB const& tb):
+    return tb.area * tb.height;
+  case (auto const&):           // any other type
+    return 0;
+  }
+}
+```
 
 TBD...
 ------
@@ -103,22 +119,7 @@ TBD
 
 
 
-With a hypothetical lanuage feature:
-------------------------------------
-```c++
-int interact(Tank const& tank)
-{
-  match (tank)
-  {
-  case (TankA const& ta): // by reference to const
-    return ta.val;
-  case (TankB const& tb):
-    return tb.val * 10;
-  case (auto const&):     // any other type
-    return -1;
-  }
-}
-```
+
 
 With Boost.Variant visitor:
 ---------------------------
@@ -143,7 +144,7 @@ int interact(Tank const& tank)
 ```
 
 With Mach7
-==========
+----------
 
 ```c++
 int inspect(Tank const& tank)
