@@ -35,6 +35,30 @@ int volume(Tank const& tank)
 }
 ```
 
+### With Boost.Variant visitor:
+
+I can do it today with Boost.Variant:
+
+```c++
+int volume(Tank const& tank)
+{
+  struct v_volume : boost::static_visitor<int>
+  {
+    int operator()(TankA const& ta) const {
+      return ta.vol;
+    }
+    int operator()(TankB const& tb) const {
+      return tb.area * tb.height;
+    }
+    template <typename T> int operator()(T const&) const {
+      return 0;
+    }    
+  };
+  
+  return boost::apply_visitor(v_volume{}, tank);
+}
+```
+
 TBD...
 ------
 
@@ -121,27 +145,7 @@ TBD
 
 
 
-With Boost.Variant visitor:
----------------------------
-```c++
-int interact(Tank const& tank)
-{
-  struct v_interact : boost::static_visitor<int>
-  {
-    int operator()(TankA const& ta) const {
-      return ta.val;
-    }
-    int operator()(TankB const& tb) const {
-      return tb.val * 10;
-    }
-    template <typename T> int operator()(T const&) const {
-      return -1;
-    }    
-  };
-  
-  return boost::apply_visitor(v_interact{}, tank);
-}
-```
+
 
 With Mach7
 ----------
