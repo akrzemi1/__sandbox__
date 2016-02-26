@@ -2,7 +2,25 @@
 
 
 Working with Boost.Variant
---------------------------
+==========================
+
+Challenge 1 -- accessing by const reference
+-----------------------------------------
+
+Given the following Variant:
+
+```c++
+struct TankA { int vol; };
+struct TankB { int area; int height; };
+struct TankX { };
+
+using  Tank = boost::variant<TankA, TankB, TankX>;
+```
+
+
+
+TBD...
+------
 
 ### Conservative
 This works today
@@ -84,13 +102,6 @@ TBD
 
 
 
-```c++
-struct TankA { int val; };
-struct TankB { int val; };
-struct TankX { };
-
-using  Tank = boost::variant<TankA, TankB, TankX>;
-```
 
 With a hypothetical lanuage feature:
 ------------------------------------
