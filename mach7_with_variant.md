@@ -37,7 +37,7 @@ int volume(Tank const& tank)
 
 ### With Boost.Variant visitor:
 
-I can do it today with Boost.Variant:
+I can do it today with Boost.Variant static visitor:
 
 ```c++
 int volume(Tank const& tank)
@@ -56,6 +56,27 @@ int volume(Tank const& tank)
   };
   
   return boost::apply_visitor(v_volume{}, tank);
+}
+```
+
+With Mach7 (basic)
+----------
+
+```c++
+int volume(Tank const& tank)
+{
+  using mch::C;
+
+  Match(tank)
+  {
+    Case(C<TankA>())
+      return match0.vol;                  // match0 - a name out of thin air
+    Case(C<TankB>())
+      return match0.area * match0.height;
+    Case(mch::_)                          // does not compile
+      return -1;
+  }
+  EndMatch
 }
 ```
 
@@ -147,23 +168,4 @@ TBD
 
 
 
-With Mach7
-----------
 
-```c++
-int inspect(Tank const& tank)
-{
-  using mch::C;
-
-  Match(tank)
-  {
-    Case(C<TankA>())
-      return match0.val;
-    Case(C<TankB>())
-      return match0.val * 10;
-    Case(mch::_)               // does not compile
-      return -1;
-  }
-  EndMatch
-}
-```
