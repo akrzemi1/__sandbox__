@@ -76,6 +76,8 @@ int volume(Tank const& tank)
   EndMatch
 }
 ```
+Objection 1: I cannot give names to sub-typed objects. I am forced to use magical hardcoded names `match0`.
+Objection 2: bind to `mch::_` does not work.
 
 ### With Mach7 (nested binding)
 
@@ -104,3 +106,6 @@ int volume(Tank const& tank)
   EndMatch
 }
 ```
+
+Objection 1: It is a bit too tricky to my developer's sense. I want to see that I am accessing members.
+Objection 2: It will not work if I kave private members exposed by getter and setter functions.
