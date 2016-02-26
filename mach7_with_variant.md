@@ -59,8 +59,7 @@ int volume(Tank const& tank)
 }
 ```
 
-With Mach7 (basic)
-----------
+### With Mach7 (basic)
 
 ```c++
 int volume(Tank const& tank)
@@ -72,7 +71,35 @@ int volume(Tank const& tank)
     Case(mch::C<TankB>())
       return match0.area * match0.height;
     Case(mch::_)                          // does not compile
-      return -1;
+      return 0;
+  }
+  EndMatch
+}
+```
+
+### With Mach7 (nested binding)
+
+```c++
+namespace mch
+{
+  template <> struct bindings<TankA> { Members(TankA::vol); };
+  template <> struct bindings<TankB> { Members(TankB::area, TankB::height); };
+}
+
+int volume(Tank const& tank)
+{
+  mch::var<const int&> vol;
+  mch::var<const int&> area;
+  mch::var<const int&> height;
+  
+  Match(tank)
+  {
+    Case(mch::C<TankA>(vol))
+      return vol;
+    Case(mch::C<TankB>(area, height))
+      return area * height;
+    Case(mch::_)                          // does not compile
+      return 0;
   }
   EndMatch
 }
