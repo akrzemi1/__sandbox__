@@ -65,13 +65,11 @@ With Mach7 (basic)
 ```c++
 int volume(Tank const& tank)
 {
-  using mch::C;
-
   Match(tank)
   {
-    Case(C<TankA>())
+    Case(mch::C<TankA>())
       return match0.vol;                  // match0 - a name out of thin air
-    Case(C<TankB>())
+    Case(mch::C<TankB>())
       return match0.area * match0.height;
     Case(mch::_)                          // does not compile
       return -1;
