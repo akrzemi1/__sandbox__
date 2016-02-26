@@ -201,3 +201,27 @@ int volume(Tank const& tank)
   EndMatch
 }
 ```
+
+### With Mach7 (nexted binding)
+
+```c++
+namespace mch
+{
+  template <> struct bindings<TankA> { Members(TankA::vol); };
+  template <> struct bindings<TankB> { Members(TankB::area, TankB::height); };
+}
+
+int volume(Tank const& tank)
+{
+  Match(tank)
+  {
+    Case(mch::C<TankA>(vol))
+      return vol;
+    Case(mch::C<TankB>(area, height))
+      return area * height;
+    Case(mch::_)                          // does not compile
+      return 0;
+  }
+  EndMatch
+}
+```
