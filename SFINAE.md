@@ -26,6 +26,16 @@ In Table 49 (Type property predicates) modify Condition for `is_assignable` to r
 
 The expression `declval<T>() = declval<U>()` is well-formed **declaration-wise** when treated as an unevaluated operand (Clause 5).
 
+Modify [meta.unary.prop]/7:
+----------------------------
+
+the predicate condition for a template specialization `is_constructible<T, Args...>` shall be satisfied
+if and only if the following variable definition would be well-formed **declaration-wise** for some invented variable `t`:
+
+
+
+
+Notes
 =====
 
 An expression `E` is well formed *declaration-wise* when:
@@ -44,11 +54,7 @@ the generation of implicitly-defined functions, etc. Such side effects resulting
 in `E` can result in the program being ill-formed, but `E` may still be well formed declaration-wise.
 *--end note*]
 
-Modify [meta.unary.prop]/7:
-----------------------------
 
-the predicate condition for a template specialization `is_constructible<T, Args...>` shall be satisfied
-if and only if the following variable definition would be well-formed **declaration-wise** for some invented variable `t`:
 
 ----------------------------
 return type
