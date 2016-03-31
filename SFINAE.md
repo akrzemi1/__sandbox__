@@ -34,7 +34,7 @@ if and only if the following variable definition would be well-formed **declarat
 
 Also change:
 -------------
-Table 57, `result_f`
+Table 57, `result_of`
 
 
 Notes
