@@ -8,6 +8,7 @@ A *hard ill-formedness reason* is one of the following situations:
 - The evaluation of the substituted types and expressions causes the instantiation of class template specialization and/or function template specialization, and such a specialization is ill-formed.
 - The evaluation of the substituted types and expressions causes the generation of non-deleted implicitly-defined function, and the generated definition is ill-formed.
 - The evaluation of the returned type of a function or function template requires the body of this function to be instantiated, and this instantiation causes the program to be ill-formed.
+- The evaluation of the substituted types and expressions causes implementation limits to be exceeded.
 
 An expression or a type `E` is *ill-formed declaration-wise* when it is ill formed for at least one reason with a diagnostic required, other than hard ill-formedness reasons. In determining the ill-formedness declaration-wise access checking is done in the context unrelated to the types of sub-expressions of `E`.
 
