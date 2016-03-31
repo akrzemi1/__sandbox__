@@ -13,3 +13,8 @@ such as the instantiation of class template specializations and/or function temp
 the generation of implicitly-defined functions, etc. Such side effects resulting from substitutions
 in `E` can result in the program being ill-formed, but `E` may still be well formed declaration-wise.
 *--end note*]
+
+----------------------------
+return type
+`typename trait<T>::type`
+`auto f(x) { ... }; auto fun() -> decltype(f(x))`
