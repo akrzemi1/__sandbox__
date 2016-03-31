@@ -9,7 +9,9 @@ A *hard ill-formedness reason* is one of the following situations:
 - The evaluation of the substituted types and expressions causes the generation of non-deleted implicitly-defined function, and the generated definition is ill-formed.
 - The evaluation of the returned type of a function or function template requires the body of this function to be instantiated, and this instantiation causes the program to be ill-formed.
 
-An expression or type is *ill-formed declaration-wise* when it is ill formed for at least one reason with a diagnostic required, other than hard ill-formedness reasons. An expression or type is *well-formed declaration-wise* when it is not ill-formed declaration-wise. [*Note:* In order to determine the well-formedness declaration-wise the implementation need not perform actions listed in hard ill-formedness reasons: instantiaitng class template specializations and/or function template specializations, generating the bodies of implicitly-defined functions or functions with deduced return type. *--end note*] [*Note:* An expression may be determined to be well-formed declaration-wise and yet its odr-use may cause a program to be ill-formed. *--end note*] 
+An expression or a type `E` is *ill-formed declaration-wise* when it is ill formed for at least one reason with a diagnostic required, other than hard ill-formedness reasons. In determining the ill-formedness declaration-wise access checking is done in the context unrelated to the types of sub-expressions of `E`.
+
+An expression or type is *well-formed declaration-wise* when it is not ill-formed declaration-wise. [*Note:* In order to determine the well-formedness declaration-wise the implementation need not perform actions listed in hard ill-formedness reasons: instantiaitng class template specializations and/or function template specializations, generating the bodies of implicitly-defined functions or functions with deduced return type. *--end note*] [*Note:* An expression may be determined to be well-formed declaration-wise and yet its odr-use may cause a program to be ill-formed. *--end note*] 
 
 Modify [dcl.fct.def.delete]/2
 -----------------------------
