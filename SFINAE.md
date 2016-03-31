@@ -32,7 +32,9 @@ Modify [meta.unary.prop]/7:
 the predicate condition for a template specialization `is_constructible<T, Args...>` shall be satisfied
 if and only if the following variable definition would be well-formed **declaration-wise** for some invented variable `t`:
 
-
+Also change:
+-------------
+Table 57, `result_f`
 
 
 Notes
