@@ -1,3 +1,7 @@
+A *hard ill-formedness reason* is one of the following situations:  
+- The evaluation of the substituted types and expressions causes the instantiation of class template specialization and/or function template specialization, and such a specialization is ill-formed.
+- The evaluation of the substituted types and expressions causes the generation of non-deleted implicitly-defined function, and the generated definition is ill-formed.
+
 An expression `E` is well formed *declaration-wise* when:
 - All subexpressions of `E` involve calls to functions and operators that are unambiguously selected in the course of overload resolution,
 - All selected functions and operators are accessible in the sense of access checking in the context unrelated to the types of sub-expressions of `E`.
