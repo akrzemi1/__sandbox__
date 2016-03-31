@@ -21,7 +21,11 @@ Modify [dcl.fct.def.delete]/2
 
 A program that refers to a deleted function implicitly or explicitly, other than to declare it **or to determine if some expression or type is well formed declaration-wise (see [temp.deduct])**, is ill-formed.
  
-Notes
+In Table 49 (Type property predicates) modify Condition for `is_assignable` to read:
+-----------------------------------------------------------------
+
+The expression `declval<T>() = declval<U>()` is well-formed **declaration-wise** when treated as an unevaluated operand (Clause 5).
+
 =====
 
 An expression `E` is well formed *declaration-wise* when:
