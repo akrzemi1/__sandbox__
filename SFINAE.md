@@ -36,6 +36,21 @@ Also change:
 -------------
 Table 57, `result_of`
 
+List of conditions
+==================
+
+Conditions applicable for SFINAE:
+* referring to a non-existent member type-name
+* referring to a deleted function
+* refering to a class meber with insufficient access level (private, protected)
+* using a function or operator, which results in overload resolution failure
+
+Hard errors:
+- The evaluation of the substituted types and expressions causes the instantiation of class template specialization and/or function template specialization, and such a specialization is ill-formed.
+- The evaluation of the substituted types and expressions causes the generation of non-deleted implicitly-defined function, and the generated definition is ill-formed.
+- The evaluation of the returned type of a function or function template requires the body of this function to be instantiated, and this instantiation causes the program to be ill-formed.
+- The evaluation of the substituted types and expressions causes implementation limits to be exceeded.
+
 
 Notes
 =====
