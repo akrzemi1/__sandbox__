@@ -45,6 +45,12 @@ Conditions applicable for SFINAE:
 * refering to a class meber with insufficient access level (private, protected)
 * using a function or operator, which results in overload resolution failure
 
+!!
+* a substitution of a template argument for a non-type value template parameter would cause a narrowing conversion ([dcl.init.list] para 7).
+??
+* Attempting to instantiate a pack expansion containing multiple parameter packs of differing lengths.
+* 
+
 Hard errors:
 - The evaluation of the substituted types and expressions causes the instantiation of class template specialization and/or function template specialization, and such a specialization is ill-formed.
 - The evaluation of the substituted types and expressions causes the generation of non-deleted implicitly-defined function, and the generated definition is ill-formed.
