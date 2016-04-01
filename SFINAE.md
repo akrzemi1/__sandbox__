@@ -1,3 +1,14 @@
+Objective
+=========
+
+Define precisely when SFINAE occurs (formalize "immediate context" from 14.8.2)
+
+High level
+==========
+
+outcomes from checking surface well-formedness:
+
+
 Wording
 =======
 
