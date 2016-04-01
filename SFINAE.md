@@ -3,7 +3,7 @@ Objective
 
 Define precisely when SFINAE occurs (formalize "immediate context" from 14.8.2)
 
-Wording (2)
+Wording
 ==============
 
 A type or an expression `E` is said to be in a *remote context* of the function type and its template parameter types, when:
@@ -14,7 +14,7 @@ A type or an expression `E` is said to be in a *remote context* of the function 
 An invalid type or expression is one that would be ill-formed, with a diagnostic required, if written using the substituted arguments. If a substitution results in an invalid type or expression in a remote context, the program is ill-formed.
 If a substitution results in an invalid type or expression in a non-remote context, type deduction fails. Access checking is done as part of the substitution process, in the context unrelated to the types of sub-expressions of `E`.
 
-An expressions `X` is said to be *superficially well-formed* when its substitution ends in type deduction success.
+An expressions `X` is said to be *superficially well-formed* when its substitution ends in type deduction success. [*Note:* An expression may be determined to be superficially well-formed and yet its odr-use may cause a program to be ill-formed. *--end note*] 
 
 
 High level
