@@ -47,6 +47,8 @@ Conditions applicable for SFINAE:
 
 !!
 * a substitution of a template argument for a non-type value template parameter would cause a narrowing conversion ([dcl.init.list] para 7).
+
+
 ??
 * Attempting to instantiate a pack expansion containing multiple parameter packs of differing lengths.
 * 
