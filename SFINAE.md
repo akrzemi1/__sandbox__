@@ -46,12 +46,9 @@ Conditions applicable for SFINAE:
 * using a function or operator, which results in overload resolution failure
 
 !!
+* (1) Attempting to instantiate a pack expansion containing multiple parameter packs of differing lengths.
 * a substitution of a template argument for a non-type value template parameter would cause a narrowing conversion ([dcl.init.list] para 7).
 
-
-??
-* Attempting to instantiate a pack expansion containing multiple parameter packs of differing lengths.
-* 
 
 Hard errors:
 - The evaluation of the substituted types and expressions causes the instantiation of class template specialization and/or function template specialization, and such a specialization is ill-formed.
@@ -59,6 +56,21 @@ Hard errors:
 - The evaluation of the returned type of a function or function template requires the body of this function to be instantiated, and this instantiation causes the program to be ill-formed.
 - The evaluation of the substituted types and expressions causes implementation limits to be exceeded.
 
+``` (1)
+template <typename ...Ts, typename ...Us>
+auto f(std::tuple<Ts...> t, std::tuple<Us...>) -> std::tuple<std::common_type<Ts, Us>...> 
+{ return {}; }
+
+int f(...) { return -2; }
+    
+int main()
+{
+    std::tuple<int, float> ta;
+    std::tuple<int> tb;
+    std::cout << f(ta, tb) << std::endl;
+    //std::cout << f<10000>(0) << std::endl;
+}
+```
 
 Notes
 =====
