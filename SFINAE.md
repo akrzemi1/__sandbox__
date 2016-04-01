@@ -3,13 +3,27 @@ Objective
 
 Define precisely when SFINAE occurs (formalize "immediate context" from 14.8.2)
 
+Wording (2)
+==============
+
+A type or an expression `E` is said to be in a *remote context* of the function type and its template parameter types, when:
+* a class template specialization is instantiated in the process of substitution, and `E` is a member thereof, or
+* a function template specialization is instantiated in the process of substitution, and `E` occurs in its definition, or
+* an implicitly-defined non-deleted function function is generated and `E` occurs in its definition.
+
+An invalid type or expression is one that would be ill-formed, with a diagnostic required, if written using the substituted arguments. If a substitution results in an invalid type or expression in a remote context, the program is ill-formed.
+If a substitution results in an invalid type or expression in a non-remote context, type deduction fails. Access checking is done as part of the substitution process, in the context unrelated to the types of sub-expressions of `E`.
+
+An expressions `X` is said to be *superficially well-formed* when its substitution ends in type deduction success.
+
+
 High level
 ==========
 
 outcomes from checking surface well-formedness:
 
 
-Wording
+Old wording
 =======
 
 In [temp.deduct] replace paragraph 8 (minus examples) with:
@@ -46,6 +60,9 @@ if and only if the following variable definition would be well-formed **declarat
 Also change:
 -------------
 Table 57, `result_of`
+
+
+
 
 List of conditions
 ==================
