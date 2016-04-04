@@ -119,7 +119,35 @@ the generation of implicitly-defined functions, etc. Such side effects resulting
 in `E` can result in the program being ill-formed, but `E` may still be well formed declaration-wise.
 *--end note*]
 
+------------------------
+Outcomes:
+* expression is hardly ill-formed (causes program to be ill-formed)
+* expression is superficially ill-formed (trait returns false)
+* expression is superficially well-formed (trit returns true)
+  * expression compiles
+  * expression does not compile
+ 
+----------------------
 
+A number of traits in this clause need to determine if a given expression <code>E</code> is well-formed for a number of types `Tn`.
+
+A type or an expression <code>X</code> is said to be in an <em>immediate context</em> of expression <code>E</code> when in order to determine the well-formedness of <code>E</code> none of the following occurs:
+* a class template specialization is instantiated and <code>X</code> is a member thereof, or
+* a function template specialization is instantiated and <code>X</code> occurs in the definition thereof, or
+* an implicitly-defined non-deleted function is generated <code>X</code> occurs in the definition thereof.
+
+A type or an expression `X` is said to be *invalid* if it would be ill-formed, with a diagnostic required, if expression `E` were instantiated with arguments `Ts`.
+
+An expression `E` is *hardly ill-rofmed* for types `Tn` when instantiaing `E` with arguments `Tn` would cause any subexpression or type `X` in the non-immediate context of `E` to be invalid.
+
+An expression `E` is *superficially ill-formed* for types `Tn` when it is not hardly ill-rofmed for `Tn` and when instantiaing `E` with arguments `Tn` would cause any subexpression or type `X` in the immediate context of `E` to be invalid.
+
+An expression `E` is *superficially well-formed* for types `Tn` when it is not hardly ill-rofmed* for `Tn`, and it is not superficially ill-formed for `Tn`.
+
+
+
+[Note: An expression can be determined
+  
 
 ----------------------------
 return type
