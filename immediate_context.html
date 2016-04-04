@@ -16,7 +16,19 @@
   }
   ins > ul > li:before {
     display: inline-block; 
-    content: "—";
+    content: "";
+    width: 1em;
+    margin-left: -0.5em;
+    margin-right: 0.5em;
+  }
+  ul > li {
+    list-style-type: none;
+    margin-left: -0.5em;
+    padding-left: 0.5em;
+  }
+  ul > li:before {
+    display: inline-block; 
+    content: "";
     width: 1em;
     margin-left: -0.5em;
     margin-right: 0.5em;
@@ -46,10 +58,10 @@ Reply-to: <a href="mailto:akrzemi1@gmail.com">Andrzej Krzemienski</a>
 
 <h2>Proposed wording</h2>
 
-<p>(Relative to n4582.)</p>
+<p>(Relative to N4582.)</p>
 
 <ol>
-
+<!--
 <li>In 14.8.2 [temp.deduct] change paragraph 8 as indicated:
 
 <blockquote>
@@ -68,7 +80,7 @@ process.</del> &mdash; <i>end note</i>] <del>Only invalid types and expressions 
 its template parameter types can result in a deduction failure. [<i>Note</i>: The evaluation of the substituted
 types and expressions can result in side effects such as the instantiation of class template specializations
 and/or function template specializations, the generation of implicitly-defined functions, etc. Such side effects
-are not in the “immediate context” and can result in the program being ill-formed. &mdash; <i>end note</i>]</del>
+are not in the immediate context and can result in the program being ill-formed. &mdash; <i>end note</i>]</del>
 
 <ins>If a substitution results in an invalid type or expression in a remote context, the program is ill-formed. 
 If a substitution results in an invalid type or expression in a non-remote context, type deduction fails.
@@ -91,7 +103,54 @@ If a substitution results in an invalid type or expression in a non-remote conte
   X x3 = f(x1, x2); <i>// deduction fails on #1 (cannot add X+X), calls #2</i>
 </pre>&mdash; <i>end example</i>]
 </blockquote>
+</li>-->
+
+<li><p>Insert somewere at the beginning of 20.13 [meta] the following:</p>
+
+<blockquote>
+<p>A number of traits in this clause need to determine if a given expression <code>E</code> is well-formed for a number of types <code>Tn</code>.</p>
+
+<p>A type or an expression <code>X</code> is said to be in the <em>immediate context</em> of expression <code>E</code> when in the process of determination of well-formedness of <code>E</code> none of the following is the case:
+<ul>
+<li>a class template specialization is instantiated and <code>X</code> is a member thereof, or</li>
+<li>a function template specialization is instantiated and <code>X</code> occurs in the definition thereof, or</li>
+<li>an implicitly-defined non-deleted function is generated and <code>X</code> occurs in the definition thereof.</li>
+</ul>
+</p>
+
+<p>A type or an expression <code>X</code> is said to be <em>invalid</em> if it would be ill-formed, with a diagnostic required, if expression <code>E</code> were instantiated with arguments <code>Tn</code>. Access checking is performed as if in a context unrelated to any of types <code>Tn</code>.</p>
+
+<p>An expression <code>E</code> is <em>deeply ill-formed</em> for types <code>Tn</code> when instantiaing <code>E</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the non-immediate context of <code>E</code> to be invalid, or if it would resut in exceeding one of the implementation-defined limits. An expression <code>E</code> is <em>deeply well-formed</em> when it is not hadly ill-formed.</p>
+
+<p>An expression <code>E</code> is <em>superficially ill-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code> and when instantiaing <code>E</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the immediate context of <code>E</code> to be invalid. An expression <code>E</code> is <em>superficially well-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code>, and it is not superficially ill-formed for <code>Tn</code>. [<i>Note:</i> An expression may be determined to be superficially well-formed and yet its odr-use may cause a program to be ill-formed. </i>&mdash; end note</i>]</p>
+
+<p>[<i>Example:</i> Given the following definitions:<pre>
+  template &lt;class T&gt; struct S {
+    using type = T[2];
+  };
+
+  struct A {
+    template &lt;class T, class U = void, class V = typename S&lt;U&gt;::type&gt; A (T) {};
+  };
+
+  struct B {
+    template &lt;class T, class U = void, class V = U[2]&gt; B(T) {};
+  };
+  
+  struct C {
+    template &lt;class T&gt; C(T) { static_assert(sizeof(T) == 0); };
+};
+  
+</pre>
+Expression <code>A(1)</code> is deeply ill-formed because an invalid type 'array of type <code>void</code>' is created in a non-immediate context. Expression <code>B(1)</code> is superficially ill-formed because an invalid type 'array of type <code>void</code>' is created in an immediate context. Expression <code>C(1)</code> is superficially well-formed because no invalid type or expression is formed in the process of determining well-formedness. 
+<i>&mdash; end example</i>]</p>
+
+<p>Whenever in this clause it is it is stated that an expression <code>E</code> is superficially well-formed for types <code>Tn</code>, there is an implied precondition that <code>E</code> is deeply well-formed for <code>Tn</code>. If this precondition is not satisfied, the program is ill-formed.</p>
+
+</blockquote>
 </li>
+
+
 
 <li><p>Change 20.13.4.3 [meta.unary.prop], Table 52 &mdash; Type property predicates, as indicated:</p>
 
@@ -117,7 +176,7 @@ struct is_assignable;</tt>
 </td>
 
 <td>
-The expression <tt>declval&lt;T&gt;() = declval&lt;U&gt;()</tt> is <ins>superficially</ins> well-formed <ins>(14.8.2)</ins> when treated
+The expression <tt>declval&lt;T&gt;() = declval&lt;U&gt;()</tt> is <ins>superficially</ins> well-formed when treated
 as an unevaluated operand
 (Clause 5). <del>Access checking
 is performed as if in a
@@ -137,7 +196,7 @@ generation of
 implicitly-defined
 functions, and so on. Such
 side effects are not in the
-“immediate context” and
+immediate context and
 can result in the program
 being ill-formed. <i>&mdash; end
 note</i>]</del>
@@ -165,7 +224,7 @@ struct is_swappable_with;</tt>
 
 <td>
 The expressions <tt>swap(declval&lt;T&gt;(), declval&lt;U&gt;())</tt> and<br/>
-<tt>swap(declval&lt;U&gt;(), declval&lt;T&gt;())</tt> are each <ins>superficially</ins> well-formed <ins>(14.8.2)</ins>
+<tt>swap(declval&lt;U&gt;(), declval&lt;T&gt;())</tt> are each <ins>superficially</ins> well-formed
 when treated as an unevaluated operand (Clause 5) in an overload-resolution<br/>
 context for swappable values (17.6.3.2 [swappable.requirements]). <del>Access<br/> 
 checking is performed as if in a context unrelated to <tt>T</tt> and <tt>U</tt>. Only the<br/> 
@@ -200,7 +259,7 @@ arrays of unknown bound.
 
 <blockquote>
 The predicate condition for a template specialization <code>is_constructible&lt;T, Args...&gt;</code> shall be satisfied if
-and only if the following variable definition would be <ins>superficially</ins> well-formed <ins>(14.8.2)</ins> for some invented variable <code>t</code>:
+and only if the following variable definition would be <ins>superficially</ins> well-formed for some invented variable <code>t</code>:
 
 <pre>  T t(declval&lt;Args&gt;()...);</pre>
 
@@ -208,7 +267,7 @@ and only if the following variable definition would be <ins>superficially</ins> 
 performed as if in a context unrelated to <code>T</code> and any of the <code>Args</code>. Only the validity of the immediate context
 of the variable initialization is considered. [<i>Note:</i> The evaluation of the initialization can result in side
 effects such as the instantiation of class template specializations and function template specializations, the
-generation of implicitly-defined functions, and so on. Such side effects are not in the “immediate context”
+generation of implicitly-defined functions, and so on. Such side effects are not in the immediate context
 and can result in the program being ill-formed. <i>&mdash; end note</i>]</del>
 </blockquote>
 </li>
@@ -217,7 +276,7 @@ and can result in the program being ill-formed. <i>&mdash; end note</i>]</del>
 
 <blockquote>
 The predicate condition for a template specialization <code>is_convertible&lt;From, To&gt;</code> shall be satisfied if
-and only if the return expression in the following code would be <ins>superficially</ins> well-formed <ins>(14.8.2)</ins>, including any implicit conversions
+and only if the return expression in the following code would be <ins>superficially</ins> well-formed, including any implicit conversions
 to the return type of the function:
 
 <pre>
@@ -230,7 +289,7 @@ types. <i>&mdash; end note</i>]
 <del>Access checking is performed as if in a context unrelated to <code>T</code> and any of the <code>Args</code>. Only the validity of the immediate context
 of the variable initialization is considered. [<i>Note:</i> The evaluation of the initialization can result in side
 effects such as the instantiation of class template specializations and function template specializations, the
-generation of implicitly-defined functions, and so on. Such side effects are not in the “immediate context”
+generation of implicitly-defined functions, and so on. Such side effects are not in the immediate context
 and can result in the program being ill-formed. <i>&mdash; end note</i>]</del>
 </blockquote>
 </li>
@@ -270,8 +329,7 @@ or arrays of unknown bound.
 <td>
 If the expression
 <code><i>INVOKE</i> (declval&lt;Fn&gt;(),
-declval&lt;ArgTypes&gt;()...)</code> is <ins>superficially</ins> well
-formed <ins>(14.8.2)</ins> when treated as an unevaluated
+declval&lt;ArgTypes&gt;()...)</code> is <ins>superficially</ins> well<ins>-</ins>formed when treated as an unevaluated
 operand (Clause 5), the member
 typedef <code>type</code> shall name the type
 <code>decltype(<i>INVOKE</i> (declval&lt;Fn&gt;(),
@@ -288,7 +346,7 @@ template specializations and function
 template specializations, the
 generation of implicitly-defined
 functions, and so on. Such side effects
-are not in the “immediate context”
+are not in the immediate context
 and can result in the program being
 ill-formed. <i>&mdash; end note</i>]</del>
 </td>
