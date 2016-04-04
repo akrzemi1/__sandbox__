@@ -1,0 +1,342 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+<title>Defining "immediate context"</title>
+
+<style type="text/css">
+  p {text-align:justify}
+  ins {background-color:#A0FFA0}
+  ins > ul > li {
+    background-color:#A0FFA0;
+    list-style-type: none;
+    margin-left: -0.5em;
+    padding-left: 0.5em;
+  }
+  ins > ul > li:before {
+    display: inline-block; 
+    content: "—";
+    width: 1em;
+    margin-left: -0.5em;
+    margin-right: 0.5em;
+  }
+  del {background-color:#FFA0A0}
+  blockquote.note
+  {
+   background-color:#E0E0E0;
+   padding-left: 15px;
+   padding-right: 15px;
+   padding-top: 1px;
+   padding-bottom: 1px;
+  }
+</style>
+</head><body>
+<address style="text-align: left;">
+Document number: XXXXXX<br/>
+Date: YYYY-MM-DD<br/>
+Project: Programming Language C++<br/>
+Audience: Core Language Working Group<br/>
+
+Reply-to: <a href="mailto:akrzemi1@gmail.com">Andrzej Krzemienski</a>
+</address>
+<hr>
+
+<h1 style="text-align: center;">Defining "immediate context"</h1>
+
+<h2>Proposed wording</h2>
+
+<p>(Relative to n4582.)</p>
+
+<ol>
+
+<li>In 14.8.2 [temp.deduct] change paragraph 8 as indicated:
+
+<blockquote>
+<ins>A type or an expression <code>E</code> is said to be in a <em>remote context</em> of the function type and its template parameter types, when:
+<ul>
+<li>a class template specialization is instantiated in the process of substitution, and <code>E</code> is a member thereof, or</li>
+<li>a function template specialization is instantiated in the process of substitution, and <code>E</code> occurs in its definition, or</li>
+<li>an implicitly-defined non-deleted function is generated in the process of substitution, and <code>E</code> occurs in its definition.</li>
+</ul>
+
+</ins>
+<del>If a substitution results in an invalid type or expression, type deduction fails.</del> An invalid type or expression is
+one that would be ill-formed, with a diagnostic required, if written using the substituted arguments. [<i>Note</i>:
+If no diagnostic is required, the program is still ill-formed. <del>Access checking is done as part of the substitution
+process.</del> &mdash; <i>end note</i>] <del>Only invalid types and expressions in the immediate context of the function type and
+its template parameter types can result in a deduction failure. [<i>Note</i>: The evaluation of the substituted
+types and expressions can result in side effects such as the instantiation of class template specializations
+and/or function template specializations, the generation of implicitly-defined functions, etc. Such side effects
+are not in the “immediate context” and can result in the program being ill-formed. &mdash; <i>end note</i>]</del>
+
+<ins>If a substitution results in an invalid type or expression in a remote context, the program is ill-formed. 
+If a substitution results in an invalid type or expression in a non-remote context, type deduction fails.
+ Access checking is done as part of the substitution process, in the context unrelated to the types of sub-expressions of <code>E</code>.</ins>
+<br><br />
+<ins>An expressions <code>X</code> is said to be <em>superficially well-formed</em> when its substitution ends in type deduction success.
+ [<i>Note</i>: An expression may be determined to be superficially well-formed and yet its odr-use may cause a program to be ill-formed. &mdash; <i>end note</i>] </ins>
+
+<br />
+[<i>Example</i>:<pre>
+  struct X { };
+  struct Y {
+    Y(X){}
+  };
+
+  template &lt;class T&gt; auto f(T t1, T t2) -> decltype(t1 + t2); <i>// #1</i>
+  X f(Y, Y); <i>// #2</i>
+  X x1, x2;
+  
+  X x3 = f(x1, x2); <i>// deduction fails on #1 (cannot add X+X), calls #2</i>
+</pre>&mdash; <i>end example</i>]
+</blockquote>
+</li>
+
+<li><p>Change 20.13.4.3 [meta.unary.prop], Table 52 &mdash; Type property predicates, as indicated:</p>
+
+<blockquote>
+<table border="1">
+<caption>Table 52 &mdash; Type property predicates</caption>
+<tr>
+<th align="center">Template</th>
+<th align="center">Condition</th>
+<th align="center">Preconditions</th>
+</tr>
+
+<tr>
+<td colspan="3" align="center">
+<tt>&hellip;</tt>
+</td>
+</tr>
+
+<tr>
+<td>
+<tt>template&nbsp;&lt;class&nbsp;T,&nbsp;class&nbsp;U&gt;<br/>
+struct is_assignable;</tt>
+</td>
+
+<td>
+The expression <tt>declval&lt;T&gt;() = declval&lt;U&gt;()</tt> is <ins>superficially</ins> well-formed <ins>(14.8.2)</ins> when treated
+as an unevaluated operand
+(Clause 5). <del>Access checking
+is performed as if in a
+context unrelated to T and
+U. Only the validity of the
+immediate context of the
+assignment expression is
+considered. [<i>Note:</i> The
+compilation of the
+expression can result in
+side effects such as the
+instantiation of class
+template specializations
+and function template
+specializations, the
+generation of
+implicitly-defined
+functions, and so on. Such
+side effects are not in the
+“immediate context” and
+can result in the program
+being ill-formed. <i>&mdash; end
+note</i>]</del>
+</td>
+
+<td>
+<tt>T</tt> and <tt>U</tt> shall be complete types,<br/> 
+(possibly <i>cv</i>-qualified) <tt>void</tt>, or<br/>
+arrays of unknown bound.
+</td>
+</tr>
+
+<tr>
+<td colspan="3" align="center">
+<tt>&hellip;</tt>
+</td>
+</tr>
+
+
+<tr>
+<td>
+<tt>template&nbsp;&lt;class&nbsp;T,&nbsp;class&nbsp;U&gt;<br/>
+struct is_swappable_with;</tt>
+</td>
+
+<td>
+The expressions <tt>swap(declval&lt;T&gt;(), declval&lt;U&gt;())</tt> and<br/>
+<tt>swap(declval&lt;U&gt;(), declval&lt;T&gt;())</tt> are each <ins>superficially</ins> well-formed <ins>(14.8.2)</ins>
+when treated as an unevaluated operand (Clause 5) in an overload-resolution<br/>
+context for swappable values (17.6.3.2 [swappable.requirements]). <del>Access<br/> 
+checking is performed as if in a context unrelated to <tt>T</tt> and <tt>U</tt>. Only the<br/> 
+validity of the immediate context of the <tt>swap</tt> expressions is considered.<br/>
+[<i>Note</i>: The compilation of the expressions can result in side effects such<br/>
+as the instantiation of class template specializations and function template<br/>
+specializations, the generation of implicitly-defined functions, and so on. Such<br/>
+side effects are not in the "immediate context" and can result in the program<br/>
+being ill-formed. &mdash; <i>end note</i>]</del>
+</td>
+
+<td>
+<tt>T</tt> and <tt>U</tt> shall be complete types,<br/> 
+(possibly <i>cv</i>-qualified) <tt>void</tt>, or<br/>
+arrays of unknown bound.
+</td>
+</tr>
+
+<tr>
+<td colspan="3" align="center">
+<tt>&hellip;</tt>
+</td>
+</tr>
+
+
+</table>
+</blockquote>
+
+</li>
+
+<li><p>In 20.13.4.3 [meta.unary.prop] change paragraph 8 as indicated:</p>
+
+<blockquote>
+The predicate condition for a template specialization <code>is_constructible&lt;T, Args...&gt;</code> shall be satisfied if
+and only if the following variable definition would be <ins>superficially</ins> well-formed <ins>(14.8.2)</ins> for some invented variable <code>t</code>:
+
+<pre>  T t(declval&lt;Args&gt;()...);</pre>
+
+[<i>Note:</i> These tokens are never interpreted as a function declaration. <i>&mdash; end note</i>] <del>Access checking is
+performed as if in a context unrelated to <code>T</code> and any of the <code>Args</code>. Only the validity of the immediate context
+of the variable initialization is considered. [<i>Note:</i> The evaluation of the initialization can result in side
+effects such as the instantiation of class template specializations and function template specializations, the
+generation of implicitly-defined functions, and so on. Such side effects are not in the “immediate context”
+and can result in the program being ill-formed. <i>&mdash; end note</i>]</del>
+</blockquote>
+</li>
+
+<li><p>In 20.13.6 [meta.rel] change paragraph 5 as indicated:</p>
+
+<blockquote>
+The predicate condition for a template specialization <code>is_convertible&lt;From, To&gt;</code> shall be satisfied if
+and only if the return expression in the following code would be <ins>superficially</ins> well-formed <ins>(14.8.2)</ins>, including any implicit conversions
+to the return type of the function:
+
+<pre>
+  To test() {
+    return declval&lt;From&gt;();
+  }</pre>
+
+[<i>Note:</i> This requirement gives well defined results for reference types, void types, array types, and function
+types. <i>&mdash; end note</i>]
+<del>Access checking is performed as if in a context unrelated to <code>T</code> and any of the <code>Args</code>. Only the validity of the immediate context
+of the variable initialization is considered. [<i>Note:</i> The evaluation of the initialization can result in side
+effects such as the instantiation of class template specializations and function template specializations, the
+generation of implicitly-defined functions, and so on. Such side effects are not in the “immediate context”
+and can result in the program being ill-formed. <i>&mdash; end note</i>]</del>
+</blockquote>
+</li>
+
+<li><p>Change 20.13.7.6 [meta.trans.other], Table 60 &mdash; Other transformations, as indicated:</p>
+
+<blockquote>
+<table border="1">
+<caption>Table 52 &mdash; Type property predicates</caption>
+<tr>
+<th align="center">Template</th>
+<th align="center">Condition</th>
+<th align="center">Comments</th>
+</tr>
+
+<tr>
+<td colspan="3" align="center">
+<tt>&hellip;</tt>
+</td>
+</tr>
+
+<tr>
+<td>
+<tt>template &lt;class Fn,<br />
+class... ArgTypes&gt; struct<br />
+result_of&lt;Fn(ArgTypes...)&gt;;</tt>
+</td>
+
+<td>
+<code>Fn</code> and all types in the
+parameter pack <code>ArgTypes</code>
+shall be complete types,
+(possibly cv-qualified) <code>void</code>,
+or arrays of unknown bound.
+</td>
+
+<td>
+If the expression
+<code><i>INVOKE</i> (declval&lt;Fn&gt;(),
+declval&lt;ArgTypes&gt;()...)</code> is <ins>superficially</ins> well
+formed <ins>(14.8.2)</ins> when treated as an unevaluated
+operand (Clause 5), the member
+typedef <code>type</code> shall name the type
+<code>decltype(<i>INVOKE</i> (declval&lt;Fn&gt;(),
+declval&lt;ArgTypes&gt;()...))</code>;
+otherwise, there shall be no member
+<code>type</code>. <del>Access checking is performed as
+if in a context unrelated to <code>Fn</code> and
+<code>ArgTypes</code>. Only the validity of the
+immediate context of the expression is
+considered. [<i>Note:</i> The compilation of
+the expression can result in side effects
+such as the instantiation of class
+template specializations and function
+template specializations, the
+generation of implicitly-defined
+functions, and so on. Such side effects
+are not in the “immediate context”
+and can result in the program being
+ill-formed. <i>&mdash; end note</i>]</del>
+</td>
+</tr>
+
+<tr>
+<td colspan="3" align="center">
+<tt>&hellip;</tt>
+</td>
+</tr>
+
+
+
+
+</table>
+</blockquote>
+
+</li>
+
+</ol> <!-- end of the list of changes-->
+
+
+<!--<ol>
+
+
+
+<li><p>Change 20.10.4.3 [meta.unary.prop], Table 49 &mdash; "Type property predicates", as indicated:</p>
+
+<blockquote class="note">
+<p>
+[<i>Drafting notes</i>:
+</p> 
+<ol>
+<li><p>
+The term <i>referenceable type</i>, referred to below, is defined in 17.3.19 [defns.referenceable].</p></li>
+<li><p>The specification below allows, but does not require, that an implementation defines the traits
+<tt>is_swappable</tt> and <tt>is_nothrow_swappable</tt>, respectively, in terms of the implementation details of the 
+more general traits <tt>is_swappable_with</tt> and <tt>is_nothrow_swappable_with</tt>, respectively.</p></li>
+</ol>
+<p>
+&mdash; <i>end drafting notes</i>]
+</p>
+</blockquote>
+
+
+
+</li>
+
+</ol>-->
+
+</body></html>
