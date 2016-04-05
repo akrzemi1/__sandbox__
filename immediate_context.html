@@ -56,6 +56,38 @@ Reply-to: <a href="mailto:akrzemi1@gmail.com">Andrzej Krzemienski</a>
 
 <h1 style="text-align: center;">Defining "immediate context"</h1>
 
+This ppaper proposes no changest to the language (or the Standard Library). It only offers a wording that clarifies two things:
+<ol>
+<li>How deleted functions are treated in SFINAE contexts.</li>
+<li>What constitutes the "immediate context" during stemplate argument substitution.</li>
+</ol>
+
+Additionally, it provides a brief and formal term "superficially well-formed" as a replacement for long
+repetitive and non-normative explanations in Clause 20.13, like 
+
+<blockquote>"Access checking
+is performed as if in a
+context unrelated to <code>T</code> and
+<code>U</code>. Only the validity of the
+immediate context of the
+assignment expression is
+considered. [<i>Note:</i> The
+compilation of the
+expression can result in
+side effects such as the
+instantiation of class
+template specializations
+and function template
+specializations, the
+generation of
+implicitly-defined
+functions, and so on. Such
+side effects are not in the
+&ldquo;immediate context&rdquo; and
+can result in the program
+being ill-formed. <i>&mdash; end
+note</i>]" </blockquote>
+
 <h2>Proposed wording</h2>
 
 <p>(Relative to N4582.)</p>
@@ -203,8 +235,8 @@ The expression <tt>declval&lt;T&gt;() = declval&lt;U&gt;()</tt> is <ins>superfic
 as an unevaluated operand
 (Clause 5). <del>Access checking
 is performed as if in a
-context unrelated to T and
-U. Only the validity of the
+context unrelated to <code>T</code> and
+<code>U</code>. Only the validity of the
 immediate context of the
 assignment expression is
 considered. [<i>Note:</i> The
@@ -219,7 +251,7 @@ generation of
 implicitly-defined
 functions, and so on. Such
 side effects are not in the
-immediate context and
+&ldquo;immediate context&rdquo; and
 can result in the program
 being ill-formed. <i>&mdash; end
 note</i>]</del>
