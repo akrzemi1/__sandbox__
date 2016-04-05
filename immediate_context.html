@@ -122,7 +122,7 @@ If a substitution results in an invalid type or expression in a non-remote conte
 
 <p>An expression <code>E</code> is <em>deeply ill-formed</em> for types <code>Tn</code> when instantiaing <code>E</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the non-immediate context of <code>E</code> to be invalid, or if it would resut in exceeding one of the implementation-defined limits. An expression <code>E</code> is <em>deeply well-formed</em> when it is not hadly ill-formed.</p>
 
-<p>An expression <code>E</code> is <em>superficially ill-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code> and when instantiaing <code>E</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the immediate context of <code>E</code> to be invalid. An expression <code>E</code> is <em>superficially well-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code>, and it is not superficially ill-formed for <code>Tn</code>. [<i>Note:</i> An expression may be determined to be superficially well-formed and yet its odr-use may cause a program to be ill-formed. </i>&mdash; end note</i>]</p>
+<p>An expression <code>E</code> is <em>superficially ill-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code> and when instantiaing <code>E</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the immediate context of <code>E</code> to be invalid. An expression <code>E</code> is <em>superficially well-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code>, and it is not superficially ill-formed for <code>Tn</code>. Determining that an expression is superficially ill-formed does not make the program ill-formed. [<i>Note:</i> An expression may be determined to be superficially well-formed and yet its odr-use may cause a program to be ill-formed. </i>&mdash; end note</i>]</p>
 
 <p>[<i>Example:</i> Given the following definitions:<pre>
   template &lt;class T&gt; struct S {
@@ -155,7 +155,7 @@ Expression <code>a(1)</code> is deeply ill-formed because an invalid type 'array
                  //  when considering overload #2; overload #1 is selected</i>
 </pre><i>&mdash; end example</i>]</p>
 
-<p>Whenever in this clause it is it is stated that an expression <code>E</code> is superficially well-formed for types <code>Tn</code>, there is an implied precondition that <code>E</code> is deeply well-formed for <code>Tn</code>. If this precondition is not satisfied, the program is ill-formed. Determining that an expression is superficially ill-formed does not make the program ill-formed.</p>
+<p>Whenever in this clause it is it is stated that an expression <code>E</code> is superficially well-formed for types <code>Tn</code>, there is an implied precondition that <code>E</code> is deeply well-formed for <code>Tn</code>. If this precondition is not satisfied, the program is ill-formed.</p>
 
 </blockquote>
 </li>
