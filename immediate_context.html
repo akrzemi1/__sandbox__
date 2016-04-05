@@ -145,7 +145,7 @@ Expression <code>f(1)</code> is deeply ill-formed because an invalid type 'array
   auto is_even = [](auto v) { return v % 2 == 0; };
   auto is_odd  = [](auto v) -> decltype(v % 2 == 1) { return v % 2 == 1; };
 </pre>
-Expression <code>is_even(nullptr)</code> is deeply ill-formed because an invalid expression <code>nullptr % 2 == 0</code> is created while instantiating the body of a function template specialization, which is a non-immediate context. Expression <code>is_odd(nullptr)</code> is superficially ill-formed because an invalid expression <code>nullptr % 2 == 1</code> is created in an immediate context.
+Expression <code>is_even(nullptr)</code> is deeply ill-formed because an invalid expression <code>nullptr % 2 == 0</code> is created while instantiating the body of a function template specialization (for the purpose of determining its return type), which is a non-immediate context. Expression <code>is_odd(nullptr)</code> is superficially ill-formed because an invalid expression <code>nullptr % 2 == 1</code> is created in an immediate context.
 <i>&mdash; end example</i>]</p>
 
 <p>[<i>Example:</i> Given the following definitions:
