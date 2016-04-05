@@ -105,6 +105,17 @@ If a substitution results in an invalid type or expression in a non-remote conte
 </blockquote>
 </li>-->
 
+<li><p>In 8.4.3 [dcl.fct.def.delete] change paragraph 2 as indicated:</p>
+
+<blockquote>A program that refers to a deleted function implicitly or explicitly, other than to declare it, is ill-formed.
+[<i>Note:</i> This includes calling the function implicitly or explicitly and forming a pointer or pointer-to-member
+to the function. It applies even for references in expressions that are not potentially-evaluated. If a function
+is overloaded, it is referenced only if the function is selected by overload resolution. The implicit odr-use (3.2)
+of a virtual function does not, by itself, constitute a reference. <i>&mdash;end note</i>]
+<ins>[<i>Note:</i> Making a program ill-formed in the context of template argument substitiution during the overload resolution process (14.8.2)
+ or while determining if an expression is superficially well-formed (20.13) has special meaning and may not in fact result in the program being ill-formed. <i>&mdash;end note</i>]</ins></blockquote>
+</li>
+
 <li><p>Insert somewere at the beginning of 20.13 [meta] the following:</p>
 
 <blockquote>
@@ -118,7 +129,7 @@ If a substitution results in an invalid type or expression in a non-remote conte
 </ul>
 </p>
 
-<p>A type or an expression <code>X</code> is said to be <em>invalid</em> if it would be ill-formed, with a diagnostic required, if expression <code>E</code> were instantiated with arguments <code>Tn</code>. Access checking is performed as if in a context unrelated to any of types <code>Tn</code>.</p>
+<p>A type or an expression <code>X</code> is said to be <em>invalid</em> if forming it, during the instantiation of expression <code>E</code> with arguments <code>Tn</code>, would make the program ill-formed, with a diagnostic required. Access checking is performed as if in a context unrelated to any of types <code>Tn</code>.</p>
 
 <p>An expression <code>E</code> is <em>deeply ill-formed</em> for types <code>Tn</code> when instantiaing <code>E</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the non-immediate context of <code>E</code> to be invalid, or if it would resut in exceeding one of the implementation-defined limits. An expression <code>E</code> is <em>deeply well-formed</em> when it is not hadly ill-formed.</p>
 
