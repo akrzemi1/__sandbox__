@@ -157,7 +157,7 @@ Expression <code>is_even(nullptr)</code> is deeply ill-formed because an invalid
 Type <code>XT&lt;int&gt;</code> is superficially ill-formed because an invalid type <code>X&lt;int&gt;::type</code> is formed inside an alias template, which is an immediate context.
 <i>&mdash; end example</i>]</p>
 
-<p>Whenever in this clause it is it is stated that an expression <code>E</code> is superficially well-formed for types <code>Tn</code>, there is an implied precondition that <code>E</code> is deeply well-formed for <code>Tn</code>. If this precondition is not satisfied, the program is ill-formed.</p>
+<p>Whenever in this clause it is stated that an expression <code>E</code> is superficially well-formed for types <code>Tn</code>, there is an implied precondition that <code>E</code> is deeply well-formed for <code>Tn</code>. If this precondition is not satisfied, the program is ill-formed.</p>
 
 </blockquote>
 </li>
@@ -357,7 +357,7 @@ such as the instantiation of class
 template specializations and function
 template specializations, the
 generation of implicitly-defined
-functions, and so on. Such side effects
+functions, and so on. Such side effectsit is it 
 are not in the immediate context
 and can result in the program being
 ill-formed. <i>&mdash; end note</i>]</del>
