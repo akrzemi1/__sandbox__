@@ -130,16 +130,16 @@ If a substitution results in an invalid type or expression in a non-remote conte
   };
 
   template &lt;class T, class U = void, class V = typename S&lt;U&gt;::type&gt;
-    auto a(T) -&gt; V&;
+    auto f(T) -&gt; V&amp;;
 
   template &lt;class T, class U = void, class V = U[2]&gt;
-    auto b(T) -&gt; V&;
+    auto g(T) -&gt; V&amp;;
 
   template &lt;class T&gt; 
-    void c(T) { static_assert(sizeof(T) == 0, ""); }
+    void h(T) { static_assert(sizeof(T) == 0); }
   
 </pre>
-Expression <code>a(1)</code> is deeply ill-formed because an invalid type 'array of type <code>void</code>' is created in a non-immediate context. Expression <code>b(1)</code> is superficially ill-formed because an invalid type 'array of type <code>void</code>' is created in an immediate context. Expression <code>c(1)</code> is superficially well-formed because no invalid type or expression is formed in the process of determining well-formedness. 
+Expression <code>f(1)</code> is deeply ill-formed because an invalid type 'array of type <code>void</code>' is created in a non-immediate context. Expression <code>g(1)</code> is superficially ill-formed because an invalid type 'array of type <code>void</code>' is created in an immediate context. Expression <code>h(1)</code> is superficially well-formed because no invalid type or expression is formed in the process of determining well-formedness. 
 <i>&mdash; end example</i>]</p>
 
 <p>[<i>Example:</i> <pre>
