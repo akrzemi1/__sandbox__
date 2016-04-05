@@ -56,10 +56,11 @@ Reply-to: <a href="mailto:akrzemi1@gmail.com">Andrzej Krzemienski</a>
 
 <h1 style="text-align: center;">Deleted functions in template argument substitution</h1>
 
-This paper proposes no changes to the language (or the Standard Library). It only offers a wording that clarifies two things:
+This paper proposes no changes to the language (or the Standard Library). It only offers a wording that clarifies a couple of  things:
 <ol>
 <li>How deleted functions are treated in SFINAE contexts.</li>
 <li>What constitutes the "immediate context" during stemplate argument substitution.</li>
+<li>When can a template be instantiated during the substitution.</li>
 </ol>
 
 Additionally, it provides a brief and formal term "superficially well-formed" as a replacement for long
@@ -159,6 +160,8 @@ of a virtual function does not, by itself, constitute a reference. <i>&mdash;end
 <li>an implicitly-defined non-deleted function is generated and <code>X</code> occurs in the definition thereof.</li>
 </ul>
 </p>
+
+<p>The process of determining the well-formedness of a type or expression <code>E</code> may instantiate a class template specialization if and only if this specialization must be used to determine the validity of a type or subexpression of <code>E</code>, in a way that requires the class type to be complete (3.2). Similarly, the process of determining the well-formedness of a type or expression <code>E</code> may instantiate a function template specialization if and only if it needs to deduce the function's return type from its definition (7.1.6.4).</p>
 
 <p>A type or an expression <code>X</code> is said to be <em>invalid</em> if forming it, during the instantiation of expression <code>E</code> with arguments <code>Tn</code>, would make the program ill-formed, with a diagnostic required. Access checking is performed as if in a context unrelated to any of types <code>Tn</code>.</p>
 
