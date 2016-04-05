@@ -3,7 +3,7 @@
 
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 
-<title>Defining "immediate context"</title>
+<title>Deleted functions in template argument substitution</title>
 
 <style type="text/css">
   p {text-align:justify}
@@ -54,9 +54,9 @@ Reply-to: <a href="mailto:akrzemi1@gmail.com">Andrzej Krzemienski</a>
 </address>
 <hr>
 
-<h1 style="text-align: center;">Defining "immediate context"</h1>
+<h1 style="text-align: center;">Deleted functions in template argument substitution</h1>
 
-This ppaper proposes no changest to the language (or the Standard Library). It only offers a wording that clarifies two things:
+This paper proposes no changes to the language (or the Standard Library). It only offers a wording that clarifies two things:
 <ol>
 <li>How deleted functions are treated in SFINAE contexts.</li>
 <li>What constitutes the "immediate context" during stemplate argument substitution.</li>
@@ -144,8 +144,7 @@ If a substitution results in an invalid type or expression in a non-remote conte
 to the function. It applies even for references in expressions that are not potentially-evaluated. If a function
 is overloaded, it is referenced only if the function is selected by overload resolution. The implicit odr-use (3.2)
 of a virtual function does not, by itself, constitute a reference. <i>&mdash;end note</i>]
-<ins>[<i>Note:</i> Making a program ill-formed in the context of template argument substitiution during the overload resolution process (14.8.2)
- or while determining if an expression is superficially well-formed (20.13) has special meaning and may not in fact result in the program being ill-formed. <i>&mdash;end note</i>]</ins></blockquote>
+<ins>[<i>Note:</i> Making a program ill-formed while determining if an expression is superficially well-formed (20.13) has special meaning and may not in fact result in the program being ill-formed. <i>&mdash;end note</i>]</ins></blockquote>
 </li>
 
 <li><p>Insert somewere at the beginning of 20.13 [meta] the following:</p>
@@ -163,7 +162,7 @@ of a virtual function does not, by itself, constitute a reference. <i>&mdash;end
 
 <p>A type or an expression <code>X</code> is said to be <em>invalid</em> if forming it, during the instantiation of expression <code>E</code> with arguments <code>Tn</code>, would make the program ill-formed, with a diagnostic required. Access checking is performed as if in a context unrelated to any of types <code>Tn</code>.</p>
 
-<p>An expression <code>E</code> is <em>deeply ill-formed</em> for types <code>Tn</code> when instantiaing <code>E</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the non-immediate context of <code>E</code> to be invalid, or if it would resut in exceeding one of the implementation-defined limits. An expression <code>E</code> is <em>deeply well-formed</em> when it is not hadly ill-formed.</p>
+<p>An expression <code>E</code> is <em>deeply ill-formed</em> for types <code>Tn</code> when instantiaing <code>E</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the non-immediate context of <code>E</code> to be invalid, or if it would resut in exceeding one of the implementation-defined limits. An expression <code>E</code> is <em>deeply well-formed</em> when it is not deeply ill-formed.</p>
 
 <p>An expression <code>E</code> is <em>superficially ill-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code> and when instantiaing <code>E</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the immediate context of <code>E</code> to be invalid. An expression <code>E</code> is <em>superficially well-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code>, and it is not superficially ill-formed for <code>Tn</code>. Determining that an expression is superficially ill-formed does not make the program ill-formed. [<i>Note:</i> An expression may be determined to be superficially well-formed and yet its odr-use may cause a program to be ill-formed. </i>&mdash; end note</i>]</p>
 
@@ -198,6 +197,15 @@ Expression <code>is_even(nullptr)</code> is deeply ill-formed because an invalid
     using XT = typename X&lt;T&gt;::type;
 </pre>
 Type <code>XT&lt;int&gt;</code> is superficially ill-formed because an invalid type <code>X&lt;int&gt;::type</code> would be formed inside an alias template, which is an immediate context.
+<i>&mdash; end example</i>]</p>
+
+<p>[<i>Example:</i> Given the following definition:
+<pre>  struct S {
+    C(int);
+    C(double) = delete;
+  };
+</pre>
+Expression <code>C(0.5)</code> is superficially ill-formed because it is in immediate the context and it would cause the program to be ill-formed.
 <i>&mdash; end example</i>]</p>
 
 <p>Whenever in this clause it is stated that an expression <code>E</code> is superficially well-formed for types <code>Tn</code>, there is an implied precondition that <code>E</code> is deeply well-formed for <code>Tn</code>. If this precondition is not satisfied, the program is ill-formed.</p>
@@ -451,5 +459,9 @@ more general traits <tt>is_swappable_with</tt> and <tt>is_nothrow_swappable_with
 </li>
 
 </ol>-->
+
+<h2>Acknowledgements</h2>
+
+I am greatful to Tomasz Kami&#324;ski for helping me out with the wording, and clarifying the details of type deduction.
 
 </body></html>
