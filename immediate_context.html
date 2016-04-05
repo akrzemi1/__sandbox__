@@ -137,23 +137,25 @@ If a substitution results in an invalid type or expression in a non-remote conte
 
   template &lt;class T&gt; 
     void h(T) { static_assert(sizeof(T) == 0); }
-  
 </pre>
-Expression <code>f(1)</code> is deeply ill-formed because an invalid type 'array of type <code>void</code>' is created in a non-immediate context. Expression <code>g(1)</code> is superficially ill-formed because an invalid type 'array of type <code>void</code>' is created in an immediate context. Expression <code>h(1)</code> is superficially well-formed because no invalid type or expression is formed in the process of determining well-formedness. 
+Expression <code>f(1)</code> is deeply ill-formed because an invalid type 'array of type <code>void</code>' is created while instantiating the body of a class template specialization, which is a non-immediate context. Expression <code>g(1)</code> is superficially ill-formed because an invalid type 'array of type <code>void</code>' is created in an immediate context. Expression <code>h(1)</code> is superficially well-formed because no invalid type or expression is formed in the process of determining well-formedness.
 <i>&mdash; end example</i>]</p>
 
-<p>[<i>Example:</i> <pre>
-  bool eval( bool(*)(int) );    <i>// #1 </i>
-  bool eval( bool(*)(string) ); <i>// #2 </i>
-  
+<p>[<i>Example:</i> Given the following definitions:<pre>
   auto is_even = [](auto v) { return v % 2 == 0; };
   auto is_odd  = [](auto v) -> decltype(v % 2 == 1) { return v % 2 == 1; };
+</pre>
+Expression <code>is_even(nullptr)</code> is deeply ill-formed because an invalid expression <code>nullptr % 2 == 0</code> is created while instantiating the body of a function template specialization, which is a non-immediate context. Expression <code>is_odd(nullptr)</code> is superficially ill-formed because an invalid expression <code>nullptr % 2 == 1</code> is created in an immediate context.
+<i>&mdash; end example</i>]</p>
 
-  eval(is_even); <i>// ill-formed: invalid expression <code>v % 2 == 0</code> is in a non-immediate context
-                 //  when considering overload #2</i>
-  eval(is_odd);  <i>// ok: invalid expression <code>v % 2 == 1</code> in an immediate context
-                 //  when considering overload #2; overload #1 is selected</i>
-</pre><i>&mdash; end example</i>]</p>
+<p>[<i>Example:</i> Given the following definitions:
+<pre>  template &lt;class T&gt; struct X {};
+  
+  template &lt;typename T>
+    using XT = typename X&lt;T&gt;::type;
+</pre>
+Type <code>XT&lt;int&gt;</code> is superficially ill-formed because an invalid type <code>X&lt;int&gt;::type</code> is formed inside an alias template, which is an immediate context.
+<i>&mdash; end example</i>]</p>
 
 <p>Whenever in this clause it is it is stated that an expression <code>E</code> is superficially well-formed for types <code>Tn</code>, there is an implied precondition that <code>E</code> is deeply well-formed for <code>Tn</code>. If this precondition is not satisfied, the program is ill-formed.</p>
 
