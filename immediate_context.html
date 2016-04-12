@@ -221,7 +221,7 @@ Type <code>XT&lt;int&gt;</code> is superficially ill-formed because an invalid t
     C(double) = delete;
   };
 </pre>
-Expression <code>C(0.5)</code> is superficially ill-formed because it is in immediate the context and it would cause the program to be ill-formed.
+Expression <code>C(0.5)</code> is superficially ill-formed because the call to a deleted function is in the immediate the context of the expression and it would cause the program to be ill-formed.
 <i>&mdash; end example</i>]</p>
 
 <p>Whenever in this clause it is stated that a program construct <code>P</code> is superficially well-formed for types <code>Tn</code>, there is an implied precondition that <code>P</code> is deeply well-formed for <code>Tn</code>. If this precondition is not satisfied, the program is ill-formed.</p>
