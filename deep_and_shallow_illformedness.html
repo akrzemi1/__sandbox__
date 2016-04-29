@@ -103,6 +103,31 @@ failues in overload resolution and superficial well-formedness get turned into c
 It is confusing to see "if X happens program is ill-formed; if program is ill-formed, it is fine and we return <code>true</code> and it is back well formed.</p>
 
 <p>Are invalid types/expressions resolved in a particular order? Can this order affect whether a language construct is "deeply" or "superficially" ill-formed?</p> 
+
+<p>In case one overload is an ideal match, shall the implementation inspect other overloads? Or shall is mandatorily refrain from inspecting others?
+Or can it choose if and which of other overloads to inspect (substitute parameters)? </p>
+
+<p>Is the following supposed to be deep or shallow or implementation-defined?</p>
+
+<pre>template &lt;typename T&gt;
+constexpr T var = 5; // <em>instantiating constexpr variable of non-literal type, deep or shallow?</em>
+
+template &lt;typename T&gt;
+auto f(T&amp; ) -&gt; decltype(var&lt;T&gt;) { 
+    puts("-- 1 --");
+    return {}; 
+}
+
+template &lt;typename T&gt;
+auto f(const T&amp; ) -&gt; size_t { 
+    puts("-- 2 --");
+    return {}; 
+}
+
+int main()
+{
+  f(std::string{});
+}</pre>
 <h2>Proposed wording</h2>
 
 <p>(Relative to N4582.)</p>
