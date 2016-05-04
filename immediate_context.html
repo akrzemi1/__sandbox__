@@ -174,11 +174,25 @@ of a virtual function does not, by itself, constitute a reference. <i>&mdash;end
 </ul>
 </p>
 
-<p>The process of determining the well-formedness of a program construct <code>P</code> may instantiate a class template specialization if and only if this specialization must be used to determine the validity of a type or subexpression of <code>P</code>, in a way that requires the class type to be complete (3.2). Similarly, the process of determining the well-formedness of a program construct <code>P</code> may instantiate a function template specialization if and only if it needs to deduce the function's return type from its definition (7.1.6.4).</p>
+<p>It is unspecified whether an invalid language construct formed while instantiating a variable template (14.5.3)
+specialization, for the purpose of determining a well-formedness of an expression <code>P</code>,
+is in the immediate context of <code>P</code>.</p>
 
-<p>A type or an expression <code>X</code> is said to be <em>invalid</em> if forming it, during the instantiation of a program construct <code>P</code> with arguments <code>Tn</code>, would make the program ill-formed, with a diagnostic required. Access checking is performed as if in a context unrelated to any of types <code>Tn</code>.</p>
+<p>The process of determining the well-formedness of a program construct <code>P</code> may instantiate
+a class template specialization if and only if this specialization must be used to determine the validity
+of a type or subexpression of <code>P</code>, in a way that requires the class type to be complete (3.2).
+Similarly, the process of determining the well-formedness of a program construct <code>P</code> may instantiate
+a function template specialization if and only if it needs to deduce the function's return type from its
+definition (7.1.6.4).</p>
 
-<p>A program construct <code>P</code> is <em>deeply ill-formed</em> for types <code>Tn</code> when instantiaing <code>P</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the non-immediate context of <code>P</code> to be invalid, or if it would resut in exceeding one of the implementation-defined limits. A program construct <code>P</code> is <em>deeply well-formed</em> when it is not deeply ill-formed.</p>
+<p>A type or an expression <code>X</code> is said to be <em>invalid</em> if forming it, during the instantiation
+of a program construct <code>P</code> with arguments <code>Tn</code>, would make the program ill-formed,
+with a diagnostic required. Access checking is performed as if in a context unrelated to any of types <code>Tn</code>.</p>
+
+<p>A program construct <code>P</code> is <em>deeply ill-formed</em> for types <code>Tn</code> when instantiaing <code>P</code>
+with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the non-immediate context of
+<code>P</code> to be invalid, or if it would resut in exceeding one of the implementation-defined limits.
+A program construct <code>P</code> is <em>deeply well-formed</em> when it is not deeply ill-formed.</p>
 
 <p>A program construct <code>P</code> is <em>superficially ill-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code> and when instantiaing <code>P</code> with arguments <code>Tn</code> would cause any subexpression or type <code>X</code> in the immediate context of <code>P</code> to be invalid. A program construct <code>P</code> is <em>superficially well-formed</em> for types <code>Tn</code> when it is deeply well-formed for <code>Tn</code>, and it is not superficially ill-formed for <code>Tn</code>. Determining that an expression is superficially ill-formed does not make the program ill-formed. [<i>Note:</i> An expression may be determined to be superficially well-formed and yet its odr-use may cause a program to be ill-formed. </i>&mdash; end note</i>]</p>
 
