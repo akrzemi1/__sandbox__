@@ -107,8 +107,8 @@ it is fine and we return <code>true</code> and it is back well formed.</p>
 the overload resolution process and skip instantiating some template specializations when they can prove by other means
 that these specializations would be a worse match that other candidates seen so far.</p>
 
-<p>This proposal also does not address what happens when we get an error while instantiating a variable template
-specialization. We note that solving this problem is not essential for providing a useful contract between programmers
+<p>This proposal also does not specify what happens when we get an error while instantiating a variable template
+specialization. We leave it (at least for now) to the implementers. We note that solving this problem is not essential for providing a useful contract between programmers
 and compiler vendors in the form of type traits, and SFINAE in general.</p>
 
 <p>Some tricky constructs using alias templates have not been addressed in this proposal.</p>
