@@ -51,8 +51,8 @@ concept bool Lifetime_manager =
     { cv.representation() } noexcept -> const typename LM::representation_type &;
     { mv.representation() } noexcept ->       typename LM::representation_type &;
   } &&
-  requires(const typename SP::value_type &   cv,
-                 typename SP::value_type &&  rv)
+  requires(const typename LM::value_type &   cv,
+                 typename LM::value_type &&  rv)
   {    
     LM {cv};
     LM {std::move(rv)};
