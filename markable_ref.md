@@ -6,11 +6,11 @@ template <typename MP>
 concept bool Mark_policy =
   requires
   {
-    typename MP::mark_representation_type;
+    typename MP::representation_type;
   } &&
-  requires(const typename MP::mark_representation_type & v)
+  requires(const typename MP::representation_type & v)
   {
-    { MP::marked_value() }              -> typename MP::mark_representation_type;
+    { MP::marked_value() }              -> typename MP::representation_type;
     { MP::is_marked_value(s) } noexcept -> bool;
   };
 ```
@@ -24,38 +24,39 @@ concept bool Storage_policy =
   requires
   {
     typename SP::value_type;
-    typename SP::storage_type;
+    typename SP::representation_type;
     typename SP::reference_type;
   } &&
-  requires(const typename SP::storage_type & s,
-           const typename SP::value_type &   cv,
-                 typename SP::value_type &&  rv)
+  requires(const typename SP::representation_type & s,
+           const typename SP::value_type &          cv,
+                 typename SP::value_type &&         rv)
   {    
     { SP::access_value(s) }             -> typename SP::reference_type;
-    { SP::store_value(cv) }             -> typename SP::storage_type;
-    { SP::store_value(std::move(rv)) }  -> typename SP::storage_type;
+    { SP::store_value(cv) }             -> typename SP::representation_type;
+    { SP::store_value(std::move(rv)) }  -> typename SP::representation_type;
   };
 ```
 
-## Concept `Mark_reinterpret_policy`
+## Concept `Lifetime_manager`
 
 ```c++
-template <typename RP>
-concept bool Mark_reinterpret_policy =
-  requires
+template <typename LM>
+concept bool Lifetime_manager =
+  requires(const LM &  cv, LM &  mv)
   {
-    typename RP::mark_representation_type;
-    typename SP::value_type;
-    typename SP::storage_type;
-    typename SP::reference_type;
+    requires Semiregular<LM>;
+    
+    typename LM::representation_type;
+    typename LM::value_type;
+    
+    { cv.representation() } -> const typename LM::representation_type &;
+    { mv.representation() } ->       typename LM::representation_type &;
   } &&
-  requires(const typename SP::storage_type & s,
-           const typename SP::value_type &   cv,
+  requires(const typename SP::value_type &   cv,
                  typename SP::value_type &&  rv)
   {    
-    { SP::access_value(s) }             -> typename SP::reference_type;
-    { SP::store_value(cv) }             -> typename SP::storage_type;
-    { SP::store_value(std::move(rv)) }  -> typename SP::storage_type;
+    LM {cv};
+    LM {std::move(rv)};
   };
 ```
 
