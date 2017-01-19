@@ -42,10 +42,9 @@ concept bool Storage_policy =
 ```c++
 template <typename LM>
 concept bool Lifetime_manager =
+  Semiregular<LM>() &&
   requires(const LM &  cv, LM &  mv)
   {
-    requires Semiregular<LM>;
-    
     typename LM::representation_type;
     typename LM::value_type;
     
