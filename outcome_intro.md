@@ -6,25 +6,25 @@ namespace outcome = BOOST_OUTCOME_V1_NAMESPACE;
 
 namespace Library1
 {
-  auto fun(std::error_code &) noexcept  // Like the Filesystem and Networking TS,
-    -> int;                             // returns errors via lvalue ref to an error_code.
-}                                       // Never throws exceptions.
+  auto fun(std::error_code &) noexcept     // Like the Filesystem and Networking TS,
+    -> int;                                // returns errors via lvalue ref to an error_code.
+}                                          // Never throws exceptions.
 
 namespace Library2
 {
-  auto fun()                            // Throws some exception on error
+  auto fun()                               // Throws some exception on error
     -> int;
 }
   
-namespace Library3                      // The Expected proposed for standardisation in C++ 20
-{                                       // Returns an int (expected) or some custom error code (unexpected)
-  auto fun() noexcept                   // Never throws exceptions.
+namespace Library3                         // The Expected proposed for standardisation in C++ 20
+{                                          // Returns an int (expected) or some custom 
+  auto fun() noexcept                      // error code (unexpected). Never throws exceptions.
     -> outcome::expected<int, error_code>; 
 }  
   
-namespace Library4                      // Result is an int (not error)
-{                                       //  or an outcome::error_code_extended (error)
-  auto fun() noexcept                   // Never throws exceptions.
+namespace Library4                        // Result is an int (not error)
+{                                         // or an outcome::error_code_extended (error)
+  auto fun() noexcept                     // Never throws exceptions.
     -> outcome::result<int>;
 }
   
@@ -39,21 +39,23 @@ auto my_fun()
     std::error_code ec;
     int i = Library1::fun(ec);
     if (ec)
-      return outcome::make_errored_outcome(ec);  // error code returned inside outcome
+      return outcome::make_errored_outcome(ec);           // error code returned inside outcome
       
     try {
       i += Library2::fun();
     }
     catch(...) {
-      return outcome::make_exceptional_outcome<>(); // exception_ptr returned inside outcome
+      return outcome::make_exceptional_outcome<>();       // exception_ptr returned inside outcome
     }
     
     if (auto rslt1 = Library3::fun())
       i += *rslt1;
     else
-      return outcome::make_errored_outcome(rslt1.error()); // error code stored in outcome
+      return outcome::make_errored_outcome(rslt1.error()); // error code returned inside outcome
    
-    BOOST_OUTCOME_TRY(rslt2, Library4::fun());
+    BOOST_OUTCOME_TRY(rslt2, Library4::fun());             // this may return an outcome with an
+                                                           // erro code, iff the function reports
+                                                           // failure
     return i + rslt2;
   }
   catch(...)
@@ -66,7 +68,7 @@ auto my_fun()
 int test()
 {
   try {
-    int i = my_fun().value();  // throws if not valued
+    int i = my_fun().value();    // throws if not valued
     return i;
   }
   catch(std::exception const& e) {
