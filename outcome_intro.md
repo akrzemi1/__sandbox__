@@ -52,9 +52,9 @@ auto my_fun()
       return outcome::make_errored_outcome(rslt1.error()); // error code returned inside outcome
    
     BOOST_OUTCOME_TRY(rslt2, Library4::fun());             // this may return an outcome with an
-                                                           // erro code, iff the function reports
-                                                           // failure
-    return i + rslt2;
+                                                           // error code, iff fun() reports failure
+
+    return i + rslt2;                                      // return outcome with a value
   }
   catch (...) {
     return outcome::make_exceptional_outcome<>();          // construct from std::current_exception()
