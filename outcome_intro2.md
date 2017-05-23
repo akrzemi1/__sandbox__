@@ -27,7 +27,7 @@ auto read_int_from_file(std::string_view path) noexcept
     
   // 'automated' inspection, error reporting, and value inspection:
    
-  BOOST_OUTCOME_TRY(buffer, read_data(*handle));     // if read_data() succeeds returns an error_code
+  BOOST_OUTCOME_TRY(buffer, read_data(*handle));     // if read_data() returns an error_code
                                                      // it is returned up; otherwise
                                                      // object buffer of type Buffer is move-constructed
   
