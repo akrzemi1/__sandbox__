@@ -1,9 +1,9 @@
 ```c++
 struct Handle; // A RAII-like file handle
-struct Buffer; // for chunk of data
+struct Buffer; // Represents chunk of read data
 
 auto open_file(std::string_view path) noexcept
-  -> outcome::expected<Handle>
+  -> outcome::expected<Handle>                 // returns either a Handle or std::error_code
 {
   if (file_does_not_exist(path))
     return outcome::make_unexpected(std::errc::no_such_file_or_directory);
@@ -11,8 +11,8 @@ auto open_file(std::string_view path) noexcept
   if (system_cannot_open_yet_another_file())
     return outcome::make_unexpected(std::too_many_files_open);
     
-  Handle h {/*...*/}
-  return h;
+  Handle h {/*...*/} // initialize
+  return h;          // convert to outcome::expected<Handle>
 }
 
 auto read_data(Handle& h) noexcept
@@ -25,7 +25,7 @@ auto read_data(Handle& h) noexcept
     return outcome::make_unexpected(std::io_error);
     
   Buffer b {/*...*/} // populate
-  return b;
+  return b;          // outcome::expected<Buffer>
 }
 
 auto read_config_from_file(std::string_view path) noexcept
