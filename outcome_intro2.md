@@ -16,7 +16,7 @@ auto open_file(std::string_view path) noexcept
 }
 
 auto read_data(Handle& h) noexcept
-  -> outcome::expected<Buffer>
+  -> outcome::expected<Buffer>                // returns either a Buffer or std::error_code
 {
   if (invalid_handle(h))
     return outcome::make_unexpected(std::bad_file_descriptor);
