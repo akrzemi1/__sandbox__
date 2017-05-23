@@ -31,12 +31,14 @@ auto read_data(Handle& h) noexcept
 auto read_config_from_file(std::string_view path) noexcept
   -> outcome::expected<Buffer>
 {
-  BOOST_OUTCOME_TRY(handle, open_file(path));   // if open_file() is successful
-                                                // initializes object of type Handle
-                                                // otherwise returns with the same error_code
+  outcome::expected<Handle> handle = open_file(path); // either a Handle or an std::error_code 
+  if (!handle)                                        // open_file() failed?
+    return outcome::make_unexpected(handle.error())   // return the error_code up
     
-  BOOST_OUTCOME_TRY(buffer, read_data(handle));
+  BOOST_OUTCOME_TRY(buffer, read_data(*handle));      // if read_data() succeeds, initialize
+                                                      // object buffer of type Buffer
+                                                      // otherwise return the error_code up
   
-  return buffer;
+  return buffer;                                      // a positive return
 }
 ```
