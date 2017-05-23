@@ -2,7 +2,7 @@
 struct Handle; // A RAII-like file handle
 struct Buffer; // Represents chunk of read data
 
-auto open_file(std::string_view path) noexcept
+auto open_file(string_view path) noexcept
   -> outcome::expected<Handle>;                      // returns either a Handle or std::error_code
 
 auto read_data(Handle& h) noexcept
@@ -11,7 +11,7 @@ auto read_data(Handle& h) noexcept
 auto parse(const Buffer& b) noexcept
   -> outcome::expected<int>;                         // returns either an int or std::error_code
 
-auto read_int_from_file(std::string_view path) noexcept
+auto read_int_from_file(string_view path) noexcept
   -> outcome::expected<int>                          // returns either an int or std::error_code
 {
   // this function implements parse(read_data(open_file(path))) 
@@ -27,7 +27,7 @@ auto read_int_from_file(std::string_view path) noexcept
     
   // 'automated' inspection, error reporting, and value inspection:
    
-  BOOST_OUTCOME_TRY(buffer, read_data(*handle));     // if read_data() returns an error_code
+  BOOST_OUTCOME_TRY(buffer, read_data(handle));     // if read_data() returns an error_code
                                                      // it is returned up; otherwise
                                                      // object buffer of type Buffer is move-constructed
   
@@ -39,6 +39,7 @@ auto read_int_from_file(std::string_view path) noexcept
 
 Compiling version:
 
+```c++
 #include <boost/outcome.hpp>
 #include <experimental/string_view>
 namespace outcome = BOOST_OUTCOME_V1_NAMESPACE;
@@ -84,3 +85,4 @@ auto read_int_from_file(string_view path) noexcept
 }
 
 int main () {}
+```
