@@ -72,7 +72,7 @@ auto read_int_from_file(std::string_view path) noexcept
     return outcome::make_unexpected(rslt.error());   // return the error_code up
   Handle & handle = rslt.value();                    // access the stored value of type Handle
     
-   // 'automated' inspection, error reporting, and value inspection:
+  // 'automated' inspection, error reporting, and value inspection:
    
   BOOST_OUTCOME_TRY(buffer, read_data(*handle));     // if read_data() succeeds returns an error_code
                                                      // it is returned up; otherwise
