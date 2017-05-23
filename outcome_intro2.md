@@ -50,28 +50,30 @@ struct Handle; // A RAII-like file handle
 struct Buffer; // Represents chunk of read data
 
 auto open_file(std::string_view path) noexcept
-  -> outcome::expected<Handle>;                // returns either a Handle or std::error_code
+  -> outcome::expected<Handle>;                       // returns either a Handle or std::error_code
 
 auto read_data(Handle& h) noexcept
-  -> outcome::expected<Buffer>;                // returns either a Buffer or std::error_code
+  -> outcome::expected<Buffer>;                       // returns either a Buffer or std::error_code
 
 auto parse(const Buffer& b) noexcept
-  -> outcome::expected<int>;                // returns either an int or std::error_code
+  -> outcome::expected<int>;                          // returns either an int or std::error_code
 
 auto read_int_from_file(std::string_view path) noexcept
-  -> outcome::expected<int>                    // returns either an int or std::error_code
+  -> outcome::expected<int>                           // returns either an int or std::error_code
 {
-  outcome::expected<Handle> handle = open_file(path); // handle is either a Handle or an std::error_code 
+  // this function implements parse(read_data(open_file(path))) 
+  // plus error handling
   
+  outcome::expected<Handle> handle = open_file(path); // handle is either a Handle or an std::error_code 
   if (!handle)                                        // does handle store an error_code (failure)?
-    return outcome::make_unexpected(handle.error());   // return the error_code up
+    return outcome::make_unexpected(handle.error());  // return the error_code up
     
   BOOST_OUTCOME_TRY(buffer, read_data(*handle));      // if read_data() succeeds returns an error_code
                                                       // it is returned up; otherwise
                                                       // object buffer of type Buffer is move-constructed
   
-  BOOST_OUTCOME_TRY(value, parse(buffer));            // unless this returns, value is of type int
+  BOOST_OUTCOME_TRY(val, parse(buffer));              // unless this returns, value is of type int
   
-  return value;                                       // a positive return
+  return val;                                         // a positive return
 }
 ```
