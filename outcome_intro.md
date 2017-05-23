@@ -30,24 +30,24 @@ auto my_fun() noexcept
   std::error_code ec;
   int i = Library1::fun(ec);
   if (ec)
-    return outcome::make_errored_outcome(ec);           // error code returned inside outcome
+    return outcome::make_errored_outcome(ec);  // error code returned inside outcome
     
-  BOOST_OUTCOME_TRY(rslt2, Library2::fun());            // if fun() succeeds, rslt2 of type int contains result
-                                                        // otherwise returns the result of fun() up   
+  BOOST_OUTCOME_TRY(rslt2, Library2::fun());   // if fun() succeeds, rslt2 of type int contains result
+                                               // otherwise returns the result of fun() up   
                                                           
-  BOOST_OUTCOME_TRY(rslt3, Library3::fun());            // Similarly, either rslt3 is an int with successful result,
-                                                        // or my_fun() returns what Library3::fun() has returned
+  BOOST_OUTCOME_TRY(rslt3, Library3::fun());   // Similarly, either rslt3 is an int with successful result,
+                                               // or my_fun() returns what Library3::fun() has returned
 
-  return i + rslt3;                                     // return a result with a value
+  return i + rslt3;                            // return a result with a value
 };
 
 // using functions' outcome:
 
 void test()
 {
-  if (auto r = my_fun())                                // my_fun() succeeded
-    process_int(r.value());                             // access the value
+  if (auto r = my_fun())                       // my_fun() succeeded
+    process_int(r.value());                    // access the value
   else
-    process_error_code(r.error());                      // inspect error code
+    process_error_code(r.error());             // inspect error code
 }
 ```
