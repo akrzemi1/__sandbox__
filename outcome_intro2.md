@@ -3,16 +3,16 @@ struct Handle; // A RAII-like file handle
 struct Buffer; // Represents chunk of read data
 
 auto open_file(std::string_view path) noexcept
-  -> outcome::expected<Handle>;                       // returns either a Handle or std::error_code
+  -> outcome::expected<Handle>;                      // returns either a Handle or std::error_code
 
 auto read_data(Handle& h) noexcept
-  -> outcome::expected<Buffer>;                       // returns either a Buffer or std::error_code
+  -> outcome::expected<Buffer>;                      // returns either a Buffer or std::error_code
 
 auto parse(const Buffer& b) noexcept
-  -> outcome::expected<int>;                          // returns either an int or std::error_code
+  -> outcome::expected<int>;                         // returns either an int or std::error_code
 
 auto read_int_from_file(std::string_view path) noexcept
-  -> outcome::expected<int>                           // returns either an int or std::error_code
+  -> outcome::expected<int>                          // returns either an int or std::error_code
 {
   // this function implements parse(read_data(open_file(path))) 
   // plus error handling
@@ -31,7 +31,7 @@ auto read_int_from_file(std::string_view path) noexcept
                                                      // it is returned up; otherwise
                                                      // object buffer of type Buffer is move-constructed
   
-  BOOST_OUTCOME_TRY(val, parse(buffer));             // unless this returns, value is of type int
+  BOOST_OUTCOME_TRY(val, parse(buffer));             // unless this returns, val is of type int
   
   return val;                                        // a positive return
 }
