@@ -41,7 +41,7 @@ auto my_fun() noexcept
   return i + rslt3;                            // return a result with a value
 };
 
-// using functions' outcome:
+// using functions' result:
 
 void test()
 {
