@@ -64,16 +64,22 @@ auto read_int_from_file(std::string_view path) noexcept
   // this function implements parse(read_data(open_file(path))) 
   // plus error handling
   
-  outcome::expected<Handle> handle = open_file(path); // handle is either a Handle or an std::error_code 
-  if (!handle)                                        // does handle store an error_code (failure)?
-    return outcome::make_unexpected(handle.error());  // return the error_code up
+  outcome::expected<Handle> rslt = open_file(path);  // rslt is either a Handle or an std::error_code 
+  
+  // 'manual' inspection of a result<>:
+  
+  if (!rslt)                                         // does rslt store an error_code (failure)?
+    return outcome::make_unexpected(rslt.error());   // return the error_code up
+  Handle & handle = rslt.value();                    // access the stored value of type Handle
     
-  BOOST_OUTCOME_TRY(buffer, read_data(*handle));      // if read_data() succeeds returns an error_code
-                                                      // it is returned up; otherwise
-                                                      // object buffer of type Buffer is move-constructed
+   // 'automated' inspection, error reporting, and value inspection:
+   
+  BOOST_OUTCOME_TRY(buffer, read_data(*handle));     // if read_data() succeeds returns an error_code
+                                                     // it is returned up; otherwise
+                                                     // object buffer of type Buffer is move-constructed
   
-  BOOST_OUTCOME_TRY(val, parse(buffer));              // unless this returns, value is of type int
+  BOOST_OUTCOME_TRY(val, parse(buffer));             // unless this returns, value is of type int
   
-  return val;                                         // a positive return
+  return val;                                        // a positive return
 }
 ```
