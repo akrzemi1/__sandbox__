@@ -1,3 +1,5 @@
+# The initial example of Niall Douglas's Boost.Outcome library.
+
 ```c++
 namespace outcome = BOOST_OUTCOME_V1_NAMESPACE;      // import namespace outcome
 
@@ -49,7 +51,7 @@ auto read_int_from_file(string_view path) noexcept
 }
 ```
 
-Compiling version:
+### The full .cpp version:
 
 ```c++
 #include <boost/outcome.hpp>
