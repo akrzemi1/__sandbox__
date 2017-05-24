@@ -1,4 +1,16 @@
 ```c++
+namespace outcome = BOOST_OUTCOME_V1_NAMESPACE;      // import namespace outcome
+
+// The task is to write function read_int_from_file() which takes the name of the file
+// and returns an int read and parset from this file, or reports failure to do so.
+// But for some reason, we do not want to signal failures with exceptions.
+
+auto read_int_from_file(string_view path) noexcept
+  -> outcome::expected<int>                          // returns either an int or std::error_code
+
+// We will be using the following types and functions in implementation. They also signal failures
+// by a 'combined' return type: outcome::expected<T>
+
 struct Handle; // A RAII-like file handle
 struct Buffer; // Represents chunk of read data
 
@@ -11,12 +23,12 @@ auto read_data(Handle& h) noexcept
 auto parse(const Buffer& b) noexcept
   -> outcome::expected<int>;                         // returns either an int or std::error_code
 
+// This is the implementation of read_int_from_file(). It combines the thre funcitons:
+// parse(read_data(open_file(path))) but with a proper error handling
+
 auto read_int_from_file(string_view path) noexcept
-  -> outcome::expected<int>                          // returns either an int or std::error_code
+  -> outcome::expected<int>
 {
-  // this function implements parse(read_data(open_file(path))) 
-  // plus error handling
-  
   outcome::expected<Handle> rslt = open_file(path);  // rslt is either a Handle or an std::error_code 
   
   // 'manual' inspection of an expected<>:
