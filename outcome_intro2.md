@@ -2,7 +2,7 @@
 namespace outcome = BOOST_OUTCOME_V1_NAMESPACE;      // import namespace outcome
 
 // The task is to write function read_int_from_file() which takes the name of the file
-// and returns an int read and parset from this file, or reports failure to do so.
+// and returns an int parsed from this file, or reports failure to do so.
 // But for some reason, we do not want to signal failures with exceptions.
 
 auto read_int_from_file(string_view path) noexcept
