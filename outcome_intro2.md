@@ -19,7 +19,7 @@ auto read_int_from_file(string_view path) noexcept
   
   outcome::expected<Handle> rslt = open_file(path);  // rslt is either a Handle or an std::error_code 
   
-  // 'manual' inspection of a result<>:
+  // 'manual' inspection of an expected<>:
   
   if (!rslt)                                         // does rslt store an error_code (failure)?
     return outcome::make_unexpected(rslt.error());   // return the error_code up
