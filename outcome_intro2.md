@@ -9,7 +9,7 @@ auto read_int_from_file(string_view path) noexcept
   -> outcome::expected<int>                          // returns either an int or std::error_code
 
 // We will be using the following types and functions in implementation. They also signal failures
-// by a 'combined' return type: outcome::expected<T>
+// by a 'combined' return type: outcome::expected<T>.
 
 struct Handle; // A RAII-like file handle
 struct Buffer; // Represents chunk of read data
