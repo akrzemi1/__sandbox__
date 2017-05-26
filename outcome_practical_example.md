@@ -24,7 +24,7 @@ range        ::= integer "-" integer
 The goal of the validation is not only to report a binary success or failure,
 but to give the user a good feedback on what in paricular is considered wrong with her input.
 
-## The cource code
+## The source code
 ```c++
 #include <boost/outcome.hpp>
 #include <boost/tokenizer.hpp>
