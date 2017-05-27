@@ -1,3 +1,2 @@
 Lista:
 * kot
-* pies
