@@ -24,6 +24,12 @@ range        ::= integer "-" integer
 The goal of the validation is not only to report a binary success or failure,
 but to give the user a good feedback on what in paricular is considered wrong with her input.
 
+### Constraints
+
+Note that I am creating a lot of stringc underway. They may throw `std::bad_alloc`. I am ok with that. I do not want to avoid any exceptions. I want to report validation failures in `expected` and other run-time situations like resurce shortage are dealt through stack unwinding.
+
+This is validation. It is not a performance-critical component.
+
 ## The source code
 ```c++
 #include <boost/outcome.hpp>
