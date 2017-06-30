@@ -1,6 +1,7 @@
-Maybe I can answer this. The most general answer is that Boost.Outcome is
-for people who want to reasonably decently report and handle failures and
-at the same time choose, or are forced, not to use exceptions.
+# Outcome 2.0
+
+Outcome is a C++14 library for reporting and handling function failures
+in contexts where using C++ exception handling is impossible or not desireable.
 
 The reasons for not using exceptions may be different:
 
@@ -15,10 +16,27 @@ The reasons for not using exceptions may be different:
    handling and cannot afford to use exceptions, like propagating failure
    reports across threads, tasks, fibers...
 
+
+## Sample usage
+
+Function that may need to report failure needs to reflect that in its return type:
+
+```c++
+auto read_int_from_file(string_view path) noexcept
+  -> outcome::result<int>;
+```
+
+Function `read_int_from_file` will either return an `int` or information about 
+the reason for failure. 
+
+
+# Notes
+
 Once you have decided not to use exceptions in some part of the program,
-Boost.Outcome offers convenient abstractions for you, likely superior to
-error codes. It implements 95% the currently being standardized
-`std::expected` library, plus a number of other useful additions.
+Outcome offers convenient abstractions for you, superior to error codes.
+
+Even if you want to use exception handling in your program, you may still want
+to use Outcome in some places
 
 
 > There is still this case where you want to avoid exceptions in one part of
