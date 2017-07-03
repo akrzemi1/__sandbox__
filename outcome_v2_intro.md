@@ -14,7 +14,8 @@ The reasons for not using exceptions may be different:
    - Parts of the programs/frameworks that themselves implement exception
    handling and cannot afford to use exceptions, like propagating failure
    reports across threads, tasks, fibers...
-
+   
+Outcome can also be used to plug components that potentially throw exceptions into parts of the program that are not exception-safe while retaining all information from the thrown exception objects.
 
 ## Sample usage
 
