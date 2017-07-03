@@ -53,12 +53,14 @@ Will look like this:
 auto read_int_from_file(string_view path) noexcept
   -> outcome::expected<int>
 {
-  BOOST_OUTCOME_TRY(handle, open_file(path));        // decltype(handle) == Handle
-  BOOST_OUTCOME_TRY(buffer, read_data(handle));      // decltype(buffer) == Buffer
-  BOOST_OUTCOME_TRY(val, parse(buffer));             // decltype(val) == int
+  OUTCOME_TRY(handle, open_file(path));    // decltype(handle) == Handle
+  OUTCOME_TRY(buffer, read_data(handle));  // decltype(buffer) == Buffer
+  OUTCOME_TRY(val, parse(buffer));         // decltype(val) == int
   return val;
 }
 ```
+
+Each occurence of `OUTCOME_TRY` is a control statement. If the returned `result<T>` contains an error information, the function is immediatelly returned with `result<U>` containing the same error information; otherwise object of type `T` is moce-constructed on the stack.
 
 # Notes
 
