@@ -27,10 +27,54 @@ auto read_int_from_file(string_view path) noexcept
 ```
 
 Function `read_int_from_file` will either return an `int` or information about 
-the reason for failure. 
+the reason for failure.
 
+It is possible to inspect the state manualy:
+
+```c++
+if (auto rslt = read_int_from_file("config.cfg"))
+  use_int(rslt.value());
+else
+  report_error(rslt.error()); // returns error_code_extended
+```
+
+But most of the time you would use a control statement. An implementation of `read_int_from_file`
+that has to (1) open the file, (2) read raw data to a buffer, and (3) interpret it as `int`, using the following three functions
+
+```c++
+auto open_file(string_view path) noexcept -> outcome::result<Handle>;
+auto read_data(Handle& h)        noexcept -> outcome::result<Buffer>;     
+auto parse(const Buffer& b)      noexcept -> outcome::result<int>;
+```
+
+Will look like this:
+
+```c++
+auto read_int_from_file(string_view path) noexcept
+  -> outcome::expected<int>
+{
+  BOOST_OUTCOME_TRY(handle, open_file(path));        // decltype(handle) == Handle
+  BOOST_OUTCOME_TRY(buffer, read_data(handle));      // decltype(buffer) == Buffer
+  BOOST_OUTCOME_TRY(val, parse(buffer));             // decltype(val) == int
+  return val;
+}
+```
 
 # Notes
+
+
+```c++
+auto open_file(string_view path) noexcept
+  -> outcome::result<Handle>;                // returns either a Handle or error_code_extended
+
+auto read_data(Handle& h) noexcept
+  -> outcome::result<Buffer>;                // returns either a Buffer or error_code_extended
+
+auto parse(const Buffer& b) noexcept
+  -> outcome::result<int>;                   // returns either an int or error_code_extended
+```
+
+`error_code_extended`
 
 Once you have decided not to use exceptions in some part of the program,
 Outcome offers convenient abstractions for you, superior to error codes.
