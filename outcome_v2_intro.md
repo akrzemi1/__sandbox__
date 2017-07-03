@@ -1,17 +1,16 @@
 # Outcome 2.0
 
 Outcome is a C++14 library for reporting and handling function failures
-in contexts where using C++ exception handling is impossible or not desireable.
+in contexts where using C++ exception handling is unsuitable.
 
 The reasons for not using exceptions may be different:
 
-   - Real or imaginary concerns about performance
-   - A personal style of programming
-   - Company's policy to compile with exceptions disabled
+   - The high relative cost of throwing and catching a C++ exception,
+   - Making some or all control paths explicitly detailed to aid code correctness auditing, as opposed to having hidden control
+   paths caused by exceptions potentially thrown from any place,
+   - Company's policy to compile with exceptions disabled,
    - Maintaining a code base that was never designed with exception-safety
-   in mind
-   - Making all control paths explicit, as opposed to having hidden control
-   paths caused exceptions potentially thrown from any place
+   in mind,
    - Parts of the programs/frameworks that themselves implement exception
    handling and cannot afford to use exceptions, like propagating failure
    reports across threads, tasks, fibers...
@@ -50,7 +49,7 @@ Will look like this:
 
 ```c++
 auto read_int_from_file(string_view path) noexcept
-  -> outcome::expected<int>
+  -> outcome::result<int>
 {
   OUTCOME_TRY(handle, open_file(path));    // decltype(handle) == Handle
   OUTCOME_TRY(buffer, read_data(handle));  // decltype(buffer) == Buffer
