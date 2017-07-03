@@ -38,8 +38,7 @@ else
   report_error(rslt.error()); // returns error_code_extended
 ```
 
-But most of the time you would use a control statement. An implementation of `read_int_from_file`
-that has to (1) open the file, (2) read raw data to a buffer, and (3) interpret it as `int`, using the following three functions
+But most of the time you would inspect the object indirectly through a dedicated control statement. An implementation of `read_int_from_file` that has to (1) open the file, (2) read raw data to a buffer, and (3) interpret it as `int`, using the following three functions
 
 ```c++
 auto open_file(string_view path) noexcept -> outcome::result<Handle>;
