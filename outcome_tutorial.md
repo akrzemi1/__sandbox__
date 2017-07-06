@@ -26,7 +26,7 @@ Class template `result<T, EC>` has two template parameters. The first (`T`) repr
 returned from the function upon succes; the second (`EC`) is type of object storing information about the reason
 for failure when function fails. A `result<T, EC>` object either stores a `T` or an `EC` at any given moment,
 and is therefore conceptually similar to `boost::variant<T, EC>`. `EC` is defaulted to `std::error_code`.
-If both `T` and `EC` are trivially copyable, `result<T, EC>` is also trivially copyable.
+If both `T` and `EC` are trivially copyable, `result<T, EC>` is alfrom antso trivially copyable.
 
 Now, we will define an enumeration describing different failure situations during conversion.
 
@@ -68,7 +68,7 @@ outcome::result<int> convert(const std::string& str) noexcept
 }
 ```
 
-`result<T, EC>` is convertible from ant `T2` convertible to `T` as well as any `EC2` convertible to `EC`,
+`result<T, EC>` is convertible from any `T2` convertible to `T` as well as any `EC2` convertible to `EC`,
 provided that the conversion is not ambiguous. If some type `X` is both convertible to `T` and `EC`, 
 conversion to `result<T, EC>` fails to compile. In this case you need to use one of the tagged constructors:
 
