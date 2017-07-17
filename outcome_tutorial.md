@@ -64,11 +64,11 @@ outcome::result<void> print_half(const std::string& text)
 3. Function `error` allows you to inspect the error sub-object, representing information about the reason for failure.
 4. Macro `OUTCOME_TRY` represents a control statement. It implies that function call in the second argument returns a `result<>`. It is defined as:
 
-```c++
-/*static*/ result<BigInt> BigInt::fromString(const std::string& s);
-```
+   ```c++
+   /*static*/ result<BigInt> BigInt::fromString(const std::string& s);
+   ```
 
-  Our control statement means: if `fromString` returned failure, this same error information should be returned from `print_half`, even though the type of `result<>` is different. If `fromString` returned success, we create  variable `i` of type `int` with the value returned from `fromString`. If control goes to subsequent line, it means `fromString` succeeded and variable of type `int` is in scope.
+   Our control statement means: if `fromString` returned failure, this same error information should be returned from `print_half`, even though the type of `result<>` is different. If `fromString` returned success, we create  variable `i` of type `int` with the value returned from `fromString`. If control goes to subsequent line, it means `fromString` succeeded and variable of type `int` is in scope.
 
 5. Function `as_void` must only be called on  a `result<>` object representing failure. It returns object of type `result<void>` containing the same error object, and can be converted to any `result<T>`, in particular to `result<void>`, while still preserving the same error information.
 6. Function `success` returns an object of type `result<foid>` representing success.
