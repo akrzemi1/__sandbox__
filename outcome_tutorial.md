@@ -42,12 +42,7 @@ enum class ConversionErrc
 // into std::error_code framework
 ```
 
-Assume we have plugged it into `std::error_code` framework, as described in this series of articles by Chris Kohlhoff:
- * [System error support in C++0x - part 1](http://blog.think-async.com/2010/04/system-error-support-in-c0x-part-1.html)
- * [System error support in C++0x - part 2](http://blog.think-async.com/2010/04/system-error-support-in-c0x-part-2.html)
- * [System error support in C++0x - part 3](http://blog.think-async.com/2010/04/system-error-support-in-c0x-part-3.html)
- * [System error support in C++0x - part 4](http://blog.think-async.com/2010/04/system-error-support-in-c0x-part-4.html)
- * [System error support in C++0x - part 5](http://blog.think-async.com/2010/04/system-error-support-in-c0x-part-5.html)
+Assume we have plugged it into `std::error_code` framework, as described here. 
 
 One notable effect of such plugging is that `ConversionErrc` is now convertible to `std::error_code`.
 Now we can implement function `convert` as follows: 
@@ -76,4 +71,29 @@ conversion to `result<T, EC>` fails to compile. In this case you need to use one
 ```c++
 outcome::result<int> r {outcome::in_place_type<std::error_code>, ConversionErrc::EmptyString};
 outcome::result<int> s {outcome::in_place_type<int>, 1};
+```
+
+## Inspcting `result<>`
+
+```c++
+outcome::result<void> print_halve(const std::string& text)
+{
+    if (outcome::result<int> r = convert(text))
+    {
+        std::cout << (r.value() / 2) << std::endl;
+    }
+    else
+    {
+        if (r.error() == ConversionErrc::TooLong)
+        {
+            OUTCOME_TRY (i, BigInt::fromString(text));
+            std::cout << i.half() << std::endl;
+        }
+        else
+        {
+            return r.as_void();
+        }
+    }
+    return outcome::success();  
+}
 ```
