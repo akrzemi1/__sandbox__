@@ -32,7 +32,7 @@ Suppose we will be wiriting function `print_halve` that takes an integral number
 outcome::result<void> print_halve(const std::string& text)
 ```
 
-The implementation will do the following: if the integral number can be represnted by an `int`, we will convert to `int` and use its arithmetical operations. If the number is too large, we will fall back to using a custom `BigInt` implementation taht needs to allocate memory.
+The implementation will do the following: if the integral number can be represnted by an `int`, we will convert to `int` and use its arithmetical operations. If the number is too large, we will fall back to using a custom `BigInt` implementation taht needs to allocate memory. In the implementation we will use function `convert` defined in the previous section.
 
 ```c++
 outcome::result<void> print_halve(const std::string& text)
