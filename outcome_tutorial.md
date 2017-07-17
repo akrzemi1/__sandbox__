@@ -39,23 +39,23 @@ The implementation will do the following: if the integral number can be represnt
 ```c++
 outcome::result<void> print_half(const std::string& text)
 {
-    if (outcome::result<int> r = convert(text))        // #1
+  if (outcome::result<int> r = convert(text))     // #1
+  {
+    std::cout << (r.value() / 2) << std::endl;    // #2
+  }
+  else
+  {
+    if (r.error() == ConversionErrc::TooLong)     // #3
     {
-        std::cout << (r.value() / 2) << std::endl;     // #2
+      OUTCOME_TRY (i, BigInt::fromString(text));  // #4
+      std::cout << i.half() << std::endl; 
     }
     else
     {
-        if (r.error() == ConversionErrc::TooLong)      // #3
-        {
-            OUTCOME_TRY (i, BigInt::fromString(text)); // #4
-            std::cout << i.half() << std::endl; 
-        }
-        else
-        {
-            return r.as_void();                        // #5
-        }
+      return r.as_void();                         // #5
     }
-    return outcome::success();                         // #6
+  }
+  return outcome::success();                      // #6
 }
 ```
 
