@@ -72,3 +72,49 @@ outcome::result<void> print_half(const std::string& text)
 
 #5. Function `as_void` must only be called on  a `result<>` object representing failure. It returns object of type `result<void>` containing the same error object, and can be converted to any `result<T>`, in particular to `result<void>`, while still preserving the same error information.
 #6. Function `success` returns an object of type `result<foid>` representing success.
+
+## `TRY` operations
+
+We have already seen operation `OUTCOME_TRY`. It takes a `result<T>` as an input and does one of the two things: if the result represents failure, the same faiure is returned from the current function immediately; otherwise an object of type `T` is move-constructed from the result object:
+
+```c++
+outcome::result<void> print_half(const std::string& s)
+{
+  OUTCOME_TRY(i, convert(s));
+  // decltype(i) == int
+  std::cout << i << std::endl;
+  return outcome::success();
+}
+```
+
+The above code is equivalent to:
+
+```c++
+outcome::result<void> print_half(const std::string& s)
+{
+  auto _RSLT_ = convert(s);
+  if (!_RSLT_) return _RSLT_.as_void();
+  auto i = std::move(_RSLT_);
+
+  std::cout << i << std::endl;
+  return outcome::success();
+}
+```
+
+### `ResultType`
+
+```c++
+template <typename R>
+concept bool ResultType = requires(R r)
+{
+  typename R::value_type;
+  typename R::template rebind<void>;
+  
+  {std::move(r)} -> R; // is move-constructible
+  r ? true : false; // contextual conversion to bool
+  { std::move(r).as_void() } -> typename R::template rebind<void>;
+  { std::move(std::move(r).value()) } -> typename R::value_type;
+  { r.has_value() } -> bool;
+};
+```
+
