@@ -9,7 +9,7 @@ Similarly, signature `result<T> f()` means that in addition to the above, some f
 
 Now, signature `outcome<T> g() noexcept` means that in the lower layers of the implementation we have two kinds of libraries/modules: some report failures via error codes, and some by throwing exceptions. But at the level of our interface we do not want to throw exceptions; so we forward both error codes and exceptions unaltered. The callers can easily tell which type of failure reporting was chosen, and extract it appropriately.
 
-Additionally, `outcome<T>` can store both `EC` and `EP` at the same time. The caller can choose whether to insect the exception that provides more information and context, or to go with the error code which can be processed faster and in a more uniform way.
+Additionally, `outcome<T>` can store both `EC` and `EP` at the same time. The caller of the function can choose whether to inspect the exception that provides more information and context, or to go with the error code which can be processed faster and in a more uniform way.
 
 This implies that `outcome<>` has different interface that allows you to ask whether we are storing an exception or an error code to rethrow the stored exception but to return by value the error code, etc.
 
