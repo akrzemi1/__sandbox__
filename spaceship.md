@@ -93,7 +93,7 @@ td { text-align: left; vertical-align: top;
 <p>This paper proposes to make operator spaceship (<code>&lt;=&gt;</code>) symmetric,
    so that wnen <code>a &lt;=&gt; b</code> is well formed then <code>b &lt;=&gt; a</code> should also be well formed
    and have complementary semantics. This is both for usability purposes, and to make it consistent with the handling
-   of the two-way operators.</p>
+   of the two-way comparison operators.</p>
 
 <!--h2><a name="toc">Table of contents</a></h2-->
 
