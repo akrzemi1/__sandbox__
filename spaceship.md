@@ -105,15 +105,27 @@ td { text-align: left; vertical-align: top;
 
 <h2><a name="motivation">3. Motivation and Scope</a></h2>
 
-<p>This paper proposes to extended the set of <code>operator@</code> for which the invocation
-   in form <code>a @ b</code> considers both direct candidates of <code>operator&lt;=&gt;</code>
-   (</code>operator&lt;=&gt;(a, b)</code>) and ones with reversed order of arguments 
-   (</code>operator&lt;=&gt;(b, a)</code>) to also include <code>operator&lt;=&gt;</code>
-   itself.</p>
-
-<p>The lack of the build-in symmetry for spaceship operator, leads to several surprising behaviour
-   of the user code, leading both to compilation errors in seemingly correct programs, and more importantly
-   to questionable runtime behaviour.</p>
+<p>P0515R3 [1] proposes that when expression <code>b &lt; a</code> is encountered,
+   <code>a</code> and <code>b</code> being potentially of different types, three functions are mtched in this order:
+  
+  <ol>
+    <li><code>operator&lt;(b, a)</code>,</li>
+    <li><code>operator&lt;=&gt;(b, a) &lt; 0</code>,</li>
+    <li><code>0 &lt; operator&lt;=&gt;(a, b)</code>,</li>
+    </ol>
+    
+  This guarantees, that the library author needs to provide only one definition of
+  <code>operator&lt;=&gt;</code> for heterogenous types, and overload resolution itself
+  will try to match it in different configurations to build the desired expression.
+  </p>
+  
+<p>Unfortunately, the same mechanism does not work when expression encountered is <code>b &lt;=&gt; a</code>,
+   even if <code>a &lt;=&gt; b</code> would work. This lack of the build-in symmetry for spaceship operator
+   may lead to surprising behaviour in user code, leading either to compilation errors in seemingly correct programs,
+   or, more importantly, to incorrect runtime behavior.
+   </p>
+   
+<p>The remainder of this section illustrates the problem with examples.</p>
 
 <h3><a name="motivation.example-class">3.1. <code>icase_string</code> class</h3>
 
