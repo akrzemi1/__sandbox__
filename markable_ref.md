@@ -26,12 +26,14 @@ concept bool Storage_policy =
     typename SP::value_type;
     typename SP::storage_type;
     typename SP::reference_type;
+    typename SP::representation_type;
   } &&
   requires(const typename SP::storage_type & s,
            const typename SP::value_type &   cv,
                  typename SP::value_type &&  rv)
   {    
     { SP::access_value(s) }             -> typename SP::reference_type;
+    { SP::representation(s) }           -> const typename SP::representation_type &;
     { SP::store_value(cv) }             -> typename SP::storage_type;
     { SP::store_value(std::move(rv)) }  -> typename SP::storage_type;
   };
