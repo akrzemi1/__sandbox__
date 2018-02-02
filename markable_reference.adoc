@@ -1,0 +1,26 @@
+## Concept `Mark_policy`
+
+```c++
+template <typename SP>
+concept bool Mark_policy =
+  requires
+  {
+    typename MP::value_type;
+    typename MP::storage_type;
+    typename MP::reference_type;
+    typename MP::representation_type;
+  } &&
+  requires(const typename MP::representation_type & r
+           const typename MP::storage_type &        s,
+           const typename MP::value_type &          cv,
+                 typename MP::value_type &&         rv)
+  {   
+    { MP::marked_value() }              -> typename MP::representation_type;
+    { MP::is_marked_value(r) } noexcept -> bool;
+    
+    { MP::access_value(s) }             -> typename MP::reference_type;
+    { MP::representation(s) } noexcept  -> const typename MP::representation_type &;
+    { MP::store_value(cv) }             -> typename MP::storage_type;
+    { MP::store_value(std::move(rv)) }  -> typename MP::storage_type;
+  };
+```
