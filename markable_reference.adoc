@@ -56,7 +56,7 @@ namespace ak_toolkit
 
   using markable_ns::markable;
   using markable_ns::markable_type;
-  using markable_ns::markable_pod_storage_type;
+  using markable_ns::markable_dual_storage_type;
   using markable_ns::mark_bool;
   using markable_ns::mark_int;
   using markable_ns::mark_fp_nan;
