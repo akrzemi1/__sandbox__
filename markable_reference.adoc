@@ -233,6 +233,8 @@ struct markable_type
 
 ### Class template `markable_dual_storage_type`
 
+You typically want to derive from this type when defining a mark policy for dual storage. This class template provides default definitions form most of the requirements in concept `Mark_policy`. `MPT` is the type of the policy you are defining (we are using the CRTP). `T` is the `value_type` you want to logically represent. `DUAL_T` is a type layout compatible with `T` but with weaker invariants, so that it can store more valid states than `T`.
+
 ```c++
 template <typename MPT, typename T, typename DUAL_T>
 struct markable_dual_storage_type
