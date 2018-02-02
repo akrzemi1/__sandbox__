@@ -243,7 +243,7 @@ struct markable_dual_storage_type
   typedef dual_storage<MPT> storage_type;
   
   static reference_type access_value(const storage_type& v) { return v.as_value_type(); }
-  static const representation_type& representation(const storage_type& v) { return v.storage(); }
+  static const representation_type& representation(const storage_type& v) { return v.representation(); }
   static storage_type store_value(const value_type& v) { return storage_type(v); }
   static storage_type store_value(value_type&& v) { return storage_type(std::move(v)); } 
 };
