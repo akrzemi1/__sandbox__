@@ -21,7 +21,7 @@ namespace ak_toolkit
     
     void swap(markable & l, markable & r);
 
-    template <typename T, typename NT = T, typename CREF = const T&>
+    template <typename T, typename NT = T, typename CREF = const T&, typename REPT = NT>
       struct markable_type;
     
     template <typename T, T Val>
@@ -41,11 +41,17 @@ namespace ak_toolkit
       
     struct mark_bool;
     
-    template <typename T, typename POD_T = std::aligned_storage_t<sizeof(T), alignof(T)>>
-      struct markable_pod_storage_type;
-      
     template <typename Enum, std::underlying_type_t<Enum> Val> 
       struct mark_enum;
+       
+    template <typename MP>
+      struct dual_storage;
+      
+    template <typename MP>
+      void swap(dual_storage & l, dual_storage & r);
+      
+    template <typename MPT, typename T, typename DUAL_T>
+      struct markable_dual_storage_type;
   }
 
   using markable_ns::markable;
@@ -58,6 +64,7 @@ namespace ak_toolkit
   using markable_ns::mark_optional;
   using markable_ns::mark_stl_empty;
   using markable_ns::mark_enum;
+  using markable_ns::dual_storage;
 }
 ```
 
