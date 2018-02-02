@@ -265,10 +265,11 @@ struct dual_storage
   typedef typename MP::representation_type representation_type;
   typedef typename MP::reference_type reference_type;
 
-  value_type& as_value_type() { return value_._value; }
-  const value_type& as_value_type() const { return value_._value; }
-  representation_type& representation() { return value_._marking; }
-  const representation_type& representation() const { return value_._marking; }
+  value_type&        as_value_type();
+  const value_type&  as_value_type() const;
+  representation_type&       representation();
+  const representation_type& representation() const;
+  
   constexpr dual_storage(representation_type&& mv) noexcept(noexcept(representation_type(std::move(mv)))));
   constexpr explicit dual_storage(const value_type& v) noexcept(noexcept(value_type(v))));
   constexpr explicit dual_storage(value_type&& v) noexcept(noexcept(value_type(std::move(v))));
@@ -280,3 +281,115 @@ struct dual_storage
   ~dual_storage();
 };
 ```
+
+
+## Predefined mark policies
+
+
+### Class template `mark_int`
+
+```c++
+template <typename Integral, Integral MVal>
+struct mark_int : markable_type<T>
+{
+  static constexpr Integral marked_value() noexcept { return MVal; }
+  static constexpr bool is_marked_value(Integral v) { return v == MVal; }
+};
+```
+
+`Integral` represents the stored type. It can be any type suitable for non-type template parameter.
+
+`EV` is the value the empty value representation.
+
+### Class template `mark_fp_nan`
+
+```c++
+template <typename FPT>
+  requires std::is_floating_point<FPT>::value
+        && std::numeric_limits<FPT>::has_quiet_NaN
+struct mark_fp_nan : markable_type<FPT>
+{
+  static constexpr FPT marked_value() noexcept { return std::numeric_limits<FPT>::quiet_NaN(); }
+  static constexpr bool is_marked_value(FPT v) { return v != v; }
+};
+```
+
+### Class template `mark_value_init`
+
+```c++
+template <typename T>
+struct mark_value_init : markable_type<T>
+{
+  static constexpr T marked_value() noexcept(see below) { return T{}; }
+  static constexpr bool is_marked_value(const T& v) { return v == T{}; }
+};
+```
+
+`T` is required to be a regular type.
+
+The expression inside `noexcept` should be equivalent to `std::is_nothrow_default_constructible<T>::value && std::is_nothrow_move_constructible<T>::value`.
+
+### Class template `mark_stl_empty`
+
+```c++
+template <typename Cont>
+struct mark_stl_empty : markable_type<Cont>
+{
+  static constexpr Cont marked_value() noexcept(see below) { return Cont{}; }
+  static constexpr bool is_marked_value(const Cont& v) { return v.empty(); }
+};
+```
+
+`Cont` is required to be a container in the STL sense. 
+
+The expression inside `noexcept` should be equivalent to `std::is_nothrow_default_constructible<Cont>::value && std::is_nothrow_move_constructible<Cont>::value`.
+
+### Class template `mark_optional`
+
+```c++
+template <typename OT>
+struct mark_optional : markable_type<typename OT::value_type, OT>
+{
+  typedef typename OT::value_type value_type;
+  typedef OT storage_type;
+
+  static OT marked_value() noexcept { return OT{}; }
+  static bool is_marked_value(const OT& v) { return !v; }
+  
+  static const value_type& access_value(const storage_type& v) { return *v; }
+  static storage_type store_value(const value_type& v) { return v; }
+  static storage_type store_value(value_type&& v) { return std::move(v); }
+};
+```
+
+`OT` is required to be either `boost::optional` or `std::experimental::optional` or `std::optional` or a type sufficiently similar to these.
+
+### Class template `mark_bool`
+
+```c++
+struct mark_bool : markable_type<bool, char, bool>
+{
+  static constexpr char marked_value() noexcept { return char(2); }
+  static constexpr bool is_marked_value(char v) { return v == 2; }
+  
+  static constexpr bool access_value(const char& v) { return bool(v); }
+  static constexpr char store_value(const bool& v) { return v; }
+};
+```
+
+### Class template `mark_enum`
+
+```c++
+template <typename Enum, std::underlying_type_t<Enum> Val> 
+  requires std::is_enum<Enum>::value
+struct mark_enum : markable_pod_storage_type<Enum, std::underlying_type_t<Enum>>
+{
+  typedef markable_pod_storage_type<Enum, std::underlying_type_t<Enum>> base;
+  typedef typename base::storage_type storage_type;
+  
+  static storage_type marked_value() { return Val; }
+  static bool is_marked_value(const storage_type& v) { return v == Val; }
+};
+```
+
+`Enum` is required to be an enumeration type. `Val` a value of integral type, `std::underlying_type_t<Enum>` not necessarily from the range designated by `Enum`.
