@@ -384,15 +384,16 @@ TODO: need to describe it correctly
 ```c++
 template <typename Enum, std::underlying_type_t<Enum> Val> 
   requires std::is_enum<Enum>::value
-struct mark_enum 
+struct mark_enum : markable_type<Enum, typename std::underlying_type<Enum>::type, Enum>
 {
-  typedef Enum                         value_type
-  typedef const Enum &                 referencee_type
-  typedef std::underlying_type_t<Enum> representation_type;
-  typedef /*TBD*/                      storage_type;
+  typedef typename base::representation_type representation_type;
+  typedef typename base::storage_type        storage_type;
   
-  static representation_type marked_value() { return Val; }
-  static bool is_marked_value(const representation_type& v) { return v == Val; }
+  static constexpr representation_type marked_value() noexcept { return Val; }
+  static constexpr bool is_marked_value(const representation_type& v) noexcept { return v == Val; }
+  
+  static constexpr Enum access_value(const storage_type& v) noexcept { return static_cast<Enum>(v); }
+  static constexpr storage_type store_value(const Enum& v) noexcept { return static_cast<storage_type>(v); }
 };
 ```
 
