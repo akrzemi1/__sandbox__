@@ -252,3 +252,31 @@ struct markable_dual_storage_type
 ```
 
 *Requires:* `MPT` is a model of `Mark_policy`; `T` and `DUAL_T` are layout-compatible types.
+
+### Class template `dual_storage`
+
+Class used to store inside a union members of type `value_type` and `representation_type`, and manage them appropriately.
+
+```c++
+template <typename MP>
+struct dual_storage
+{
+  typedef typename MP::value_type value_type;
+  typedef typename MP::representation_type representation_type;
+  typedef typename MP::reference_type reference_type;
+
+  value_type& as_value_type() { return value_._value; }
+  const value_type& as_value_type() const { return value_._value; }
+  representation_type& representation() { return value_._marking; }
+  const representation_type& representation() const { return value_._marking; }
+  constexpr dual_storage(representation_type&& mv) noexcept(noexcept(representation_type(std::move(mv)))));
+  constexpr explicit dual_storage(const value_type& v) noexcept(noexcept(value_type(v))));
+  constexpr explicit dual_storage(value_type&& v) noexcept(noexcept(value_type(std::move(v))));
+  dual_storage(const dual_storage& rhs); // TODO: add noexcept
+  dual_storage(dual_storage&& rhs); // TODO: add noexcept    
+  void operator=(const dual_storage& rhs);    
+  void operator=(dual_storage&& rhs); // TODO: add noexcept  
+  friend void swap(dual_storage& lhs, dual_storage& rhs);  // TODO: add conditional noexcept
+  ~dual_storage();
+};
+```
