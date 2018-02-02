@@ -126,3 +126,82 @@ Performs adjustments (if necessary) to represent the stored object through `repr
 
 #### `{ store_value(v) } -> storage_type`
 Given a value of type `value_type` (possibly marked), returns its representation as `storage_type`. Typically, when `value_type` and `storage_type` are same type, this is an identity function.
+
+## Class template `markable`
+
+```c++
+namespace ak_toolkit
+{
+  namespace markable_ns
+  {
+    template <Mark_policy MP>
+    class markable
+    {
+    public:
+      typedef typename MP::value_type     value_type;
+      typedef typename MP::storage_type   storage_type;
+      typedef typename MP::reference_type reference_type;
+
+      constexpr markable() noexcept(noexcept(storage_type{MP::marked_value{}}));
+      constexpr explicit markable(const value_type& v);
+      constexpr explicit markable(value_type&& v);
+      constexpr markable(const markable&) = default;
+      constexpr markable(markable&&) = default;
+      
+      constexpr markable& operator=(const markable&) = default;
+      constexpr markable& operator=(markable&&) = default;
+      
+      constexpr bool has_value() const;
+      constexpr reference_type value() const;
+      constexpr storage_type const& storage_value() const;
+      
+    private:
+      storage_type val_; // exposition only
+    };
+  }
+}
+```
+
+#### `markable()`
+
+*Effects:* Initializes storage value with expression `MP::marked_value()`. 
+
+*Postconditions:* `!has_value()`.
+
+#### `markable(const value_type& v)`
+
+*Effects:* Initializes storage value with expression `MP::store_value(v)`. 
+
+*Postconditions:* `has_value() == !MP::is_marked_value(v)`.
+
+#### `markable(value_type&& v)`
+
+*Effects:* Initializes storage value with expression `MP::store_value(std::move(v))`. 
+
+*Postconditions:* `has_value() == !MP::is_marked_value(v)`.
+
+#### `reference_type has_value() const`
+
+*Returns:* `!MP::is_marked_value(val_)`.
+
+*Throws:* Nothing.
+
+
+#### `reference_type value() const`
+
+*Preconditions:* `has_value()`.
+
+*Returns:* `MP::access_value(val_)`.
+
+*Throws:* Whatever `MP::access_value` throws. Also, if `reference_type` is in fact not a reference type, whatever `reference_type`'s move constructor throws.
+
+
+#### `storage_type const& storage_value() const`
+
+*Returns:* `val_`.
+
+*Throws:* Nothing.
+
+### Exception safety
+
+If an exception is thrown during the assignment, the state of `*this` depends on the exception safety guarantees of `storage_type`. If `storage_type` offers a weak guarantee, the corresponding `markable<>` type also offers only a weak guarantee. In particular, the value of `has_value()` may change.
