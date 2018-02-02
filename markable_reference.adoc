@@ -23,6 +23,15 @@ namespace ak_toolkit
 
     template <typename T, typename NT = T, typename CREF = const T&, typename REPT = NT>
       struct markable_type;
+           
+    template <typename MP>
+      struct dual_storage;
+      
+    template <typename MP>
+      void swap(dual_storage & l, dual_storage & r);
+      
+    template <typename MPT, typename T, typename DUAL_T>
+      struct markable_dual_storage_type;
     
     template <typename T, T Val>
       struct mark_int;
@@ -43,15 +52,6 @@ namespace ak_toolkit
     
     template <typename Enum, std::underlying_type_t<Enum> Val> 
       struct mark_enum;
-       
-    template <typename MP>
-      struct dual_storage;
-      
-    template <typename MP>
-      void swap(dual_storage & l, dual_storage & r);
-      
-    template <typename MPT, typename T, typename DUAL_T>
-      struct markable_dual_storage_type;
   }
 
   using markable_ns::markable;
@@ -205,3 +205,48 @@ namespace ak_toolkit
 ### Exception safety
 
 If an exception is thrown during the assignment, the state of `*this` depends on the exception safety guarantees of `storage_type`. If `storage_type` offers a weak guarantee, the corresponding `markable<>` type also offers only a weak guarantee. In particular, the value of `has_value()` may change.
+
+
+## Mark policy creation tools
+
+The follwoing tools help build custom mark policies.
+
+### Class template `markable_type`
+
+This class template provides default definitions form most of the requirements in concept `Mark_policy`. When declaring your own mark policy, you probably want to derive from this class template (although it is not strictly necessary). 
+
+```c++
+template <typename T, typename STORE = T, typename CREF = const T&, typename REPT = NT>
+struct markable_type
+{
+  typedef T     value_type;
+  typedef STORE storage_type;
+  typedef CREF  reference_type;
+  typedef REPT  representation_type;
+  
+  static constexpr reference_type access_value(const storage_type& v) { return v; }
+  static constexpr const representation_type& representation(const storage_type& v) { return v; }
+  static constexpr const value_type& store_value(const value_type& v) { return v; }
+  static constexpr value_type&& store_value(value_type&& v) { return std::move(v); }
+};
+```
+
+### Class template `markable_dual_storage_type`
+
+```c++
+template <typename MPT, typename T, typename DUAL_T>
+struct markable_dual_storage_type
+{
+  typedef T                 value_type;
+  typedef DUAL_T            representation_type;
+  typedef const T&          reference_type;
+  typedef dual_storage<MPT> storage_type;
+  
+  static reference_type access_value(const storage_type& v) { return v.as_value_type(); }
+  static const representation_type& representation(const storage_type& v) { return v.storage(); }
+  static storage_type store_value(const value_type& v) { return storage_type(v); }
+  static storage_type store_value(value_type&& v) { return storage_type(std::move(v)); } 
+};
+```
+
+*Requires:* `MPT` is a model of `Mark_policy`; `T` and `DUAL_T` are layout-compatible types.
