@@ -379,16 +379,20 @@ struct mark_bool : markable_type<bool, char, bool>
 
 ### Class template `mark_enum`
 
+TODO: need to describe it correctly
+
 ```c++
 template <typename Enum, std::underlying_type_t<Enum> Val> 
   requires std::is_enum<Enum>::value
-struct mark_enum : markable_pod_storage_type<Enum, std::underlying_type_t<Enum>>
+struct mark_enum 
 {
-  typedef markable_pod_storage_type<Enum, std::underlying_type_t<Enum>> base;
-  typedef typename base::storage_type storage_type;
+  typedef Enum                         value_type
+  typedef const Enum &                 referencee_type
+  typedef std::underlying_type_t<Enum> representation_type;
+  typedef /*TBD*/                      storage_type;
   
-  static storage_type marked_value() { return Val; }
-  static bool is_marked_value(const storage_type& v) { return v == Val; }
+  static representation_type marked_value() { return Val; }
+  static bool is_marked_value(const representation_type& v) { return v == Val; }
 };
 ```
 
