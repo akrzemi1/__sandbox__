@@ -379,8 +379,6 @@ struct mark_bool : markable_type<bool, char, bool>
 
 ### Class template `mark_enum`
 
-TODO: need to describe it correctly
-
 ```c++
 template <typename Enum, std::underlying_type_t<Enum> Val> 
   requires std::is_enum<Enum>::value
