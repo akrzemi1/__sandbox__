@@ -23,7 +23,8 @@ struct dual_storage
   typedef typename MP::value_type value_type;
   typedef typename MP::representation_type representation_type;
   typedef typename MP::reference_type reference_type;
-
+  
+  bool has_value() const /*noexcept*/; // need to consider noexcept (if not too harsh)
   value_type&        as_value_type();
   const value_type&  as_value_type() const;
   representation_type&       representation();
@@ -41,7 +42,7 @@ struct dual_storage
 };
 ```
 
-An object of `dual_storage` contains a union of two memmers of types `value_type` and `representation_type`.
+An object of `dual_storage` contains a union of two members of types `value_type` and `representation_type`.
 Such object is said to _have value_ if its active member is of type `value_type`.
 
 #### `~dual_storage()`
