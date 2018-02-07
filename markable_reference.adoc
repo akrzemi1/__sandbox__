@@ -45,6 +45,10 @@ struct dual_storage
 An object of `dual_storage` contains a union of two members of types `value_type` and `representation_type`.
 Such object is said to _have value_ if its active member is of type `value_type`.
 
-#### `~dual_storage()`
-*Effects:* if `*this` has value, destroys the active member of type `value_type`, otherwise destroys the active member of `representation_type`.
+#### `bool has_value() const;`
+*Returns:* `!MP::is_marked_value(representation())`.
+*Remarks:* This tests if the object has value.
+
+#### `~dual_storage();`
+*Effects:* if `has_value() == true`, destroys the active member of type `value_type`, otherwise destroys the active member of `representation_type`.
 
