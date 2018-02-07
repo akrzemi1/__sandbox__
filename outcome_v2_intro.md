@@ -12,18 +12,17 @@ Outcome is a set of tools for reporting and handling function failures in contex
   - propagating exceptions trough layers that do not follow RAII design;
   - parts of the program that are compiled with exceptions disabled;
   - external requirement (such as company-wide policy) that failure handling paths are explicitly indicated in the code.
+  
+Outcome addresses failure handling through returning a special type form functions which is able to store either a succesfully computed value (or `void`) or the information about failure. Outcome also comes with a set of idioms for dealing with such types.
 
 ## Sample usage
 
-Function that may need to report failure needs to reflect that in its return type:
+One of the tools in the Outcome library is `result<T>`: it represents either a succesfully computed value of type `T` or an `std::erro_cdee` representing the reason for failure. You use it in the function's return type:
 
 ```c++
 auto read_int_from_file(string_view path) noexcept
   -> outcome::result<int>;
 ```
-
-Function `read_int_from_file` will either return an `int` or information about 
-the reason for failure.
 
 It is possible to inspect the state manualy:
 
