@@ -13,7 +13,7 @@ Outcome is a set of tools for reporting and handling function failures in contex
   - parts of the program that are compiled with exceptions disabled;
   - external requirement (such as company-wide policy) that failure handling paths are explicitly indicated in the code.
   
-Outcome addresses failure handling through returning a special type form functions which is able to store either a succesfully computed value (or `void`) or the information about failure. Outcome also comes with a set of idioms for dealing with such types.
+Outcome addresses failure handling through returning a special type form functions, which is able to store either a succesfully computed value (or `void`) or the information about failure. Outcome also comes with a set of idioms for dealing with such types.
 
 ## Sample usage
 
