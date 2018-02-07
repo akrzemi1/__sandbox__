@@ -27,8 +27,8 @@ struct dual_storage
   bool has_value() const /*noexcept*/; // need to consider noexcept (if not too harsh)
   value_type&        as_value_type();
   const value_type&  as_value_type() const;
-  representation_type&       representation();
-  const representation_type& representation() const;
+  representation_type&       representation() noexcept;
+  const representation_type& representation() noexcept const;
   
   constexpr dual_storage(representation_type&& mv) noexcept(noexcept(representation_type(std::move(mv)))));
   constexpr explicit dual_storage(const value_type& v) noexcept(noexcept(value_type(v))));
