@@ -1,21 +1,17 @@
 # Outcome 2.0
 
-Outcome is a C++14 library for reporting and handling function failures
-in contexts where using C++ exception handling is unsuitable.
+Outcome is a set of tools for reporting and handling function failures in contexts where using C++ exception handling is unsuitable. Such contexts include:
 
-The reasons for not using exceptions may be different:
-
-   - The high relative cost of throwing and catching a C++ exception,
-   - Making some or all control paths explicitly detailed to aid code correctness auditing, as opposed to having hidden control
-   paths caused by exceptions potentially thrown from any place,
-   - Company's policy to compile with exceptions disabled,
-   - Maintaining a code base that was never designed with exception-safety
-   in mind,
-   - Parts of the programs/frameworks that themselves implement exception
-   handling and cannot afford to use exceptions, like propagating failure
-   reports across threads, tasks, fibers...
-   
-Outcome can also be used to plug components that potentially throw exceptions into parts of the program that are not exception-safe while retaining all information from the thrown exception objects.
+  - situations, like in `filesystem` library, where the decision whether the failure should be handled remotely
+  (use exceptions) or locally cannot be made inside the function and needs to be moved onto the caller;
+  - parts of program that have a lot of branches depending on types of failures,
+  where if-statements are cleaner than try-catch blocks;
+  - parts of the programs/frameworks that themselves implement exception handling and cannot afford to use exceptions,
+  like propagating failure reports across threads, tasks, fibers;
+  - requirement that failure path of execution should not be longer than the succesful path of execution;
+  - propagating exceptions trough layers that do not follow RAII design;
+  - parts of the program that are compiled with exceptions disabled;
+  - external requirement (such as company-wide policy) that failure handling paths are explicitly indicated in the code.
 
 ## Sample usage
 
