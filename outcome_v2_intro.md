@@ -17,40 +17,33 @@ Outcome addresses failure handling through returning a special type form functio
 
 ## Sample usage
 
-One of the tools in the Outcome library is `result<T>`: it represents either a succesfully computed value of type `T` or an `std::erro_cdee` representing the reason for failure. You use it in the function's return type:
+One of the tools in the Outcome library is `result<T>`: it represents either a succesfully computed value of type `T` or an `std::erro_code` representing the reason for failure. You use it in the function's return type:
 
 ```c++
-auto read_int_from_file(string_view path) noexcept
-  -> outcome::result<int>;
+auto read_data_from_file(string_view path) noexcept
+  -> outcome::result<string>;
 ```
 
 It is possible to inspect the state manualy:
 
 ```c++
-if (auto rslt = read_int_from_file("config.cfg"))
-  use_int(rslt.value());
+if (auto rslt = read_data_from_file("config.cfg"))
+  use_string(rslt.value());   // returns string
 else
-  report_error(rslt.error()); // returns error_code_extended
+  report_error(rslt.error()); // returns error_code
 ```
 
-But most of the time you would inspect the object indirectly through a dedicated control statement. An implementation of `read_int_from_file` that has to (1) open the file, (2) read raw data to a buffer, and (3) interpret it as `int`, using the following three functions
+Or, if this function is called in anoter function that also returns `result<T>` you can use a dedicated control statement:
 
 ```c++
-auto open_file(string_view path) noexcept -> outcome::result<Handle>;
-auto read_data(Handle& h)        noexcept -> outcome::result<Buffer>;     
-auto parse(const Buffer& b)      noexcept -> outcome::result<int>;
-```
-
-Will look like this:
-
-```c++
-auto read_int_from_file(string_view path) noexcept
+auto process(const string& content) noexcept
+  -> outcome::result<int>;
+  
+auto get_int_from_file(string_view path) noexcept
   -> outcome::result<int>
 {
-  OUTCOME_TRY(handle, open_file(path));    // decltype(handle) == Handle
-  OUTCOME_TRY(buffer, read_data(handle));  // decltype(buffer) == Buffer
-  OUTCOME_TRY(val, parse(buffer));         // decltype(val) == int
-  return val;
+  OUTCOME_TRY(str, read_data_from_file(path)); // decltype(str) == string
+  return process(str);
 }
 ```
 
