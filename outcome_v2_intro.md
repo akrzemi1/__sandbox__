@@ -28,9 +28,9 @@ It is possible to inspect the state manualy:
 
 ```c++
 if (auto rslt = read_data_from_file("config.cfg"))
-  use_string(rslt.value());   // returns string
+  use_string(rslt.value());                   // returns string
 else
-  report_error(rslt.error()); // returns error_code
+  throw LibError{rslt.error(), "config.cfg"}; // returns error_code
 ```
 
 Or, if this function is called in anoter function that also returns `result<T>` you can use a dedicated control statement:
@@ -52,6 +52,6 @@ auto get_int_from_file(string_view path) noexcept
 ---
 **NOTE**
 
-This is the v2 Outcome designed in response to feedback from a [Boost peer review held in May 2017](https://lists.boost.org/boost-announce/2017/06/0510.php). This library is expected to pass a second Boost peer review, and be submitted to WG21 for standardisation into the standard C++ library. 
+This is the v2 Outcome designed in response to feedback from a [Boost peer review held in May 2017](https://lists.boost.org/boost-announce/2017/06/0510.php). This library has successfully passed the second Boost peer review, and is expected to be submitted to WG21 for standardisation into the standard C++ library. 
 
 ---
