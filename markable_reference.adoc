@@ -40,6 +40,9 @@ struct dual_storage
   ~dual_storage();
 };
 ```
+
+An object of `dual_storage` is said to _have value_ ...
+
 #### `~dual_storage()`
-*Effects:* some...
+*Effects:* if `*this` has value, destroys the active member of type `representation_type`, otherwise destroys the active member of `value_type`.
 
