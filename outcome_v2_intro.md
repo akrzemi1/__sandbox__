@@ -42,8 +42,9 @@ auto process(const string& content) noexcept
 auto get_int_from_file(string_view path) noexcept
   -> outcome::result<int>
 {
-  OUTCOME_TRY(str, read_data_from_file(path)); // decltype(str) == string
-  return process(str);
+  OUTCOME_TRY(str, read_data_from_file(path));
+  // if control gets here read_data_from_file() has succeeded
+  return process(str);  // decltype(str) == string
 }
 ```
 
