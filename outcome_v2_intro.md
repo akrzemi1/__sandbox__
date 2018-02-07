@@ -47,7 +47,7 @@ auto get_int_from_file(string_view path) noexcept
 }
 ```
 
-Each occurence of `OUTCOME_TRY` is a control statement. If the returned `result<T>` contains an error information, the function is immediatelly returned with `result<U>` containing the same error information; otherwise object of type `T` is move-constructed on the stack.
+`OUTCOME_TRY` is a control statement. If the returned `result<T>` contains an error information, the enclosing function is immediatelly returned with `result<U>` containing the same failure information; otherwise object of type `T` is move-constructed on the stack.
 
 ---
 **NOTE**
