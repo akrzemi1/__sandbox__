@@ -2,16 +2,22 @@
 
 Outcome is a set of tools for reporting and handling function failures in contexts where using C++ exception handling is unsuitable. Such contexts include:
 
+  - programs, or parts thereof, that are compiled with exceptions disabled;
+  
+  - parts of program that have a lot of branches depending on types of failures,
+    where if-statements are cleaner than try-catch blocks; 
+    
+  - requirement that failure path of execution should not cost more than the successful path of execution;
+    
   - situations, like in `filesystem` library, where the decision whether the failure should be handled remotely
     (use exceptions) or locally cannot be made inside the function and needs to be moved onto the caller,
-    and in the local case launching stack unwinding is not desireable;
-  - parts of program that have a lot of branches depending on types of failures,
-    where if-statements are cleaner than try-catch blocks;
+    and in the latter case launching stack unwinding is not desireable for the aforementioned reasons;
+
   - parts of the programs/frameworks that themselves implement exception handling and prefer
     to not use exceptions to propagate failure reports across thread, tasks, fibers;
-  - requirement that failure path of execution should not cost more than the successful path of execution;
+  
   - propagating exceptions trough layers that do not implement exception throw safety;
-  - programs, or parts thereof, that are compiled with exceptions disabled;
+  
   - external requirement (such as company-wide policy) that failure handling paths are explicitly indicated in the code.
   
 Outcome addresses failure handling through returning a special type form functions, which is able to store either a succesfully computed value (or `void`) or the information about failure. Outcome also comes with a set of idioms for dealing with such types.
