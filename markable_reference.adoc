@@ -57,6 +57,12 @@ Types `value_type` and `representation_type` shall be layout-compatible.
 
 *Returns:* a reference to the active union member of type `value_type`.
 
+#### `representation_type&       representation()       noexcept;`
+#### `const representation_type& representation() const noexcept;`
+
+*Effects:* if `has_value() == false` returns a reference to the active union member of type `representation_type`;
+otherwise returns the value of `value_type` throug accessing the common initial sequence of member `representation_type`.
+
 #### `~dual_storage();`
 *Effects:* if `has_value() == true`, destroys the active member of type `value_type`, otherwise destroys the active member of `representation_type`.
 
