@@ -63,7 +63,7 @@ Types `value_type` and `representation_type` shall be layout-compatible.
 *Effects:* if `has_value() == false` returns a reference to the active union member of type `representation_type`;
 otherwise accesses the inactive union member `representation_type` and throug common initial sequence accesses the value of active member `value_type` and returns thus obtained reference.
 
-#### `constexpr dual_storage(representation_type&& mv) noexcept(/*see below*/)`
+#### `constexpr dual_storage(representation_type&& mv) noexcept(/\*see below*/)`
 
 *Effects:* Initializes the union member of type `representation_type` with expression `std::move(mv)`.
 
