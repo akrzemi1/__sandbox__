@@ -78,7 +78,7 @@ otherwise accesses the inactive union member `representation_type` and throug co
 |  |  `lhs.has_value()` | `!lhs.has_value()`
 
 | `rhs.has_value()`
-| cecec
+| calls `swap(lhs.as_value(), rhs.as_value())` (ADL also searches in `std`)
 | cscs
 
 | `!rhs.has_value()`
