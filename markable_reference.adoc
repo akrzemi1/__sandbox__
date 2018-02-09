@@ -71,6 +71,21 @@ otherwise accesses the inactive union member `representation_type` and throug co
 
 *Remarks:* The expression inside `noexcept` is equivalent to `std::is_move_constructible_v<representation_type>`.
 
+#### `friend void swap(dual_storage& lhs, dual_storage& rhs);` ?? noexcept ??
+
+*Effects:
+|===
+|  |  `lhs.has_value()` | `!lhs.has_value()`
+
+| `rhs.has_value()`
+| cecec
+| cscs
+
+| `!rhs.has_value()`
+| cecec
+| cscs
+|===
+
 #### `~dual_storage();`
 *Effects:* if `has_value() == true`, destroys the active member of type `value_type`, otherwise destroys the active member of `representation_type`.
 
