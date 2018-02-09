@@ -83,7 +83,7 @@ otherwise accesses the inactive union member `representation_type` and throug co
 
 | `!rhs.has_value()`
 | cecec
-| cscs
+| no effect
 |===
 
 #### `~dual_storage();`
