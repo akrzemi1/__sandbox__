@@ -25,6 +25,7 @@ struct dual_storage
   typedef typename MP::reference_type reference_type;
   
   bool has_value() const /*noexcept*/; // need to consider noexcept (if not too harsh)
+  void clear_value() noexcept;
   value_type&        as_value();
   const value_type&  as_value() const;
   representation_type&       representation()       noexcept;
@@ -50,6 +51,15 @@ Types `value_type` and `representation_type` shall be layout-compatible.
 *Returns:* `!MP::is_marked_value(representation())`.
 
 *Remarks:* This tests if the object has value.
+
+#### `void clear_value() noexcept;`
+
+*Preconditions:* `has_value() == true`.
+
+*Effects:* destroys the active member of type `value_type`; next, initializes member of type `representation_type`
+with expression `MP::marked_value()`.
+
+*Remarks:* If an expression is thrown during the initialization of member of type `representation_type`, function `std::terminate()` is called.
 
 #### `value_type&        as_value();`
 #### `const value_type&  as_value() const;`
