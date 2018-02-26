@@ -43,9 +43,21 @@ struct dual_storage
 };
 ```
 
-An object of `dual_storage` contains a union of two members of types `value_type` and `representation_type`.
+An object of class `dual_storage` contains a union of two members of types `value_type` and `representation_type`.
 Such object is said to _have value_ if its active member is of type `value_type`.
 Types `value_type` and `representation_type` shall be layout-compatible.
+
+For an object of class `dual_storage` that does not have a value, to _change to value with expression_ `v` means the following sequence of instructions:
+
+1. An active member of type `representation_type` is destroyed.
+2. A member of type `value_type` is activated by the non-brace initialization with expression `v`.
+
+If this initialization exits via an exception `e`, an attempt is made to activate the member of type `representation_type` through non-brace initialization with expression `MP::marked_value()`. If the latter initialization exits via an exception, `std::teriminate()` is called, otherwise the exception `e` is rethrown.
+
+For an object of type `dual_storage` that has a value, to _clear the value_ means the following sequence of instructions:
+
+1. An active member of type `value_type` is destroyed.
+2. A member of type `representation_type` is activated through non-brace initialization with expression `MP::marked_value()`. If the latter initialization exits via an exception `e`, `std::teriminate()` is called, otherwise the exception `e` is rethrown.
 
 #### `bool has_value() const;`
 *Returns:* `!MP::is_marked_value(representation())`.
@@ -89,12 +101,14 @@ otherwise accesses the inactive union member `representation_type` and throug co
 
 | `rhs.has_value()`
 | calls `swap(lhs.as_value(), rhs.as_value())` (ADL also searches in `std`)
-| cscs
+| `lhs` changes value to `std::move(rhs.as_value())`; the value of `rhs` is cleared; if an exception is thrown the values of `lhs` and `rhs` remain unchanged
 
 | `!rhs.has_value()`
-| cecec
+| `rhs` changes value to `std::move(lhs.as_value())`; the value of `lhs` is cleared; if an exception is thrown the values of `lhs` and `rhs` remain unchanged
 | no effect
 |===
+
+*Throws:* Whatever is thrown by operations `swap(lhs.as_value(), rhs.as_value())` (where ADL also searches in `std`) and `value_type(std::move(rhs.as_value()))`.
 
 #### `~dual_storage();`
 *Effects:* if `has_value() == true`, destroys the active member of type `value_type`, otherwise destroys the active member of `representation_type`.
