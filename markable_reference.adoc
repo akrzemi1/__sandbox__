@@ -24,7 +24,7 @@ struct dual_storage
   typedef typename MP::representation_type representation_type;
   typedef typename MP::reference_type reference_type;
   
-  bool has_value() const /*noexcept*/; // need to consider noexcept (if not too harsh)
+  bool has_value() const noexcept;
   void clear_value() noexcept;
   value_type&        as_value();
   const value_type&  as_value() const;
@@ -59,7 +59,7 @@ For an object of type `dual_storage` that has a value, to _clear the value_ mean
 1. An active member of type `value_type` is destroyed.
 2. A member of type `representation_type` is activated through non-brace initialization with expression `MP::marked_value()`. If the latter initialization exits via an exception `e`, `std::teriminate()` is called, otherwise the exception `e` is rethrown.
 
-#### `bool has_value() const;`
+#### `bool has_value() const noexcept;`
 *Returns:* `!MP::is_marked_value(representation())`.
 
 *Remarks:* This tests if the object has value.
