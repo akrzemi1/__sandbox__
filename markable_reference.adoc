@@ -31,7 +31,7 @@ struct dual_storage
   representation_type&       representation()       noexcept;
   const representation_type& representation() const noexcept;
   
-  constexpr dual_storage(representation_type&& mv) noexcept(/*see below*/);
+  constexpr explicit dual_storage(representation_type&& mv) noexcept(/*see below*/);
   constexpr explicit dual_storage(const value_type& v) noexcept(noexcept(value_type(v))));
   constexpr explicit dual_storage(value_type&& v) noexcept(noexcept(value_type(std::move(v))));
   dual_storage(const dual_storage& rhs); // TODO: add noexcept
@@ -85,13 +85,31 @@ with expression `MP::marked_value()`.
 *Effects:* if `has_value() == false` returns a reference to the active union member of type `representation_type`;
 otherwise accesses the inactive union member `representation_type` and throug common initial sequence accesses the value of active member `value_type` and returns thus obtained reference.
 
-#### `constexpr dual_storage(representation_type&& mv) noexcept(/\*see below*/);`
 
-*Effects:* Initializes the union member of type `representation_type` with expression `std::move(mv)`.
+#### `constexpr explicit dual_storage(representation_type&& mv) noexcept(/\*see below*/);`
+
+*Effects:* Direct-non-list-initializes the union member of type `representation_type` with expression `std::move(mv)`.
 
 *Postcondition:* `has_value() == !MP::is_marked_value(mv)`. 
 
 *Remarks:* The expression inside `noexcept` is equivalent to `std::is_nothrow_move_constructible_v<representation_type>`.
+
+
+#### `constexpr explicit dual_storage(const value_type& v);`
+
+*Effects:* Direct-non-list-initializes the union member of type `value_type` with expression `v`.
+
+*Postcondition:* `has_value() == !MP::is_marked_value(representation())`. 
+
+
+#### `constexpr explicit dual_storage(value_type&& v) noexcept(/\*see below*/);`
+
+*Effects:* Direct-non-list-initializes the union member of type `value_type` with expression `std::move(v)`.
+
+*Postcondition:* `has_value() == !MP::is_marked_value(representation())`. 
+
+*Remarks:* The expression inside `noexcept` is equivalent to `std::is_nothrow_move_constructible_v<value_type>`.
+
 
 #### `friend void swap(dual_storage& lhs, dual_storage& rhs) noexcept(/\*see below*/);`
 
