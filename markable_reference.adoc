@@ -111,6 +111,31 @@ otherwise accesses the inactive union member `representation_type` and throug co
 *Remarks:* The expression inside `noexcept` is equivalent to `std::is_nothrow_move_constructible_v<value_type>`.
 
 
+#### `dual_storage(const dual_storage& rhs);`
+
+*Requires:* `std::is_copy_constructible_v<value_type>` is `true` and `std::is_copy_constructible_v<representation_type>` is `true`.
+
+*Effects:* If `rhs` has a value, activates the union member of type `value_type` as if direct-non-list-initializing an object
+of type `value_type` with the expression `rhs.as_value()`; otherwise activates the union member of type `representation_type` as if direct-non-list-initializing an object of type `representation_type` with the expression `MP::mared_value()`.
+
+*Postcondition:* `rhs.has_value() == this->has_value()`.
+
+*Throws:* Any exception thrown during the initialization of the union member.
+
+
+#### `dual_storage( dual_storage&& rhs) noexcept(/\*see below*/);`
+
+*Requires:* `std::is_copy_constructible_v<value_type>` is `true` and `std::is_copy_constructible_v<representation_type>` is `true`.
+
+*Effects:* If `rhs` has a value, activates the union member of type `value_type` as if direct-non-list-initializing an object
+of type `value_type` with the expression `std::move(rhs.as_value())`; otherwise activates the union member of type `representation_type` as if direct-non-list-initializing an object of type `representation_type` with the expression `MP::mared_value()`.
+
+*Postcondition:* `rhs.has_value() == this->has_value()`.
+
+*Throws:* Any exception thrown during the initialization of the union member.
+
+*Remarks:* The expression inside `noexcept` is equivalent to `std::is_nothrow_move_constructible_v<value_type> && std::is_nothrow_move_constructible_v<representation_type>`.
+
 #### `friend void swap(dual_storage& lhs, dual_storage& rhs) noexcept(/\*see below*/);`
 
 *Effects:*
