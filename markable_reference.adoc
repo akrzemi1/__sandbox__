@@ -34,7 +34,7 @@ struct dual_storage
   constexpr explicit dual_storage(const value_type& v);
   constexpr explicit dual_storage(value_type&& v) noexcept(/*see below*/);
   dual_storage(const dual_storage& rhs);
-  dual_storage(dual_storage&& rhs);    
+  dual_storage(dual_storage&& rhs) noexcept(/*see below*/);    
   void operator=(const dual_storage& rhs);    
   void operator=(dual_storage&& rhs) noexcept(/*see below*/); 
   friend void swap(dual_storage& lhs, dual_storage& rhs) noexcept(/*see below*/);
