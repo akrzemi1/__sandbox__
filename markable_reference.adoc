@@ -25,20 +25,19 @@ struct dual_storage
   typedef typename MP::reference_type reference_type;
   
   bool has_value() const noexcept;
-  void clear_value() noexcept;
   value_type&        as_value();
   const value_type&  as_value() const;
   representation_type&       representation()       noexcept;
   const representation_type& representation() const noexcept;
   
   constexpr explicit dual_storage(representation_type&& mv) noexcept(/*see below*/);
-  constexpr explicit dual_storage(const value_type& v) noexcept(noexcept(value_type(v))));
-  constexpr explicit dual_storage(value_type&& v) noexcept(noexcept(value_type(std::move(v))));
-  dual_storage(const dual_storage& rhs); // TODO: add noexcept
-  dual_storage(dual_storage&& rhs); // TODO: add noexcept    
+  constexpr explicit dual_storage(const value_type& v);
+  constexpr explicit dual_storage(value_type&& v) noexcept(/*see below*/);
+  dual_storage(const dual_storage& rhs);
+  dual_storage(dual_storage&& rhs);    
   void operator=(const dual_storage& rhs);    
-  void operator=(dual_storage&& rhs); // TODO: add noexcept  
-  friend void swap(dual_storage& lhs, dual_storage& rhs);  // TODO: add conditional noexcept
+  void operator=(dual_storage&& rhs) noexcept(/*see below*/); 
+  friend void swap(dual_storage& lhs, dual_storage& rhs) noexcept(/*see below*/);
   ~dual_storage();
 };
 ```
@@ -64,14 +63,6 @@ For an object of type `dual_storage` that has a value, to _clear the value_ mean
 
 *Remarks:* This tests if the object has value.
 
-#### `void clear_value() noexcept;`
-
-*Preconditions:* `has_value() == true`.
-
-*Effects:* destroys the active member of type `value_type`; next, initializes member of type `representation_type`
-with expression `MP::marked_value()`.
-
-*Remarks:* If an expression is thrown during the initialization of member of type `representation_type`, function `std::terminate()` is called.
 
 #### `value_type&        as_value();`
 #### `const value_type&  as_value() const;`
