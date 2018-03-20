@@ -84,9 +84,11 @@ The converting constructor taking `const char*` has a purpose: provide interface
 string). That the constructor intended for handling C-like strings preserves interface and semantics characteristic of C-like strings seems to us more important than providing similarity with other constructors that were designed to handle different cases.
 
 
-# Migrating `char*` APIs to `string_view` APIs made easier?
+### Migrating `char*` APIs to `string_view` APIs made easier?
 
 TBD...
+
+#### Alternatives to P0903R1...
 
 ----------------------
 
