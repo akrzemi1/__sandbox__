@@ -56,6 +56,38 @@ Leaving undefined, at the Standard level, what happens on null pointer passed to
 
 This flexibility is not possible if the Standard harcodes this behavior to a single one.
 
+
+## Criticism of P0903R1
+
+In this section we summarize and challenge the rationale provided in P0903R1.
+
+
+### Analogy with 0- and 2-argument constructors
+
+P0903R1 argues that because the default constructor and constructor `string_view((const char*)0, 0)` render the same state:
+`sv.data() == nullptr` and `sv.size() == 0`, it would be "more consistent" if `string_view((const char*)0)` also rendered the same state.
+
+We do not see a value added with providing such consistency. Different constructors serve different purposes, provide different semantics, and it does not makesense to expect the same postconditions of them. 
+
+The constructor taking a pointer `p` and a size `s` has a purpose: it is an interface for constructing form anything that provides a pointer to the beginning of the sequence and the sequence size. This implies the precondition: `[p, p + s)` must be a valid range. it allows `string_view((const char*)0, 0)` not as a "singular" value representing not-a-range, but because some containers representing valid ranges really encode the state as two zeros:
+
+```c++
+std::vector<char> v {};
+
+assert (v.data() == nullptr); // on some implementations
+assert (v.size() == 0);
+```
+
+The value created by default constructor is probably not that relevant. This is becauese the default constructed object of this type will likely be overwritten with another value before it is read. So, some value just has to be chosen, and "all zeros" makes sense.
+
+The converting constructor taking `const char*` has a purpose: provide interface for C-like APIs. After all `string_view` was created to provide one interface replacing C++-like `std::strings` and C-like `const char*`. Following its purpose it is expected that this constructor also provides semantics as these offered by the C APIs (UB on null pointer: it does not represent a 
+string). That the constructor intended for handling C-like strings preserves interface and semantics characteristic of C-like strings seems to us more important than providing similarity with other constructors that were designed to handle different cases.
+
+
+# Migrating `char*` APIs to `string_view` APIs made easier?
+
+TBD...
+
 ----------------------
 
 http://wiki.edg.com/pub/Wg21jacksonville2018/P0903/d0903r1.pdf
