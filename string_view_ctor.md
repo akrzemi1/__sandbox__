@@ -43,6 +43,19 @@ But if parameter is `string_view` with the widened contract in constructor (as p
 the null pointer is replaced with an arbitrary (zero-sized) valid range, and the bug goes unnoticed: 
 neither statically nor at run-time, potentially causing damage.
 
+
+## Narrow contract means implementation flexibility
+
+Leaving undefined, at the Standard level, what happens on null pointer passed to `string_view`'s constructor, leaves the implementations the ability to define the behavior in a way that suits their custormers best. They can:
+
+1. Throw an exception,
+2. Signal error in any other way statically or in run-time,
+3. Go with empty range,
+4. Go with a unigue range value, distinct from empty range (e.g., `{&_unique_global, 0}`),
+5. Do any of the above based on vendor-speciffic switches.
+
+This flexibility is not possible if the Standard harcodes this behavior to a single one.
+
 ----------------------
 
 http://wiki.edg.com/pub/Wg21jacksonville2018/P0903/d0903r1.pdf
