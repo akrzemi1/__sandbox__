@@ -60,9 +60,9 @@ This flexibility is not possible if the Standard harcodes this behavior to a sin
 ## Narrow contract is not a TBD
 
 Finally, because the Standard imposes no requirement on implementations on what happens when the narrow contract is violated,
-one might think that it is an uncontroversial change to specify to impose the requirements,
+one might think that it is an uncontroversial change to actually specify the behavior,
 because "no one could rely on that behavior anyway". In order words, it might be tempted to think that UB means
-"to be specified in the future releases of the Standard". This is not correct because, as has been indicated above, the UB in the standard is a feature that users rely on. The Standard guarantees nothing, but implementation vendors can provide their guarantees. These guarantees are compromized if narrow contract is removed from the interface.
+"behavior to be specified in the future releases of the Standard". This is not correct because, as has been indicated above, the UB in the standard is a feature that users rely on. The Standard guarantees nothing, but implementation vendors can provide their guarantees. These guarantees are compromized if narrow contract is removed from the interface.
 
 
 ## Criticism of P0903R1
