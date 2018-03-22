@@ -75,9 +75,9 @@ In this section we summarize and challenge the rationale provided in P0903R1.
 P0903R1 argues that because the default constructor and constructor `string_view((const char*)0, 0)` render the same state:
 `sv.data() == nullptr` and `sv.size() == 0`, it would be "more consistent" if `string_view((const char*)0)` also rendered the same state.
 
-We do not see a value added with providing such consistency. Different constructors serve different purposes, provide different semantics, and it does not makesense to expect the same postconditions of them. 
+We do not see value added with providing such consistency. Different constructors serve different purposes, provide different semantics, and it does not makesense to expect the same postconditions of them. 
 
-The constructor taking a pointer `p` and a size `s` has a purpose: it is an interface for constructing form anything that provides a pointer to the beginning of the sequence and the sequence size. This implies the precondition: `[p, p + s)` must be a valid range. it allows `string_view((const char*)0, 0)` not as a "singular" value representing not-a-range, but because some containers representing valid ranges really encode the state as two zeros:
+The constructor taking a pointer `p` and a size `s` has a purpose: it is an interface for constructing form anything that provides "counted range" interface: a pointer to the beginning of the sequence and the sequence size. This implies the precondition: `[p, p + s)` must be a valid range. it allows initialization `string_view((const char*)0, 0)` not as a "singular" value representing not-a-range, but because some containers representing valid ranges really encode the state as two zeros:
 
 ```c++
 std::vector<char> v {};
@@ -86,17 +86,33 @@ assert (v.data() == nullptr); // on some implementations
 assert (v.size() == 0);
 ```
 
-The value created by default constructor is probably not that relevant. This is becauese the default constructed object of this type will likely be overwritten with another value before it is read. So, some value just has to be chosen, and "all zeros" makes sense.
+The value created by default constructor is probably not that relevant. This is becauese the default constructed object of this type will likely be overwritten with another value before it is read. So, some valid value just has to be chosen, and "all zeros" makes sense -- this is the only valid (0-size) range that can be constructed without an address to any particular object.
 
-The converting constructor taking `const char*` has a purpose: provide interface for C-like APIs. After all `string_view` was created to provide one interface replacing C++-like `std::strings` and C-like `const char*`. Following its purpose it is expected that this constructor also provides semantics as these offered by the C APIs (UB on null pointer: it does not represent a 
-string). That the constructor intended for handling C-like strings preserves interface and semantics characteristic of C-like strings seems to us more important than providing similarity with other constructors that were designed to handle different cases.
+The converting constructor taking `const char*` has a purpose: provide the *C interface for strings*. After all, `string_view` was created to provide one interface replacing both C++-style `std::string`s and C-style `const char*`. The C interface for strings is not only the type `const char*` but also the semantics, which are:
+- UB if pointer is not null,
+- UB if there is no character `'\0'` in the pointed to sequence.
+
+Given its purpose it is expected that this constructor also provides semantics of an C interface for strings.
+That the constructor intended for handling C-style strings preserves both the type and the semantics of the C interface for strings seems to us more important than providing similarity with other constructors that were designed to handle different cases.
 
 
 ### Migrating `char*` APIs to `string_view` APIs made easier?
 
-TBD...
+P0903R1, as motivation, proveides an example of a function taking `const char *`:
 
-#### Alternatives to P0903R1...
+```c++
+void foo(const char* p) {
+  if (p == nullptr) return;
+  // Process p
+}
+```
+with a remark, "callers of `foo` can pass null or non-null pointers without worry." It 
+
+
+
+## Alternatives to P0903R1...
+
+## Consistency with other interfaces in the library
 
 ----------------------
 
