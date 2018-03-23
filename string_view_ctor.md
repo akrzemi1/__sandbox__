@@ -12,10 +12,11 @@ or that it is "bug prone". When the program has no bugs, no UB will ever occur. 
 can manifest when it interacts with the narrow contract interface is by invoking UB. UB can in turn manifest in a number of ways,
 especially the one with dereferencing a null pointer, which has been well studied. First, it can be deftected by static analyzers
 and reported even without running the program. Second, because UB means anything can happen, implementations are
-allowed to actuall specify what happens. For instance, they can guarantee that an exception is thrown.
+allowed to actually specify what happens. For instance, they can guarantee that an exception is thrown.
 
 UB is a symptom of a bug but is never a bug on itself. Widening the contracts removes UBs and therefore hides the 
-symptoms of bugs: they can no longer be detected by static analysis (or code reviews).
+symptoms of bugs. The bug is still in the code but can no longer be detected by static analysis (or code reviews) or
+UB sanitizers.
 
 This can be illustrated with the following example. The following code is supposed to open the indicated file, 
 represent its contents as names, fint the best matching name, and finally do something with it:
@@ -62,7 +63,9 @@ This flexibility is not possible if the Standard harcodes this behavior to a sin
 Finally, because the Standard imposes no requirement on implementations on what happens when the narrow contract is violated,
 one might think that it is an uncontroversial change to actually specify the behavior,
 because "no one could rely on that behavior anyway". In order words, it might be tempted to think that UB means
-"behavior to be specified in the future releases of the Standard". This is not correct because, as has been indicated above, the UB in the standard is a feature that users rely on. The Standard guarantees nothing, but implementation vendors can provide their guarantees. These guarantees are compromized if narrow contract is removed from the interface.
+"behavior to be specified in the future releases of the Standard". 
+
+This is not correct because, as has been indicated above, the UB in the standard is a feature that users rely on. The Standard by guaranteeing nothing implies that the behavior is settled between the programmer and the compiler vendor. These guarantees from vendors would suddenly be compromised if the Standard widens the contract in the interface. 
 
 
 ## Criticism of P0903R1
