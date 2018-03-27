@@ -140,6 +140,10 @@ void foo(protective_string_view p) {
 }
 ```
 
+If the need for `string_view` + particular semantics appies to every replacement of `char*` and you never need  `string_view`
+with the standard *C interface for strings*, see if you can customize the null pointer behavior in your vendor's implementation,
+or if you can request of your vendor such customization.   
+
 
 ## Consistency with other interfaces in the library
 
