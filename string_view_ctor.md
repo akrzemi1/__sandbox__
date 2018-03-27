@@ -134,12 +134,10 @@ struct protective_string_view : std::string_view
   protective_string_view (const char * p) : std::string_view(p ? p : "") {}
 };
 
-```c++
 void foo(protective_string_view p) {
   if (p.empty()) return;
   // Process p
 }
-```
 ```
 
 
