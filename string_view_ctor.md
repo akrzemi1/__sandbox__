@@ -125,7 +125,22 @@ If not, do not update the interface to `string_view` as it would change the sema
 
 This also means that you cannot mechanically change all occurences of `char*` to `string_view`, because not every usage of `char*` stands for the *C interface for strings*.
 
-If for a particular function you want to provide the *C interface for strings* with one exception: you want a particular well-defined semantics when a null pointer is passed (like: create empty range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics.
+If for a particular function you want to provide the *C interface for strings* with one exception: you want a particular well-defined semantics when a null pointer is passed (like: create empty range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics. In case you want the semantics described in P0903R1, the type definition would be:
+
+```c++
+struct protective_string_view : std::string_view
+{
+  using std::string_view::string_view;
+  protective_string_view (const char * p) : std::string_view(p ? p : "") {}
+};
+
+```c++
+void foo(protective_string_view p) {
+  if (p.empty()) return;
+  // Process p
+}
+```
+```
 
 
 ## Consistency with other interfaces in the library
