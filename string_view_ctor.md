@@ -111,7 +111,19 @@ void foo(const char* p) {
   // Process p
 }
 ```
-with a remark, "callers of `foo` can pass null or non-null pointers without worry." It 
+with a remark, "callers of `foo` can pass null or non-null pointers without worry." Next, it argues that if the type of
+the argument is changed to `std::string_view` there is no way to check for null pointer input before UB is invoked.
+
+We argue that maybe it is not a good idea to change the interface of this function from taking `const char*` to taking `std::string_view`. The goal of `std::string_view` is not to replace every single ocurrence of `const char*` in the program: only those ocurrences that come wiht the *C interface for strings*. `const char*` can be used for other purposes. For instance:
+
+```c++
+bool is_default_separator(const char * ch) { return *ch == '-'; }
+
+const char SEPARATOR = '/';
+return is_default_separator(&SEPARATOR);
+```
+
+And everyone will agree that it oes not make sense to upgrade it to `std::string_view`. Similarly, if a function does want a string in `const char *` but offers a different interface, migrating to `std::string_view` would cange the semantic part of the interface, and alter the program behavior, likely causing bugs.
 
 
 
