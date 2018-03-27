@@ -115,7 +115,18 @@ with a remark, "callers of `foo` can pass null or non-null pointers without worr
 
 
 
-## Alternatives to P0903R1...
+## Recomendations for migrating from `char*` to `string_view`
+
+In this section we provide a number of recomendations for migrating codebases that use `char*` in their interfaces to `string_view`.
+
+First, determine if a function that has argument `char*` provides the contract of *C interface for strings* 
+(null pointer is disallowed, pointer points to array of characters, character sequence without trailing zero is disallowed).
+If not, do not update the interface to `string_view` as it would change the semantics of your program.
+
+This also means that you cannot mechanically change all occurences of `char*` to `string_view`, because not every usage of `char*` stands for the *C interface for strings*.
+
+If for a particular function you want to provide the *C interface for strings* with oone exception: you want a particular well-defined semantics when a null pointer is passed (like: create empty range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics.
+
 
 ## Consistency with other interfaces in the library
 
