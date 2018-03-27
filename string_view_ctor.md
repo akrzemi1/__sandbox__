@@ -125,7 +125,7 @@ If not, do not update the interface to `string_view` as it would change the sema
 
 This also means that you cannot mechanically change all occurences of `char*` to `string_view`, because not every usage of `char*` stands for the *C interface for strings*.
 
-If for a particular function you want to provide the *C interface for strings* with oone exception: you want a particular well-defined semantics when a null pointer is passed (like: create empty range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics.
+If for a particular function you want to provide the *C interface for strings* with one exception: you want a particular well-defined semantics when a null pointer is passed (like: create empty range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics.
 
 
 ## Consistency with other interfaces in the library
