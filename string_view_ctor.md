@@ -11,7 +11,7 @@ We need to make a distinction here. When a function has a narrow contract it doe
 or that it is "bug prone". When the program has no bugs, no UB will ever occur. When the program has a bug, one way it
 can manifest when it interacts with the narrow contract interface is by invoking UB. UB can in turn manifest in a number of ways,
 especially the one with dereferencing a null pointer, which has been well studied. First, it can be deftected by static analyzers
-and reported even without running the program. Second, because UB means anything can happen, implementations are
+and reported even without running the program. Second, it can be detected by UB-sanitizers. Third, because UB means anything can happen, implementations are
 allowed to actually specify what happens. For instance, they can guarantee that an exception is thrown.
 
 UB is a symptom of a bug but is never a bug on itself. Widening the contracts removes UBs and therefore hides the 
@@ -123,7 +123,12 @@ const char SEPARATOR = '/';
 return is_default_separator(&SEPARATOR);
 ```
 
-And everyone will agree that it does not make sense to upgrade it to `std::string_view`. Similarly, if a function does want a string in `const char *` but offers a different interface, migrating to `std::string_view` would cange the semantic part of the interface, and alter the program behavior, likely causing bugs. In fact, the semantics of function `foo()` above do change if the argument type is replaced with `std::string_view` modified as per P0903R1. Before it had different path for a null pointer and a different on efor an empty string; after the change the two will be indistinguishable. The only case where it is acceptable is when the programmer's expectation is, "give me any well-defined beavior, as long as it does not crash my program and is repetible". The goal in such case is, "try to minimize the damage when the bug happens in production by arbitrarily selecting some valid value". But solving it this way prevents a more valueable approach: "help preventing the bug from ocurring in the first place, and help minimizing damage when the bug happens in production in a way that is considered best by the dev team (maybe via exceptions, maybe via `std::terminate`, maybe viaa some valid value, maybe via singular value)".
+And everyone will agree that it does not make sense to upgrade it to `std::string_view`. Similarly, if a function does want a string in `const char *` but offers a different interface, migrating to `std::string_view` would cange the semantic part of the interface, and alter the program behavior, likely causing bugs. In fact, the semantics of function `foo()` above do change if the argument type is replaced with `std::string_view` modified as per P0903R1. Before it had different path for a null pointer and a different on efor an empty string; after the change the two will be indistinguishable. The only case where it is acceptable is when the programmer's expectation is, "give me any well-defined beavior, as long as it does not crash my program and is repetible". The goal in such case is, "try to minimize the damage when the bug happens in production by arbitrarily selecting some valid value". But solving it this way prevents a more valueable approach: "help preventing the bug from ocurring in the first place, and help minimizing damage when the bug happens in production in a way that is considered best by the dev team (maybe via exceptions, maybe via `std::terminate`, maybe via some valid value, maybe via singular value)".
+
+To summarize, P0903R1's motivation states, "if `basic_string_view(null_char_ptr)` becomes well-defined, APIs currently accepting `char*` or `const string&` can all move to `std::string_view` without worrying about whether parameters could ever be null." We do not agree with this statement, because:
+
+1. One does not want to convert all APIs accepting `char*` to `std::string_view`: only these compliant with the C interface for strings.
+2. After conversion there is still a reason to worry about. Either the callers do rely and want to trigger a particular behavior in the function, and it has silently changed; or they pass null pointer accidentaly (a bug), in which case the bug becomes concealed.
 
 
 ## Recomendations for migrating from `char*` to `string_view`
