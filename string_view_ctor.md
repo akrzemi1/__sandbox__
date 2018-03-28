@@ -128,7 +128,7 @@ And everyone will agree that it does not make sense to upgrade it to `std::strin
 To summarize, P0903R1's motivation states, "if `basic_string_view(null_char_ptr)` becomes well-defined, APIs currently accepting `char*` or `const string&` can all move to `std::string_view` without worrying about whether parameters could ever be null." We do not agree with this statement, because:
 
 1. One does not want to convert all APIs accepting `char*` to `std::string_view`: only these compliant with the C interface for strings.
-2. After conversion there is still a reason to worry about. Either the callers do rely and want to trigger a particular behavior in the function, and it has silently changed; or they pass null pointer accidentaly (a bug), in which case the bug becomes concealed.
+2. After conversion there is still a reason to worry about. Either the callers do rely and want to trigger a particular behavior in the function, and it has silently changed; or they pass null pointer accidentaly (a bug), in which case the bug becomes concealed: you cannot use `.empty()` to chec for null pointer input, because it would blend together a valid empty string with an invalid null pointer. Some programs can afford to treat both empty string and a null pointer uniformly, but this is not the case in general.
 
 
 ## Recomendations for migrating from `char*` to `string_view`
@@ -166,4 +166,6 @@ or if you can request of your vendor such customization.
 ----------------------
 
 http://wiki.edg.com/pub/Wg21jacksonville2018/P0903/d0903r1.pdf
+
+mention optional string
 
