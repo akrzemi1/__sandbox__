@@ -163,6 +163,12 @@ or if you can request of your vendor such customization.
 
 ## Consistency with other interfaces in the library
 
+fopen
+strcpy
+strncpy
+strncpy_s http://en.cppreference.com/w/c/string/byte/strncpy
+
+ifstream string
 ----------------------
 
 http://wiki.edg.com/pub/Wg21jacksonville2018/P0903/d0903r1.pdf
