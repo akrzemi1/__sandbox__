@@ -106,12 +106,24 @@ That the constructor intended for handling C-style strings preserves both the ty
 The goal for P0903R1 is to enable migration to `std::string_view` of funcitions like this one, taking `const char *`: 
 
 ```c++
-Bar* foo(const char* p)
+X* foo(const char* p) // precondition: p != nullptr
 {
   if (p == nullptr) {
     log_error();
     return nullptr;
   }
+  
+  return process(p);
+}
+```
+
+as well as this one:
+
+```c++
+X* bar(const char* p) // no precondition
+{
+  if (p == nullptr)
+    p = "";
   
   return process(p);
 }
