@@ -192,4 +192,6 @@ ifstream string
 http://wiki.edg.com/pub/Wg21jacksonville2018/P0903/d0903r1.pdf
 
 mention optional string
+UB in Standard is not "something bad will happen": it is, the vendor and you will decide.
+vendor may implement as illegal memory access
 
