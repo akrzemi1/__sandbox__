@@ -103,14 +103,20 @@ That the constructor intended for handling C-style strings preserves both the ty
 
 ### Migrating `char*` APIs to `string_view` APIs made easier?
 
-P0903R1, as motivation, proveides an example of a function taking `const char *`:
+The goal for P0903R1 is to enable migration to `std::string_view` of funcitions like this one, taking `const char *`: 
 
 ```c++
-void foo(const char* p) {
-  if (p == nullptr) return;
-  // Process p
+Bar* foo(const char* p)
+{
+  if (p == nullptr) {
+    log_error();
+    return nullptr;
+  }
+  
+  return process(p);
 }
 ```
+
 with a remark, "callers of `foo` can pass null or non-null pointers without worry." Next, it argues that if the type of
 the argument is changed to `std::string_view` there is no way to check for null pointer input before UB is invoked.
 
