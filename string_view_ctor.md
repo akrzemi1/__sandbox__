@@ -198,3 +198,5 @@ vendor may implement as illegal memory access
 We provide no specific solution, because no good one exists: we put it on vendors and programmers
 We do not argue with Googles decision. We argue with making it imposed on everyone.
 
+I think the "empty string" angle here isn't quite right. An empty string is one for which data() == data() + size, regardless of the value of that pointer. The appropriate analogy here is with the constructor string_view(nullptr, 0), which already exists today and produces an empty string.
+
