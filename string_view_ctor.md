@@ -195,3 +195,6 @@ mention optional string
 UB in Standard is not "something bad will happen": it is, the vendor and you will decide.
 vendor may implement as illegal memory access
 
+We provide no specific solution, because no good one exists: we put it on vendors and programmers
+We do not argue with Googles decision. We argue with making it imposed on everyone.
+
