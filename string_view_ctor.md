@@ -243,3 +243,5 @@ analogu to `delete` : you do not use vocabulary types out of the box. you prepar
 `find_first_of`
 
 we do not argue that protecting against nullptr is bad in general. We argue about putting it into string_view.
+
+You do not discuss narrow contracts with clients.
