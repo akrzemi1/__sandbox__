@@ -181,12 +181,42 @@ or if you can request of your vendor such customization.
 
 ## Consistency with other interfaces in the library
 
-fopen
-strcpy
-strncpy
-strncpy_s http://en.cppreference.com/w/c/string/byte/strncpy
+A question has been asked, how other functions from the standard library behave when a null pointer is passed in place where a pointer to a null-terminated character sequence is expected.
 
-ifstream string
+Most functions inherited from C do not define program behavior when a null pointer is passed. This applies to funcitons like `fopen`, or string manipulating functions like `strcpy`. Even its safer cousin, `strncpy` triggers undefined behavior wne a null pointer is passed. The only function from the family that checks for the null pointer is `strncpy_s`. This function in the case of a nul pointer calls a "constraint handler" function: it might call `abort()` or ignore the situation, but it does not treat null pointer as an empty string.
+
+In genuine C++ functions, passing null pointer to functions expecting a null-terminated character sequences is undefined behavior. This applies to functions like: constructor of `fstream`, constructor of `basic_string`, or argument to `basic_string::find_first_of`.
+
+There is the case of `std::copy()` which can be passed a null pointer of type `const char *` and no UB is triggered, so we have to analyze it in more detail. The relevant signature is:
+
+```c++
+template <class InputIt, class OutputIt>
+OutputIt copy(InputIt first, InputIt last, OutputIt d_first);
+```
+A pointer is a special case of an iterator, so this type can be instantiated with type `const char*`. Next, the semantic requirements on the input aruments are that `[first, last)` is a valid range and that `[d_first, d_first + distance(first, last))` is a valid range. These three iterators represent two ranges. For some implementations of `std::vector` the default constructor sets the vector's begin and end to a null pointer value:
+
+```c++
+std::vector<char> v {};
+assert (v.begin() == nullptr);
+```
+
+We can call `std::copy` on such default constructed vector:
+
+```c++
+std::vector<char> v {}, w {};
+std::copy(v.begin(), v.end(), w.begin());
+```
+We have passed three null pointers of type `const char *`, and the behavior is well defined. But not because the algorithm has some protective checks for null pointers, but because these null pointers represent two *valid* ranges.
+
+
+A question has been asked, if and how the Ranges TS handles the case of a null pointer passed as type `const char*`. The answer is, Ranges TS describes constraints on inputs representing *ranges* denoted by begin and end. A C interface for strings is not a range in the sense of Ranges TS. If we want to talk abut the analogy to ranges, passing a null pointer to a function with the C interface for strings would be analogous to calling:
+
+```c++
+`std::for_each(v.begin(), fun); // no v.end()
+```
+and expecting that the algorithm will deduce that we intended a zero-sized range.
+
+
 ----------------------
 
 http://wiki.edg.com/pub/Wg21jacksonville2018/P0903/d0903r1.pdf
@@ -209,3 +239,7 @@ d0903 will not allow migration from f(string_view) to f(string)
 more complicated reasoning
 
 analogu to `delete` : you do not use vocabulary types out of the box. you prepare your own types. 
+
+`find_first_of`
+
+we do not argue that protecting against nullptr is bad in general. We argue about putting it into string_view.
