@@ -200,3 +200,12 @@ We do not argue with Googles decision. We argue with making it imposed on everyo
 
 I think the "empty string" angle here isn't quite right. An empty string is one for which data() == data() + size, regardless of the value of that pointer. The appropriate analogy here is with the constructor string_view(nullptr, 0), which already exists today and produces an empty string.
 
+`string_view` is not a `pair<const char *, size_t>` -- you cannot create any combination.
+
+describe why we want a narrow contract: determine at wchich opint the bug is located and fix it there.
+
+d0903 will not allow migration from f(string_view) to f(string)
+
+more complicated reasoning
+
+analogu to `delete` : you do not use vocabulary types out of the box. you prepare your own types. 
