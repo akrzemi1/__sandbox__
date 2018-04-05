@@ -49,25 +49,25 @@ It seems that people sometimes are concerned about UB in the Standard more than 
 
 ### Narrow contract means implementation flexibility
 
-Leaving undefined, at the Standard level, what happens on null pointer passed to `string_view`'s constructor, leaves the implementations the ability to define the behavior in a way that suits their custormers best. They can:
+The Standard does not specify what happens when the precondition is violated (even in the currently proposed contract support), because there is no universal good way of handling them. Choosing a solution that satisfies one project in one environment, makes the solution suboptimal or inacceptable in other projects or environments. Therefore the decision is left to the programmer to choose the best option by using tools, compiler switches, `#define`s or collaborating with implementation vendor. In the case of null pointer in `string_view`'s constructor, programmers and implementation vendore can:
 
 1. Throw an exception,
-2. Signal error in any other way statically or in run-time,
+2. Signal error in any other way, statically or in run-time,
 3. Go with empty range,
 4. Go with a unigue range value, distinct from empty range (e.g., `{&_unique_global, 0}`),
 5. Do any of the above based on vendor-speciffic switches.
 
-This flexibility is not possible if the Standard harcodes this behavior to a single one.
+This flexibility would no longer be possible if the Standard harcodes the behavior to a single one.
 
 
 ### Narrow contract is not a TBD
 
-Finally, because the Standard imposes no requirement on implementations on what happens when the narrow contract is violated,
+Finally, because the Standard imposes no requirement on implementations about what happens when the precondition is violated,
 one might think that it is an uncontroversial change to actually specify the behavior,
-because "no one could rely on that behavior anyway". In order words, it might be tempted to think that UB means
+because "no one could rely on that behavior anyway". In order words, one might be tempted to think that UB means
 "behavior to be specified in the future releases of the Standard". 
 
-This is not correct because, as has been indicated above, the UB in the standard is a feature that users rely on. The Standard by guaranteeing nothing implies that the behavior is settled between the programmer and the compiler vendor. These guarantees from vendors would suddenly be compromised if the Standard widens the contract in the interface. 
+Such reasoning is not correct because, as has been indicated above, the UB in the standard is in many cases a feature that users rely on. The Standard by guaranteeing nothing implies that the behavior is settled between the programmer and the compiler vendor. These guarantees from vendors would suddenly be compromised if the Standard widens the contract in the interface. 
 
 
 ## Criticism of P0903R1
