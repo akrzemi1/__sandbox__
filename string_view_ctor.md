@@ -197,18 +197,10 @@ std::vector<char> v {};
 assert (v.data() == nullptr); // on some implementations
 assert (v.size() == 0);
 
-fun(v.data(), v.size());
+fun({v.data(), v.size()});
 ```
 
 It is incorrect to treat the case `sv.data() == nullptr` differently. Unless, in your project empty string is always a degenerate string.
-
-==================
-
-
-To summarize, P0903R1's motivation states, "if `basic_string_view(null_char_ptr)` becomes well-defined, APIs currently accepting `char*` or `const string&` can all move to `std::string_view` without worrying about whether parameters could ever be null." We do not agree with this statement, because:
-
-1. One does not want to convert all APIs accepting `char*` to `std::string_view`: only these compliant with the C interface for strings.
-2. After conversion there is still a reason to worry about. Either the callers do rely and want to trigger a particular behavior in the function, and it has silently changed; or they pass null pointer accidentaly (a bug), in which case the bug becomes concealed: you cannot use `.empty()` to chec for null pointer input, because it would blend together a valid empty string with an invalid null pointer. Some programs can afford to treat both empty string and a null pointer uniformly, but this is not the case in general.
 
 
 ## Recomendations for migrating from `char*` to `string_view`
@@ -217,7 +209,7 @@ In this section we provide a number of recomendations for migrating codebases th
 
 First, determine if a function that has argument `char*` provides the contract of *C interface for strings* 
 (null pointer is disallowed, pointer points to array of characters, character sequence without trailing zero is disallowed).
-If not, do not update the interface to `string_view` as it would change the semantics of your program; or it might make the bugs in the code more difficult to find by tools or porgrammers doing code reviews.
+If not, do not update the interface to `string_view` as it could silently change the semantics of your program; or it might make the bugs in the code more difficult to find by tools or porgrammers doing code reviews.
 
 This also means that you cannot mechanically change all occurences of `char*` to `string_view`, because not every usage of `char*` stands for the *C interface for strings*. `char*` can still mean "a pointer to a single character".
 
@@ -242,7 +234,7 @@ A question has been asked, how other functions from the standard library behave 
 
 Most functions inherited from C do not define program behavior when a null pointer is passed. This applies to funcitons like `fopen`, or string manipulating functions like `strcpy`. Even its safer cousin, `strncpy` triggers undefined behavior wne a null pointer is passed. The only function from the family that checks for the null pointer is `strncpy_s`. This function in the case of a nul pointer calls a "constraint handler" function: it might call `abort()` or ignore the situation, but it does not treat null pointer as an empty string.
 
-In genuine C++ functions, passing null pointer to functions expecting a null-terminated character sequences is undefined behavior. This applies to functions like: constructor of `fstream`, constructor of `basic_string`, or argument to `basic_string::find_first_of`.
+In genuine C++ functions, passing null pointer to functions expecting a null-terminated character sequences is undefined behavior. This applies to functions like: constructor of `fstream`, constructor of `basic_string`, constructor of `std::filesystem::path`, or argument to `basic_string::find_first_of`.
 
 There is the case of `std::copy()` which can be passed a null pointer of type `const char *` and no UB is triggered, so we have to analyze it in more detail. The relevant signature is:
 
