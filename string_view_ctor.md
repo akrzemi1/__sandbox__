@@ -5,21 +5,23 @@ is undefined behavior. Paper P0903R1 proposes to widen the contract so that pass
 default constructor instead. In this paper we argue that having a narrow contract is a desired and useful language feature 
 which would be compromised by the change. We also argue with the rationale provided in P0903R1.
 
-## Narrow contract is not UB
+## On narrow contracts
 
-We need to make a distinction here. When a function has a narrow contract it does not mean it has UB
-or that it is "bug prone". When the program has no bugs, no UB will ever occur. When the program has a bug, one way it
-can manifest when it interacts with the narrow contract interface is by invoking UB. UB can in turn manifest in a number of ways,
-especially the one with dereferencing a null pointer, which has been well studied. First, it can be deftected by static analyzers
-and reported even without running the program. Second, it can be detected by UB-sanitizers. Third, because UB means anything can happen, implementations are
-allowed to actually specify what happens. For instance, they can guarantee that an exception is thrown.
+### Narrow-contract functions are not bug-prone
 
-UB is a symptom of a bug but is never a bug on itself. Widening the contracts removes UBs and therefore hides the 
-symptoms of bugs. The bug is still in the code but can no longer be detected by static analysis (or code reviews) or
-UB sanitizers.
+We need to clarify one thing up fromt. When a function `ncf()` has a <em>narrow contract</em>, it does not mean that it "has UB"
+or that it is "bug prone". It means that the correct program does not invoke `ncf()` with certain values of its parameter types. When the program has no bugs, no disallowed values are passed to `ncf()`, and no UB is reached.
 
-This can be illustrated with the following example. The following code is supposed to open the indicated file, 
-represent its contents as names, fint the best matching name, and finally do something with it:
+When the program has a bug, it may result in calling `ncf()` with a disallowed value: this in turn results in reaching UB. The C++ Standard does not specify what happens with the program in such case, but implementations may specify what happens; and many implementations do. We are focusing here on a very popular, well understood and well explored type of UB: dereferencing a null pointer. Current implementations respond to dereferencing a null pointer by:
+
+1. Reporting error during statc analysis, before the program is even run. This is comparable to detecting bugs at compile-time.
+2. When compiled with an UB-sanitizer, logging null pointer dereference and halting the program.
+3. On particular implementations of the Standard Library, an exception is thrown.
+
+UB is always a symptom of a bug, but is never a bug on itself. It is possible to artificially widen the contract of function `ncf()` and say: null pointer is a valid input: in such case we will do *something*, maybe not intuitive, but at least it will not cause UB. Widening the contract removes UB, but does not remove the bug: someone is still incorrectly (probably inadvertantly) passing a null pointer to a function, whereas he was supposed to pass a pointer that points ot something. THe symptom is cured, but not the disease. Worse, with the contract widened, there is no symptom that would help the tools like static analyzers or UB-sanitizers, or even human code reviewers, detect the bug. We reduce the chances of finding the bug before the program is shipped.
+
+This can be illustrated with an example. The following code is supposed to open the indicated file, 
+interpret its contents as names, find the best matching name, and finally do something with it:
 
 ```c++
 const char * fileName = "contents.txt";
@@ -31,11 +33,9 @@ foundName = find(names);
 
 There is a bug in this piece of code: pointer `fileName` was supposed to be passed to funciton `parse_file`,
 but a different one with a similar name was passed instead. Type-system-wise it is a valid C++ program. 
-Whether the bug is detected by tools depends on the type of parameter in `parse_file` and whether this type's constructor
-taking `const char *` has a narrow or wide contract.
+Whether the bug is detected by tools depends on the type of parameter in `parse_file` and whether this type's converting constructor from `const char *` has a narrow or wide contract.
 
-If the parameter type is `const char *`, this is UB easily recognized by the tools, and clang's static analyzer issues 
-a warning in this case.
+If the parameter type is `const char *`, this is a null-pointer-dereference type of UB, easily recognized by the tools, and clang's static analyzer issues a warning in this case.
 
 If the parameter type is `std::string`, this is an UB in library and the vendor is allowed to inject arbitrary code in this path.
 For instance, cstdlib++ chooses to throw `std::logic_error` in this case.
@@ -44,10 +44,10 @@ But if parameter is `string_view` with the widened contract in constructor (as p
 the null pointer is replaced with an arbitrary (zero-sized) valid range, and the bug goes unnoticed: 
 neither statically nor at run-time, potentially causing damage.
 
-It seems that people sometimes are concened about UB in the Standard more than abou bugs. But bugs have actually the same characteristics and consequence as UB: you do not know what is going to happen, wehn you type something else than you intended.
+It seems that people sometimes are concerned about UB in the Standard more than about bugs. But bugs have actually the same characteristics and consequence as UB: you do not know what is going to happen, wehn you code something else than you intended.
 
 
-## Narrow contract means implementation flexibility
+### Narrow contract means implementation flexibility
 
 Leaving undefined, at the Standard level, what happens on null pointer passed to `string_view`'s constructor, leaves the implementations the ability to define the behavior in a way that suits their custormers best. They can:
 
@@ -60,7 +60,7 @@ Leaving undefined, at the Standard level, what happens on null pointer passed to
 This flexibility is not possible if the Standard harcodes this behavior to a single one.
 
 
-## Narrow contract is not a TBD
+### Narrow contract is not a TBD
 
 Finally, because the Standard imposes no requirement on implementations on what happens when the narrow contract is violated,
 one might think that it is an uncontroversial change to actually specify the behavior,
@@ -246,4 +246,8 @@ we do not argue that protecting against nullptr is bad in general. We argue abou
 
 You do not discuss narrow contracts with clients.
 
+
+wider precondition: wider postcondition
 Mention CRC
+
+path constructor?
