@@ -18,7 +18,9 @@ When the program has a bug, it may result in calling `ncf()` with a disallowed v
 2. When compiled with an UB-sanitizer, logging null pointer dereference and halting the program.
 3. On particular implementations of the Standard Library, an exception is thrown.
 
-UB is always a symptom of a bug, but is never a bug on itself. It is possible to artificially widen the contract of function `ncf()` and say: null pointer is a valid input: in such case we will do *something*, maybe not intuitive, but at least it will not cause UB. Widening the contract removes UB, but does not remove the bug: someone is still incorrectly (probably inadvertantly) passing a null pointer to a function, whereas he was supposed to pass a pointer that points ot something. THe symptom is cured, but not the disease. Worse, with the contract widened, there is no symptom that would help the tools like static analyzers or UB-sanitizers, or even human code reviewers, detect the bug. We reduce the chances of finding the bug before the program is shipped.
+Static analyzers, in order to avoid false positive warnings, need to be positive that a given situation in a standard-conformant program is a bug. Hitting UB is a certain indication that there is a bug. But for this you have got to have the potential to hit UB. UB is close in nature to a [checksum](https://en.wikipedia.org/wiki/Checksum): it is redundant, increases size of a message, and creates the potential for producing invalid messages (where the payload doesn't match the checksum), so someone might sat "remove it, and there be no way to send an invalid message". But we still want to use checksums, and we all know why. 
+
+UB is always a symptom of a bug, but is never a bug on itself. It is possible to artificially widen the contract of function `ncf()` and say: null pointer is a valid input: in such case we will do *something*, maybe not intuitive, but at least it will not cause UB. Widening the contract removes UB, but does not remove the bug: someone is still incorrectly (probably inadvertantly) passing a null pointer to a function, whereas he was supposed to pass a pointer that points ot something. THe symptom is cured, but not the disease. Worse, with the contract widened, there is no symptom that would help the tools like static analyzers or UB-sanitizers, or even human code reviewers, detect the bug. We reduce the chances of finding the bug before the program is shipped. Passing a null pointer where an address of an existing object is expected is **a common bug** ocurring in many popular and commercial applications, written in many languages. Detecting such bugs is important and possible. UB helps here.
 
 This can be illustrated with an example. The following code is supposed to open the indicated file, 
 interpret its contents as names, find the best matching name, and finally do something with it:
@@ -33,6 +35,7 @@ foundName = find(names);
 
 There is a bug in this piece of code: pointer `fileName` was supposed to be passed to funciton `parse_file`,
 but a different one with a similar name was passed instead. Type-system-wise it is a valid C++ program. 
+
 Whether the bug is detected by tools depends on the type of parameter in `parse_file` and whether this type's converting constructor from `const char *` has a narrow or wide contract.
 
 If the parameter type is `const char *`, this is a null-pointer-dereference type of UB, easily recognized by the tools, and clang's static analyzer issues a warning in this case.
@@ -113,7 +116,7 @@ That the constructor intended for handling C-style strings preserves both the ty
 
 ### Migrating `char*` APIs to `string_view` APIs made easier?
 
-The goal for P0903R1 is to enable migration to `std::string_view` of funcitions taking `const char *`, with one of the following semantics: 
+The goal for P0903R1 is to enable the migration to `std::string_view` of funcitions taking `const char *`, with one of the following semantics: 
 
 ```c++
 X* foo(const char* p) // desired: p != nullptr
@@ -128,7 +131,7 @@ X* foo(const char* p) // desired: p != nullptr
 ```
 
 ```c++
-X* foo(const char* p) // desired: p != nullptr && p is not ""
+X* bar(const char* p) // desired: p != nullptr && p is not ""
 {
   if (p == nullptr) {
     log_error();
@@ -145,7 +148,7 @@ X* foo(const char* p) // desired: p != nullptr && p is not ""
 ```
 
 ```c++
-X* bar(const char* p) // nullptr is fine
+X* baz(const char* p) // nullptr is fine
 {
   if (p == nullptr)
     p = "";
@@ -154,10 +157,10 @@ X* bar(const char* p) // nullptr is fine
 }
 ```
 
-with a remark, "callers of `foo` can pass null or non-null pointers without worry." Next, it argues that if the type of
-the argument is changed to `std::string_view` there is no way to check for null pointer input before UB is invoked.
+With the current semantics of `std::string_view`'s converting constructor the migration is not possible: invoking the 
+constructor with null pointer is UB, and checking anything later, inside the function is impossible.
 
-We argue that maybe it is not a good idea to change the interface of this function from taking `const char*` to taking `std::string_view`. The goal of `std::string_view` is not to replace every single ocurrence of `const char*` in the program: only those ocurrences that come wiht the *C interface for strings*. `const char*` can be used for other purposes. For instance:
+We argue that maybe it is not a good idea to change the interface of this function from taking `const char*` to taking `std::string_view`. The goal of `std::string_view` is not to replace every single ocurrence of type `const char*` in tfunction interaces in the program: only those ocurrences that come wiht the semantics of the *C interface for strings*. `const char*` can be used for other purposes. For instance:
 
 ```c++
 bool is_default_separator(const char * ch) { return *ch == '-'; }
@@ -166,7 +169,41 @@ const char SEPARATOR = '/';
 return is_default_separator(&SEPARATOR);
 ```
 
-And everyone will agree that it does not make sense to upgrade it to `std::string_view`. Similarly, if a function does want a string in `const char *` but offers a different interface, migrating to `std::string_view` would cange the semantic part of the interface, and alter the program behavior, likely causing bugs. In fact, the semantics of function `foo()` above do change if the argument type is replaced with `std::string_view` modified as per P0903R1. Before it had different path for a null pointer and a different on efor an empty string; after the change the two will be indistinguishable. The only case where it is acceptable is when the programmer's expectation is, "give me any well-defined beavior, as long as it does not crash my program and is repetible". The goal in such case is, "try to minimize the damage when the bug happens in production by arbitrarily selecting some valid value". But solving it this way prevents a more valueable approach: "help preventing the bug from ocurring in the first place, and help minimizing damage when the bug happens in production in a way that is considered best by the dev team (maybe via exceptions, maybe via `std::terminate`, maybe via some valid value, maybe via singular value)".
+And everyone will agree that it does not make sense, and would be incorrect, to upgrade it to `std::string_view`.
+Similarly, if a function does want a string in `const char *` but associates a different interpretation to the argument, 
+migrating to `std::string_view` would cange the semantic part of the interface, and alter the program behavior, likely causing bugs. In fact, the semantics of function `foo()` above do change if the argument type is replaced with `std::string_view` modified as per P0903R1. Before it had different path for a null pointer and a different on efor an empty string; after the change the two will be indistinguishable. 
+
+The only case where the change proposed in P0903R1 does help if it is acceptable or desired to conflate the value of a null pointer and the value of a genuine empty C string into one. This occurs in the following cases:
+
+1. A genuine empty C string (`""`) is treated as a "degenerate" value already, and cannot ever mean any useful content, and already qualifies for a "defensive if". In that case adding null pointer to the set of degenerate values comes with zero cost and is quite natural. This is the case for function `bar()` above.
+
+2. We want to give the callers an option to say, "I have no string to pass" in two ways, because why not? This is the case for function `baz()` above.
+
+3. When the programmer considers that *any* well defined value is better than UB, regardless of what consequences follow. and since it is likely that there will be a "defensive if" for an empty string, just use the empty-string value to go through this defensive if.
+
+Regarding case 1; if the specifics of the problem dictate that empty string is a degenerate value or already represents the lack of a string, then the solution to treat null pointer as an empty string makes sense. However, what we are discussing in this paper is not the legitimacy of a solution for a particular application or programming regime, but a semantics of the Standard Library type, which will be used by people solving different problems and working in different programming regimes, where passing null pointer may have different semantics, for instance no-string, which is different value than string that is empty; or where null pointer is a bug, and programmers want it to be diagnosed by tools. Even if `""` is a no-string, it is often passed on purpose to indicate no-string, whereas passing null pointer may indicate the intention to pass a no-string, but additionally it is often passed by mistake due to a bug.
+
+Regarding case 2; we do not consider it motivated enough to pay the price of not being able to statically check for bugs.
+
+Regarding case 3; we consider it a reasonable approach to minimizing the damage caused by an incorrect use of the interfaces by the callers. This follows the line of reasoning that using *any* predictable value is better than allowing the possibility that *nothig at all* is guaranteed upon UB. However, we note that at the same time, this approach prevents the detection and removal of bugs. Ideally, bugs should be removed by the programmers: not responded to at run-time. Note that not defining behavior for null pointers in the Standard allows for both approaches to co-exist: for test builds or static analysis passes the converting constructor can directly dereference the null pointer; but for release builds (provided that you can afford the run-time penalty of the redundant check) you can switch to producung an empty string reference. This is only the QoI question of the Standard Library implementation. 
+
+Also, when it comes to responding to bugs at run-time, in different applications there may be better ways than producing a default-constructed value, e.g., halting the program, or throwing an exception. The choice to produce an arbitrary value is only attractive to programmers/companies that choose to or are forced to not use exceptions. We believe the decision should be left to people who assemble the final products, who know best the environments on which their products will be run and who are best equipped to make the right decision. The decision should not be imposed by the Standard on everyone.
+
+One argument oft repeated in the discussions is that inside the function one has to perform the check `sv.data() != nullptr` anyway in case the `stding_view` object has been default-constructed, so why not use this check to also test for a string view created from a null string. But this works on false assumptions that it should be a good practice to perform such checks. Some programmers do, and some consider it a good practice; but this is also considered a poor practice by others. In the author's working environment no such checks are performed as they are simply incorrect. First, in such environments no-one passes a default-constructed `string_view`s around. The only thing you do with a default-constructed view is to overwrite it with a proper reference to string (this proper value might still be `{nullptr, 0}` but now it is a proper string). `sv.data() == nullptr` may point to a valid range! Let us repeat the example:
+
+```c++
+std::vector<char> v {};
+
+assert (v.data() == nullptr); // on some implementations
+assert (v.size() == 0);
+
+fun(v.data(), v.size());
+```
+
+It is incorrect to treat the case `sv.data() == nullptr` differently. Unless, in your project empty string is always a degenerate string.
+
+==================
+
 
 To summarize, P0903R1's motivation states, "if `basic_string_view(null_char_ptr)` becomes well-defined, APIs currently accepting `char*` or `const string&` can all move to `std::string_view` without worrying about whether parameters could ever be null." We do not agree with this statement, because:
 
@@ -180,11 +217,11 @@ In this section we provide a number of recomendations for migrating codebases th
 
 First, determine if a function that has argument `char*` provides the contract of *C interface for strings* 
 (null pointer is disallowed, pointer points to array of characters, character sequence without trailing zero is disallowed).
-If not, do not update the interface to `string_view` as it would change the semantics of your program.
+If not, do not update the interface to `string_view` as it would change the semantics of your program; or it might make the bugs in the code more difficult to find by tools or porgrammers doing code reviews.
 
-This also means that you cannot mechanically change all occurences of `char*` to `string_view`, because not every usage of `char*` stands for the *C interface for strings*.
+This also means that you cannot mechanically change all occurences of `char*` to `string_view`, because not every usage of `char*` stands for the *C interface for strings*. `char*` can still mean "a pointer to a single character".
 
-If for a particular function you want to provide the *C interface for strings* with one exception: you want a particular well-defined semantics when a null pointer is passed (like: create empty range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics. In case you want the semantics described in P0903R1, the type definition would be:
+If for a particular function you want to provide the *C interface for strings* with one exception: you want a particular well-defined semantics when a null pointer is passed (like: create empty range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics. In case you want the semantics described in P0903R1, the type definition would as simmple as be:
 
 ```c++
 struct protective_string_view : std::string_view
@@ -192,11 +229,6 @@ struct protective_string_view : std::string_view
   using std::string_view::string_view;
   protective_string_view (const char * p) : std::string_view(p ? p : "") {}
 };
-
-void foo(protective_string_view p) {
-  if (p.empty()) return;
-  // Process p
-}
 ```
 
 If the need for `string_view` + particular semantics appies to every replacement of `char*` and you never need  `string_view`
@@ -246,16 +278,11 @@ and expecting that the algorithm will deduce that we intended a zero-sized range
 
 http://wiki.edg.com/pub/Wg21jacksonville2018/P0903/d0903r1.pdf
 
-mention optional string
-UB in Standard is not "something bad will happen": it is, the vendor and you will decide.
-vendor may implement as illegal memory access
 
-We provide no specific solution, because no good one exists: we put it on vendors and programmers
-We do not argue with Googles decision. We argue with making it imposed on everyone.
+
+
 
 I think the "empty string" angle here isn't quite right. An empty string is one for which data() == data() + size, regardless of the value of that pointer. The appropriate analogy here is with the constructor string_view(nullptr, 0), which already exists today and produces an empty string.
-
-`string_view` is not a `pair<const char *, size_t>` -- you cannot create any combination.
 
 describe why we want a narrow contract: determine at wchich opint the bug is located and fix it there.
 
@@ -273,6 +300,6 @@ You do not discuss narrow contracts with clients.
 
 
 wider precondition: wider postcondition
-Mention CRC
+
 
 path constructor?
