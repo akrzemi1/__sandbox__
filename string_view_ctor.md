@@ -77,12 +77,20 @@ In this section we summarize and challenge the rationale provided in P0903R1.
 
 ### Analogy with 0- and 2-argument constructors
 
-P0903R1 argues that because the default constructor and constructor `string_view((const char*)0, 0)` render the same state:
-`sv.data() == nullptr` and `sv.size() == 0`, it would be "more consistent" if `string_view((const char*)0)` also rendered the same state.
+Proponents of P0903R1 argue that because the default constructor and the constructor `string_view((const char*)0, 0)` render the same state:
+`sv.data() == nullptr` and `sv.size() == 0`, it would be "more consistent" or "symmetrical" if `string_view((const char*)0)` also rendered the same state.
 
-We do not see value added with providing such consistency. Different constructors serve different purposes, provide different semantics, and it does not makesense to expect the same postconditions of them. 
+We believe that speaking about the "symmetry" or "uniformity" of two constructors is illogical. How does one define when two different constructors are "consistent"? Different constructors serve different purposes, expose different signatures, provide different semantics, and it does not makesense to expect the same postconditions of them.
 
-The constructor taking a pointer `p` and a size `s` has a purpose: it is an interface for constructing form anything that provides "counted range" interface: a pointer to the beginning of the sequence and the sequence size. This implies the precondition: `[p, p + s)` must be a valid range. it allows initialization `string_view((const char*)0, 0)` not as a "singular" value representing not-a-range, but because some containers representing valid ranges really encode the state as two zeros:
+Let's get back to the purpose of `string_view`. It is supposed to be a replacement (type-safe, type-erased, requiring no memory allocation), primarily in function arguments, for three different ways of passing strings for reading in C++ and (by inheritance) in C:
+
+1. As type `std::string` or a const reference to one.
+2. As a pointer to NTBS (Null-terminated Byte String).
+3. As a `char` array denoted the pointer to its beginning and its size.
+
+A `string_view` *is not* a pair `pair<const char*, size_t>`. The latter accepts any two values of the corresponding types and doesn't care whether they make sense or not, for instance `{reinterpret_cast<const char*>(&this), 4}` or `{(const char*)nullptr, 7}`. In contrast, an object of `string_view` represents a *string*: a sequence of characters that *really* resides somewhere in memory.
+
+The constructor taking a pointer `p` and a size `s` has a purpose: it is an interface for constructing a view to a string form anything that provides "counted range" interface: a pointer to the beginning of the sequence and the sequence size. This implies the precondition: `[p, p + s)` must be a valid range. You cannot just pass an arbitrary pointer and an arbitrary number. It does allow initialization `string_view((const char*)0, 0)`, but not as a "singular" value representing not-a-range, but because some containers representing valid ranges really encode the state as two zeros:
 
 ```c++
 std::vector<char> v {};
@@ -91,7 +99,8 @@ assert (v.data() == nullptr); // on some implementations
 assert (v.size() == 0);
 ```
 
-The value created by default constructor is probably not that relevant. This is becauese the default constructed object of this type will likely be overwritten with another value before it is read. So, some valid value just has to be chosen, and "all zeros" makes sense -- this is the only valid (0-size) range that can be constructed without an address to any particular object.
+`string_view` also provides the default constructor. For a number of reasons this constructor should not belong to the
+interface of `string_view`: it does not create an object that refers to an existing string. What would be the point of declaring a function that requires a string as argument and then calling it with no string? It would still be auseful type without the default constructor. But `string_view` can be used in contexts other than function arguments, and some contexts require a two-phase initialization (first default-construct, next assign the proper value), such as `map[key] = val` in STL `map`s. In those cases the value set by the default constructor is irrelevant as long as it can be safely overwritten, because no-one will read it before it is set again in the second phase of the initialization. So, some valid value just has to be chosen, and "all zeros" makes sense -- this is the only valid (0-size) range that can be constructed without an address to any particular object.
 
 The converting constructor taking `const char*` has a purpose: provide the *C interface for strings*. After all, `string_view` was created to provide one interface replacing both C++-style `std::string`s and C-style `const char*`. The C interface for strings is not only the type `const char*` but also the semantics, which are:
 - UB if pointer is not null,
