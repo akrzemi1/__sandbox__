@@ -102,20 +102,21 @@ assert (v.size() == 0);
 `string_view` also provides the default constructor. For a number of reasons this constructor should not belong to the
 interface of `string_view`: it does not create an object that refers to an existing string. What would be the point of declaring a function that requires a string as argument and then calling it with no string? It would still be auseful type without the default constructor. But `string_view` can be used in contexts other than function arguments, and some contexts require a two-phase initialization (first default-construct, next assign the proper value), such as `map[key] = val` in STL `map`s. In those cases the value set by the default constructor is irrelevant as long as it can be safely overwritten, because no-one will read it before it is set again in the second phase of the initialization. So, some valid value just has to be chosen, and "all zeros" makes sense -- this is the only valid (0-size) range that can be constructed without an address to any particular object.
 
-The converting constructor taking `const char*` has a purpose: provide the *C interface for strings*. After all, `string_view` was created to provide one interface replacing both C++-style `std::string`s and C-style `const char*`. The C interface for strings is not only the type `const char*` but also the semantics, which are:
-- UB if pointer is not null,
+The converting constructor taking `const char*` has a purpose: provide the *C interface for strings*. After all, `string_view` was created to provide one interface replacing both C++-style `std::string`s and C-style `const char*`. The C interface for strings is not just type `const char*` alone, but also the semantics characteristic of C-style strings, which are:
+- UB if pointer is null,
+- UB if pointer points to invalid memory
 - UB if there is no character `'\0'` in the pointed to sequence.
 
-Given its purpose it is expected that this constructor also provides semantics of an C interface for strings.
-That the constructor intended for handling C-style strings preserves both the type and the semantics of the C interface for strings seems to us more important than providing similarity with other constructors that were designed to handle different cases.
+Given its purpose, it is expected that this constructor also provides semantics of the C interface for strings.
+That the constructor intended for handling C-style strings preserves both the type and the semantics of the C interface for strings seems to us more important than providing "consistency" with other constructors that were designed to handle different interfaces. What we find important is the consistency with the intended purpose.
 
 
 ### Migrating `char*` APIs to `string_view` APIs made easier?
 
-The goal for P0903R1 is to enable migration to `std::string_view` of funcitions like this one, taking `const char *`: 
+The goal for P0903R1 is to enable migration to `std::string_view` of funcitions taking `const char *`, with one of the following semantics: 
 
 ```c++
-X* foo(const char* p) // precondition: p != nullptr
+X* foo(const char* p) // desired: p != nullptr
 {
   if (p == nullptr) {
     log_error();
@@ -126,10 +127,25 @@ X* foo(const char* p) // precondition: p != nullptr
 }
 ```
 
-as well as this one:
+```c++
+X* foo(const char* p) // desired: p != nullptr && p is not ""
+{
+  if (p == nullptr) {
+    log_error();
+    return nullptr;
+  }
+  
+  if (*p == '\0') {
+    log_error();
+    return nullptr;
+  }
+  
+  return process(p);
+}
+```
 
 ```c++
-X* bar(const char* p) // no precondition
+X* bar(const char* p) // nullptr is fine
 {
   if (p == nullptr)
     p = "";
