@@ -189,7 +189,9 @@ Regarding case 3; we consider it a reasonable approach to minimizing the damage 
 
 Also, when it comes to responding to bugs at run-time, in different applications there may be better ways than producing a default-constructed value, e.g., halting the program, or throwing an exception. The choice to produce an arbitrary value is only attractive to programmers/companies that choose to or are forced to not use exceptions. We believe the decision should be left to people who assemble the final products, who know best the environments on which their products will be run and who are best equipped to make the right decision. The decision should not be imposed by the Standard on everyone.
 
-One argument oft repeated in the discussions is that inside the function one has to perform the check `sv.data() != nullptr` anyway in case the `stding_view` object has been default-constructed, so why not use this check to also test for a string view created from a null string. But this works on false assumptions that it should be a good practice to perform such checks. Some programmers do, and some consider it a good practice; but this is also considered a poor practice by others. In the author's working environment no such checks are performed as they are simply incorrect. First, in such environments no-one passes a default-constructed `string_view`s around. The only thing you do with a default-constructed view is to overwrite it with a proper reference to string (this proper value might still be `{nullptr, 0}` but now it is a proper string). `sv.data() == nullptr` may point to a valid range! Let us repeat the example:
+### Defensive if-statements
+
+One argument oft repeated in the discussions is that inside the function one has to perform the check `sv.data() != nullptr` up front anyway in case the `stding_view` object has been default-constructed, so why not use this check to also test for a string view created from a null string. But this works on false assumptions that it should be a good practice to perform such checks. Some programmers do, and some consider it a good practice; but this is also considered a poor practice by others. In the author's working environment no such checks are performed as they are simply incorrect. First, in such environments no-one passes a default-constructed `string_view`s around. The only thing you do with a default-constructed view is to overwrite it with a proper reference to string (this proper value might still be `{nullptr, 0}` but now it is a proper string). `sv.data() == nullptr` may point to a valid range! Let us repeat the example:
 
 ```c++
 std::vector<char> v {};
@@ -201,6 +203,22 @@ fun({v.data(), v.size()});
 ```
 
 It is incorrect to treat the case `sv.data() == nullptr` differently. Unless, in your project empty string is always a degenerate string.
+
+similarly, in the author's environment, functions never check for nullptr `std::funcion`s or `std::shared_ptr`s. There is a program-wide contract that if someone passes these types to funcitons they are never null, and there is no need to check them time and again at every depth of function call chain:
+
+```c++
+void process(std::function<void()> f)
+{
+  // no check for: f != nullptr
+  f();
+  // ...
+}
+```
+
+
+### Interchangeability of `std::string` and `std::string_view`
+
+...
 
 
 ## Recomendations for migrating from `char*` to `string_view`
