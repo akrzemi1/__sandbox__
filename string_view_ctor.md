@@ -194,7 +194,7 @@ Finally, note that we do not argue that the decision to treat null pointer as an
 1. Operator `delete`: it is not recommended to use it directly in program logic. but it is very useful when building smart poiter classes.
 2. `std::thread`: its behavior to call `std::terminate()` in destructor of a joinable thread makes it inconvinient for direct use. But you can use it (as a subobject) to build your thread classes that call `join()` or `detach()` in their destructor. 
 
-In the similar manner we recommend writing a derived tool based on `std::string_view` when offering semantics different than this of the C interface for strings. We show how such derived tool can be implemented in 5 lines in the Recomendations section.
+In the similar manner we recommend writing a derived tool based on `std::string_view` when offering semantics different than these of the C interface for strings. We show how such derived tool can be implemented in 5 lines in the Recomendations section.
 
 
 ### Defensive if-statements
