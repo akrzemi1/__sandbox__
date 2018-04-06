@@ -189,6 +189,14 @@ Regarding case 3; we consider it a reasonable approach to minimizing the damage 
 
 Also, when it comes to responding to bugs at run-time, in different applications there may be better ways than producing a default-constructed value, e.g., halting the program, or throwing an exception. The choice to produce an arbitrary value is only attractive to programmers/companies that choose to or are forced to not use exceptions. We believe the decision should be left to people who assemble the final products, who know best the environments on which their products will be run and who are best equipped to make the right decision. The decision should not be imposed by the Standard on everyone.
 
+Finally, note that we do not argue that the decision to treat null pointer as an empty string is inferior in general. We argue against enforcing this decision in a Standard Library vocabulary type. We propose the following point of view. A Standard Library type does not have to be used directly in user programs, but can be used as a building block for a tool that addresses the needs of a user. This is already the case for:
+
+1. Operator `delete`: it is not recommended to use it directly in program logic. but it is very useful when building smart poiter classes.
+2. `std::thread`: its behavior to call `std::terminate()` in destructor of a joinable thread makes it inconvinient for direct use. But you can use it (as a subobject) to build your thread classes that call `join()` or `detach()` in their destructor. 
+
+In the similar manner we recommend writing a derived tool based on `std::string_view` when offering semantics different than this of the C interface for strings. We show how such derived tool can be implemented in 5 lines in the Recomendations section.
+
+
 ### Defensive if-statements
 
 One argument oft repeated in the discussions is that inside the function one has to perform the check `sv.data() != nullptr` up front anyway in case the `stding_view` object has been default-constructed, so why not use this check to also test for a string view created from a null string. But this works on false assumptions that it should be a good practice to perform such checks. Some programmers do, and some consider it a good practice; but this is also considered a poor practice by others. In the author's working environment no such checks are performed as they are simply incorrect. First, in such environments no-one passes a default-constructed `string_view`s around. The only thing you do with a default-constructed view is to overwrite it with a proper reference to string (this proper value might still be `{nullptr, 0}` but now it is a proper string). `sv.data() == nullptr` may point to a valid range! Let us repeat the example:
@@ -290,24 +298,4 @@ A question has been asked, if and how the Ranges TS handles the case of a null p
 and expecting that the algorithm will deduce that we intended a zero-sized range.
 
 
-----------------------
 
-http://wiki.edg.com/pub/Wg21jacksonville2018/P0903/d0903r1.pdf
-
-
-
-describe why we want a narrow contract: determine at wchich opint the bug is located and fix it there.
-
-d0903 will not allow migration from f(string_view) to f(string)
-
-more complicated reasoning
-
-analogu to `delete` : you do not use vocabulary types out of the box. you prepare your own types. 
-
-
-we do not argue that protecting against nullptr is bad in general. We argue about putting it into string_view.
-
-You do not discuss narrow contracts with clients.
-
-
-wider precondition: wider postcondition
