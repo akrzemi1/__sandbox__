@@ -218,7 +218,13 @@ void process(std::function<void()> f)
 
 ### Interchangeability of `std::string` and `std::string_view`
 
-...
+Unlike P0903R0 (the initial version), P0903R1 proposes to widen the contract only for `std::string_view` but leave the contract  for `std::string` narrow as it is. This would cause another issue. According to the theory of *design by contract*, a function with a narrower precondition `f1()` can be replaced by a function with a wider precondition `f2()` and it does not affect program correctness (even if it impedes the tools for asserting program correctness). But you cannot change `f2()` back to `f1()` because then the contract gets narrower. The only case when you can change from `f1()` to `f2()` and back is when both functions have identical contract.
+
+This happens in preactice when dealing with functions with `std::string` as parameters. There are situations where you need to change the signature from `void f(std::string)` to `void f(const std::string&)` for performance reasosns; and sometimes you have to change the signature from `void f(const std::string&)` to `void f(std::string)`: also for performance reasons, depending on the situation (in case you need to make a copy of the argument inside the function). Contract-wise both these changes are correct.
+
+Similarly, now that we have `std::string_view`, one may need to change the signature from `void f(const std::string&)` to `void f(std::string_view)`, and sometimes from `void f(std::string_view)` to `void f(std::string)`. Now, if both `std::string` and `std::string_view` have the same narrow contract in constructors (null pinter disallowed), the change in either direction is correct contract-wise. (Technically, `std::string` and `std::string_view` have different set of member functions, so mechanically replacing one type with the other may result in a program that does not compile. But in most of the cases we are only interested in the sequence as a whole and the only members that are used are `.begin()` and `.end()`.) But if `std::string_view` had a wider contract in constructor (null pointer is a valid input), migrating from `void f(std::string_view)` to `void f(std::string)` might introduce bugs if someone has started passing null pointers to function `f()`.
+
+Widening the contract for `std::string_view`s constructor breaks the interchangability of `std::string` and `std::string_view` in function arguments.
 
 
 ## Recomendations for migrating from `char*` to `string_view`
@@ -252,7 +258,7 @@ A question has been asked, how other functions from the standard library behave 
 
 Most functions inherited from C do not define program behavior when a null pointer is passed. This applies to funcitons like `fopen`, or string manipulating functions like `strcpy`. Even its safer cousin, `strncpy` triggers undefined behavior wne a null pointer is passed. The only function from the family that checks for the null pointer is `strncpy_s`. This function in the case of a nul pointer calls a "constraint handler" function: it might call `abort()` or ignore the situation, but it does not treat null pointer as an empty string.
 
-In genuine C++ functions, passing null pointer to functions expecting a null-terminated character sequences is undefined behavior. This applies to functions like: constructor of `fstream`, constructor of `basic_string`, constructor of `std::filesystem::path`, or argument to `basic_string::find_first_of`.
+In genuine C++ functions, passing null pointer to functions expecting a null-terminated character sequences is undefined behavior. This applies to functions like: constructor of `fstream`, constructor of `basic_string`, constructor of `std::filesystem::path`, or argument to `basic_string::find_first_of()`.
 
 There is the case of `std::copy()` which can be passed a null pointer of type `const char *` and no UB is triggered, so we have to analyze it in more detail. The relevant signature is:
 
@@ -290,10 +296,6 @@ http://wiki.edg.com/pub/Wg21jacksonville2018/P0903/d0903r1.pdf
 
 
 
-
-
-I think the "empty string" angle here isn't quite right. An empty string is one for which data() == data() + size, regardless of the value of that pointer. The appropriate analogy here is with the constructor string_view(nullptr, 0), which already exists today and produces an empty string.
-
 describe why we want a narrow contract: determine at wchich opint the bug is located and fix it there.
 
 d0903 will not allow migration from f(string_view) to f(string)
@@ -302,7 +304,6 @@ more complicated reasoning
 
 analogu to `delete` : you do not use vocabulary types out of the box. you prepare your own types. 
 
-`find_first_of`
 
 we do not argue that protecting against nullptr is bad in general. We argue about putting it into string_view.
 
@@ -310,6 +311,3 @@ You do not discuss narrow contracts with clients.
 
 
 wider precondition: wider postcondition
-
-
-path constructor?
