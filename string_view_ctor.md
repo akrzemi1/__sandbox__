@@ -303,6 +303,6 @@ and expecting that the algorithm will deduce that we intended a zero-sized range
 
 ## 5. Acknowledgements
 
-Jorg Brown and Ashley Hedberg devoted their time to explain in detail the use cases for null-aware `string_view`, which mhelped improve the discussion in this paper.
+Ashley Hedberg and Jorg Brown devoted their time to explain in detail the use cases for null-aware `string_view`, which helped improve the discussion in this paper.
 
-Tomasz Kamiński offered a number of suggestions that improved the quality of the paper.
+Tomasz Kamiński offered a number of useful suggestions that improved the quality of the paper.
