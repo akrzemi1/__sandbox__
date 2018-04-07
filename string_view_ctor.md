@@ -102,8 +102,7 @@ assert (v.data() == nullptr); // on some implementations
 assert (v.size() == 0);
 ```
 
-`string_view` also provides the default constructor. For a number of reasons this constructor should not belong to the
-interface of `string_view`: it does not create an object that refers to an existing string. What would be the point of declaring a function that requires a string as argument and then calling it with no string? It would still be auseful type without the default constructor. But `string_view` can be used in contexts other than function arguments, and some contexts require a two-phase initialization (first default-construct, next assign the proper value), such as `map[key] = val` in STL `map`s. In those cases the value set by the default constructor is irrelevant as long as it can be safely overwritten, because no-one will read it before it is set again in the second phase of the initialization. So, some valid value just has to be chosen, and "all zeros" makes sense -- this is the only valid (0-size) range that can be constructed without an address to any particular object.
+`string_view` also provides the default constructor. Its purpose is to mimic the behavior or `std::string` which default constructs to a 0-sized range of characters. Analogously, `std::string_view` default-constructs to a zero-sizzed range of characters not associated with any object. 
 
 The converting constructor taking `const char*` has a purpose: provide the *C interface for strings*. After all, `string_view` was created to provide one interface replacing both C++-style `std::string`s and C-style `const char*`. The C interface for strings is not just type `const char*` alone, but also the semantics characteristic of C-style strings, which are:
 - UB if pointer is null,
@@ -199,7 +198,9 @@ In the similar manner we recommend writing a derived tool based on `std::string_
 
 ### 2.3. Defensive if-statements
 
-One argument oft repeated in the discussions is that inside the function one has to perform the check `sv.data() != nullptr` up front anyway in case the `stding_view` object has been default-constructed, so why not use this check to also test for a string view created from a null string. But this works on false assumptions that it should be a good practice to perform such checks. Some programmers do, and some consider it a good practice; but this is also considered a poor practice by others. In the author's working environment no such checks are performed as they are simply incorrect. First, in such environments no-one passes a default-constructed `string_view`s around. The only thing you do with a default-constructed view is to overwrite it with a proper reference to string (this proper value might still be `{nullptr, 0}` but now it is a proper string). `sv.data() == nullptr` may point to a valid range! Let us repeat the example:
+One argument oft repeated in the discussions is that inside the function one has to perform the check `sv.empty()` up front anyway in case the `string_view` object is empty, so why not use this check to also test for a string view created from a null pointer. But this works on false assumptions that it should be a good practice to perform such checks. Some programmers do, and some consider it a good practice; but this is also considered a poor practice by others. In the author's working environment no such checks are performed as they are simply incorrect. In our environemnt an empty string is often a valid input, for which we do not need or want to do a branch. Such argument is only convincing in environments that treat an empty string as a "degenerate" value.
+
+It has beed further suggested that if `string_view` is changed as per D0903R1, and if someone is interested in detecting if a `string_view` has been constructed from a null pointer passes as `const char *` argument, one can use a more targeted check `sv.data() == nullptr`. We disagree with this reasoning for two reasons. First, it does not take into consideration that state  `sv.data() == nullptr` can be observed in `string_view`s constructed form real ranges existing in the program! Let us repeat the example:
 
 ```c++
 std::vector<char> v {};
@@ -210,9 +211,11 @@ assert (v.size() == 0);
 fun({v.data(), v.size()});
 ```
 
-It is incorrect to treat the case `sv.data() == nullptr` differently. Unless, in your project empty string is always a degenerate string.
+Default-constructing a `string_view` or constructing it from a null pointer (if it were allowed) renders state `{nullptr, 0}`, but oobserving state `{nullptr, 0}` does not necessarily mean that a `string_view` was default-constructed or nullptr-constructed.
 
-similarly, in the author's environment, functions never check for nullptr `std::funcion`s or `std::shared_ptr`s. There is a program-wide contract that if someone passes these types to funcitons they are never null, and there is no need to check them time and again at every depth of function call chain:
+Second, such suggestions work under the assumption that all programmers by "preventing bugs" mean "detecting invalid input at run-time and take different branch (which maybe skipps some instructions)". But this is not the case. Some programmers want UB to happen precisely becuse they want ot prevent bugs: not necessarily at run-time, not necessarily by taking a different branch and skipping instructions. This has been disussed above.
+
+Also, cluttering the code with defensive checks makes functions longer and amore difficult to read and comprehend. For instance, one never knows if a particular `if`-statement is defensive or is part of program logic. This in turn may cause more bugs in the future. In the author's environment, functions never check for nullptr `std::funcion`s or `std::shared_ptr`s. There is a program-wide contract that if someone passes these types to funcitons they are never null, and there is no need to check them time and again at every depth of function call chain:
 
 ```c++
 void process(std::function<void()> f)
