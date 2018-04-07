@@ -5,9 +5,9 @@ is undefined behavior. Paper P0903R1 proposes to widen the contract so that pass
 default constructor instead. In this paper we argue that having a narrow contract is a desired and useful language feature 
 which would be compromised by the change. We also argue with the rationale provided in P0903R1.
 
-## On narrow contracts
+## 1. On narrow contracts
 
-### Narrow-contract functions are not bug-prone
+### 1.1. Narrow-contract functions are not bug-prone
 
 We need to clarify one thing up fromt. When a function `ncf()` has a <em>narrow contract</em>, it does not mean that it "has UB"
 or that it is "bug prone". It means that the correct program does not invoke `ncf()` with certain values of its parameter types. When the program has no bugs, no disallowed values are passed to `ncf()`, and no UB is reached.
@@ -50,7 +50,7 @@ neither statically nor at run-time, potentially causing damage.
 It seems that people sometimes are concerned about UB in the Standard more than about bugs. But bugs have actually the same characteristics and consequence as UB: you do not know what is going to happen, wehn you code something else than you intended.
 
 
-### Narrow contract means implementation flexibility
+### 1.2. Narrow contract means implementation flexibility
 
 The Standard does not specify what happens when the precondition is violated (even in the currently proposed contract support), because there is no universal good way of handling them. Choosing a solution that satisfies one project in one environment, makes the solution suboptimal or inacceptable in other projects or environments. Therefore the decision is left to the programmer to choose the best option by using tools, compiler switches, `#define`s or collaborating with implementation vendor. In the case of null pointer in `string_view`'s constructor, programmers and implementation vendore can:
 
@@ -63,7 +63,7 @@ The Standard does not specify what happens when the precondition is violated (ev
 This flexibility would no longer be possible if the Standard harcodes the behavior to a single one.
 
 
-### Narrow contract is not a TBD
+### 1.3. Narrow contract is not a TBD
 
 Finally, because the Standard imposes no requirement on implementations about what happens when the precondition is violated,
 one might think that it is an uncontroversial change to actually specify the behavior,
@@ -73,12 +73,12 @@ because "no one could rely on that behavior anyway". In order words, one might b
 Such reasoning is not correct because, as has been indicated above, the UB in the standard is in many cases a feature that users rely on. The Standard by guaranteeing nothing implies that the behavior is settled between the programmer and the compiler vendor. These guarantees from vendors would suddenly be compromised if the Standard widens the contract in the interface. 
 
 
-## Criticism of P0903R1
+## 2. Criticism of P0903R1
 
 In this section we summarize and challenge the rationale provided in P0903R1.
 
 
-### Analogy with 0- and 2-argument constructors
+### 2.1. Analogy with 0- and 2-argument constructors
 
 Proponents of P0903R1 argue that because the default constructor and the constructor `string_view((const char*)0, 0)` render the same state:
 `sv.data() == nullptr` and `sv.size() == 0`, it would be "more consistent" or "symmetrical" if `string_view((const char*)0)` also rendered the same state.
@@ -114,7 +114,7 @@ Given its purpose, it is expected that this constructor also provides semantics 
 That the constructor intended for handling C-style strings preserves both the type and the semantics of the C interface for strings seems to us more important than providing "consistency" with other constructors that were designed to handle different interfaces. What we find important is the consistency with the intended purpose.
 
 
-### Migrating `char*` APIs to `string_view` APIs made easier?
+### 2.2. Migrating `char*` APIs to `string_view` APIs made easier?
 
 The goal for P0903R1 is to enable the migration to `std::string_view` of funcitions taking `const char *`, with one of the following semantics: 
 
@@ -197,7 +197,7 @@ Finally, note that we do not argue that the decision to treat null pointer as an
 In the similar manner we recommend writing a derived tool based on `std::string_view` when offering semantics different than these of the C interface for strings. We show how such derived tool can be implemented in 5 lines in the Recomendations section.
 
 
-### Defensive if-statements
+### 2.3. Defensive if-statements
 
 One argument oft repeated in the discussions is that inside the function one has to perform the check `sv.data() != nullptr` up front anyway in case the `stding_view` object has been default-constructed, so why not use this check to also test for a string view created from a null string. But this works on false assumptions that it should be a good practice to perform such checks. Some programmers do, and some consider it a good practice; but this is also considered a poor practice by others. In the author's working environment no such checks are performed as they are simply incorrect. First, in such environments no-one passes a default-constructed `string_view`s around. The only thing you do with a default-constructed view is to overwrite it with a proper reference to string (this proper value might still be `{nullptr, 0}` but now it is a proper string). `sv.data() == nullptr` may point to a valid range! Let us repeat the example:
 
@@ -224,7 +224,7 @@ void process(std::function<void()> f)
 ```
 
 
-### Interchangeability of `std::string` and `std::string_view`
+### 2.4. Interchangeability of `std::string` and `std::string_view`
 
 Unlike P0903R0 (the initial version), P0903R1 proposes to widen the contract only for `std::string_view` but leave the contract  for `std::string` narrow as it is. This would cause another issue. According to the theory of *design by contract*, a function with a narrower precondition `f1()` can be replaced by a function with a wider precondition `f2()` and it does not affect program correctness (even if it impedes the tools for asserting program correctness). But you cannot change `f2()` back to `f1()` because then the contract gets narrower. The only case when you can change from `f1()` to `f2()` and back is when both functions have identical contract.
 
@@ -235,7 +235,7 @@ Similarly, now that we have `std::string_view`, one may need to change the signa
 Widening the contract for `std::string_view`s constructor breaks the interchangability of `std::string` and `std::string_view` in function arguments.
 
 
-## Recomendations for migrating from `char*` to `string_view`
+## 3. Recomendations for migrating from `char*` to `string_view`
 
 In this section we provide a number of recomendations for migrating codebases that use `char*` in their interfaces to `string_view`.
 
@@ -251,7 +251,7 @@ If for a particular function you want to provide the *C interface for strings* w
 struct protective_string_view : std::string_view
 {
   using std::string_view::string_view;
-  protective_string_view (const char * p) : std::string_view(p ? p : "") {}
+  constexpr protective_string_view (const char * p) noexcept : std::string_view(p ? p : "") {}
 };
 ```
 
@@ -260,7 +260,7 @@ with the standard *C interface for strings*, see if you can customize the null p
 or if you can request of your vendor such customization.   
 
 
-## Consistency with other interfaces in the library
+## 4. Consistency with other interfaces in the library
 
 A question has been asked, how other functions from the standard library behave when a null pointer is passed in place where a pointer to a null-terminated character sequence is expected.
 
