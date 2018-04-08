@@ -47,7 +47,7 @@ But if parameter is `string_view` with the widened contract in constructor (as p
 the null pointer is replaced with an arbitrary (zero-sized) valid range, and the bug goes unnoticed: 
 neither statically nor at run-time, potentially causing damage.
 
-It seems that people sometimes are concerned about UB in the Standard more than about bugs. But bugs have actually the same characteristics and consequence as UB: you do not know what is going to happen, wehn you code something else than you intended.
+It seems that people sometimes are more concerned about potential UB resulting from narrow contracts in the Standard than about bugs. But bugs have actually the same characteristics and consequence as UB: you do not know what is going to happen, wehn you code something else than you intended.
 
 
 ### 1.2. Narrow contract means implementation flexibility
