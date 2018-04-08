@@ -9,7 +9,7 @@ which would be compromised by the change. We also argue with the rationale provi
 
 ### 1.1. Narrow-contract functions are not bug-prone
 
-We need to clarify one thing up fromt. When a function `ncf()` has a <em>narrow contract</em>, it does not mean that it "has UB"
+We need to clarify one thing up front. When a function `ncf()` has a <em>narrow contract</em>, it does not mean that it "has UB"
 or that it is "bug prone". It means that the correct program does not invoke `ncf()` with certain values of its parameter types. When the program has no bugs, no disallowed values are passed to `ncf()`, and no UB is reached.
 
 When the program has a bug, it may result in calling `ncf()` with a disallowed value: this in turn results in reaching UB. The C++ Standard does not specify what happens with the program in such case, but implementations may specify what happens; and many implementations do. We are focusing here on a very popular, well understood and well explored type of UB: dereferencing a null pointer. Current implementations respond to dereferencing a null pointer by:
