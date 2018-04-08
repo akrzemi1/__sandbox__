@@ -52,15 +52,17 @@ It seems that people sometimes are more concerned about potential UB resulting f
 
 ### 1.2. Narrow contract means implementation flexibility
 
-The Standard does not specify what happens when the precondition is violated (even in the currently proposed contract support), because there is no universal good way of handling them. Choosing a solution that satisfies one project in one environment, makes the solution suboptimal or inacceptable in other projects or environments. Therefore the decision is left to the programmer to choose the best option by using tools, compiler switches, `#define`s or collaborating with implementation vendor. In the case of null pointer in `string_view`'s constructor, programmers and implementation vendore can:
+The Standard does not specify what happens when the precondition is violated (even in the currently proposed contract support), because there is no universal good way of handling such situation. Choosing a solution that satisfies one project in one environment, makes the solution suboptimal or inacceptable in other projects or environments. Therefore the decision is left to the programmer to choose the best option by using tools, compiler switches, `#define`s or collaborating with implementation vendor. In the case of null pointer in `string_view`'s constructor, programmers and implementation vendors can:
 
 1. Throw an exception,
 2. Signal error in any other way, statically or in run-time,
-3. Go with empty range,
-4. Go with a unigue range value, distinct from empty range (e.g., `{&_unique_global, 0}`),
+3. Go with a default-constructed range,
+4. Go with a unique range value, distinct from any real empty range (e.g., `{&_unique_global, 0}`),
 5. Do any of the above based on vendor-speciffic switches.
 
-This flexibility would no longer be possible if the Standard harcodes the behavior to a single one.
+This flexibility would no longer be possible if the Standard hard-codes the behavior to a single decision.
+
+This also means that due to this flexibility, if Abseil Authors want to implement "go with default-constructed `string_view` upon null pointer" in their implementation of `std::string_view`, that would also be a standard-conformant implementation. 
 
 
 ### 1.3. Narrow contract is not a TBD
