@@ -314,7 +314,7 @@ We have passed three null pointers of type `const char *`, and the behavior is w
 A question has been asked, if and how the Ranges TS handles the case of a null pointer passed as type `const char*`. The answer is, Ranges TS describes constraints on inputs representing *ranges* denoted by begin and end. A C interface for strings is not a range in the sense of Ranges TS. If we want to talk abut the analogy to ranges, passing a null pointer to a function with the C interface for strings would be analogous to calling:
 
 ```c++
-`std::for_each(v.begin(), fun); // no v.end()
+std::for_each(v.begin(), fun); // no v.end()
 ```
 and expecting that the algorithm will deduce that we intended a zero-sized range.
 
