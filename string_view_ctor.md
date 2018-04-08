@@ -93,7 +93,7 @@ Let's get back to the purpose of `string_view`. It is supposed to be a replaceme
 2. As a pointer to NTBS (Null-terminated Byte String).
 3. As a `char` array denoted the pointer to its beginning and its size.
 
-A `string_view` *is not* a pair `pair<const char*, size_t>`. The latter accepts any two values of the corresponding types and doesn't care whether they make sense or not, for instance `{reinterpret_cast<const char*>(&this), 4}` or `{(const char*)nullptr, 7}`. In contrast, an object of `string_view` represents a *string*: a sequence of characters that *really* resides somewhere in memory.
+A `string_view` *is not* a pair `pair<const char*, size_t>`. The latter accepts any two values of the corresponding types and doesn't care whether they make sense or not, for instance `{reinterpret_cast<const char*>(&this), 4}` or `{(const char*)nullptr, 7}`. In contrast, an object of type `string_view` represents a *string*: a sequence of characters that *really* resides somewhere in memory.
 
 The constructor taking a pointer `p` and a size `s` has a purpose: it is an interface for constructing a view to a string form anything that provides "counted range" interface: a pointer to the beginning of the sequence and the sequence size. This implies the precondition: `[p, p + s)` must be a valid range. You cannot just pass an arbitrary pointer and an arbitrary number. It does allow initialization `string_view((const char*)0, 0)`, but not as a "singular" value representing not-a-range, but because some containers representing valid ranges really encode the state as two zeros:
 
