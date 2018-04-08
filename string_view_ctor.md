@@ -272,7 +272,7 @@ If for a particular function you want to provide the *C interface for strings* w
 struct protective_string_view : std::string_view
 {
   using std::string_view::string_view;
-  constexpr protective_string_view (const char * p) noexcept : std::string_view(p ? p : "") {}
+  constexpr protective_string_view (const char * p) noexcept : std::string_view(p, p ? std::char_traits<char>::length(p) : 0) {}
 };
 ```
 
