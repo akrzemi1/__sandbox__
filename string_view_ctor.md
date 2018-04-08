@@ -104,7 +104,7 @@ assert (v.data() == nullptr); // on some implementations
 assert (v.size() == 0);
 ```
 
-`string_view` also provides the default constructor. Its purpose is to mimic the behavior or `std::string` which default constructs to a 0-sized range of characters. Analogously, `std::string_view` default-constructs to a zero-sizzed range of characters not associated with any object. 
+`string_view` also provides the default constructor. Its purpose is to mimic the behavior or `std::string` which default constructs to a 0-sized range of characters. Analogously, `std::string_view` default-constructs to a zero-sized range of characters not associated with any object. *Not* in order to be consistent with `string_view{nullptr, 0}` but in order to be consistent with the interface of `std::string`.
 
 The converting constructor taking `const char*` has a purpose: provide the *C interface for strings*. After all, `string_view` was created to provide one interface replacing both C++-style `std::string`s and C-style `const char*`. The C interface for strings is not just type `const char*` alone, but also the semantics characteristic of C-style strings, which are:
 - UB if pointer is null,
