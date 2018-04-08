@@ -197,7 +197,7 @@ In the similar manner, we recommend writing a derived tool based on `std::string
 
 One argument oft repeated in the discussions is that inside the function one has to perform the check `sv.empty()` up front anyway in case the `string_view` object is empty, so why not use this check to also test for a string view created from a null pointer. But this works on false assumptions that it should be a good practice to perform such checks. Some programmers do, and some consider it a good practice; but this is also considered a poor practice by others. In the author's working environment no such checks are performed as they are simply incorrect. In our environemnt an empty string is often a valid input, for which we do not need or want to do a branch. Such argument is only convincing in environments that treat an empty string as a "degenerate" value.
 
-It has beed further suggested that if `string_view` is changed as per D0903R1, and if someone is interested in detecting if a `string_view` has been constructed from a null pointer passes as `const char *` argument, one can use a more targeted check `sv.data() == nullptr`. We disagree with this reasoning for two reasons. First, it does not take into consideration that state  `sv.data() == nullptr` can be observed in `string_view`s constructed form real ranges existing in the program! Let us repeat the example:
+It has beed further suggested that if `string_view` is changed as per D0903R1, and if someone is interested in detecting if a `string_view` has been constructed from a null pointer passed as `const char *` argument, one can use a more targeted check `sv.data() == nullptr`. We disagree with this reasoning for two reasons. First, it does not take into consideration that state  `sv.data() == nullptr` can be observed in `string_view`s constructed form real ranges existing in the program! Let us repeat the example:
 
 ```c++
 std::vector<char> v {};
@@ -208,11 +208,11 @@ assert (v.size() == 0);
 fun({v.data(), v.size()});
 ```
 
-Default-constructing a `string_view` or constructing it from a null pointer (if it were allowed) renders state `{nullptr, 0}`, but oobserving state `{nullptr, 0}` does not necessarily mean that a `string_view` was default-constructed or nullptr-constructed.
+Default-constructing a `string_view` or constructing it from a null pointer (if it were allowed) renders state `{nullptr, 0}`; but observing state `{nullptr, 0}` does not necessarily mean that a `string_view` was default-constructed or nullptr-constructed.
 
-Second, such suggestions work under the assumption that all programmers by "preventing bugs" mean "detecting invalid input at run-time and take different branch (which maybe skipps some instructions)". But this is not the case. Some programmers want UB to happen precisely becuse they want ot prevent bugs: not necessarily at run-time, not necessarily by taking a different branch and skipping instructions. This has been disussed above.
+Second, such suggestions work under the assumption that all programmers by "preventing bugs" mean "detecting invalid input at run-time and taking a different branch (which maybe skips some instructions)". But this is not the case. Some programmers want UB to happen precisely becuse they want to prevent bugs: not necessarily at run-time, not necessarily by taking a different branch and skipping instructions. This has been disussed above.
 
-Also, cluttering the code with defensive checks makes functions longer and amore difficult to read and comprehend. For instance, one never knows if a particular `if`-statement is defensive or is part of program logic. This in turn may cause more bugs in the future. In the author's environment, functions never check for nullptr `std::funcion`s or `std::shared_ptr`s. There is a program-wide contract that if someone passes these types to funcitons they are never null, and there is no need to check them time and again at every depth of function call chain:
+Also, cluttering the code with defensive checks makes functions longer and more difficult to read and comprehend. For instance, one never knows if a particular `if`-statement is defensive or is part of program logic. This in turn may cause more bugs in the future. In the author's environment, functions never check for nullptr `std::funcion`s or `std::shared_ptr`s. There is a program-wide contract that if someone passes these types to funcitons they are never null, and there is no need to check them time and again at every depth of function call chain:
 
 ```c++
 void process(std::function<void()> f)
@@ -223,16 +223,37 @@ void process(std::function<void()> f)
 }
 ```
 
+### 2.4. If we widen the contract there is no invalid inputs anymore
 
-### 2.4. Interchangeability of `std::string` and `std::string_view`
+One argument that was also brought up is that if the contract of the `string_view`'s constructor is widened, null-pointer inputs become valid everywhere, and any further discussion about invalid arguments becomes moot: there is no invalid inputs anymore.
 
-Unlike P0903R0 (the initial version), P0903R1 proposes to widen the contract only for `std::string_view` but leave the contract  for `std::string` narrow as it is. This would cause another issue. According to the theory of *design by contract*, a function with a narrower precondition `f1()` can be replaced by a function with a wider precondition `f2()` and it does not affect program correctness (even if it impedes the tools for asserting program correctness). But you cannot change `f2()` back to `f1()` because then the contract gets narrower. The only case when you can change from `f1()` to `f2()` and back is when both functions have identical contract.
+While this statement is correct, it overlooks a very important thing. Once you do widen the contract, the notion of a bug and the notion of invalid input loose the connection. It does not matter in programs that do not have bugs, but most, if not all, serious programs used for serious things in real life do have bugs.
+
+Suppose we have a bug in the program: we wanted to pass a poiter to function `f()` that points to an existing array of strings, but we accidentally passed a null pointer:
+
+
+```c++
+const char * p = "contents.txt";
+const char * q = 0;
+f(q); // BUG: intended to call f(p);
+```
+
+Suppose that it has a narrow contract. If so, we are passing an invalid input to it. Automatic tools, like static analyzers, do not know our intentions, they cannot recognize such things as "you wanted to pass different argument" or "you confused this name with that one", or "you wanted to pass that value instead", "you have a typeo". But they are good at detecting invalid input, because the notion of invalid input (or UB) is well defined and quite formal. The tool cannot detect a bug in its general form, but it can detect an invalid input. And indirectly it detects the bug. The bug is not the invalid input, but a typeo in argument name. But finding and reporting an invalid input is sufficient information for the programmer to find the bug.
+
+Now consider what happens when you widen the contract. The bug is still there, but there is no invalid input anymore. Static analyzer is blind and cannot help you detect the bug.
+
+To summarize. The goal is to detect bugs (early, statically). The notion of "invalid input" is only a tool that helps detect bugs (or, "assert program correctness"). The goal is not to detect invalid inputs: it is only a means to the real goal. By widening contracts you render the notion of invalid input unhelpful (or less helpful) in achieving the goal of detecting bugs. 
+
+
+### 2.5. Interchangeability of `std::string` and `std::string_view`
+
+Unlike P0903R0 (the initial version), P0903R1 proposes to widen the contract only for `std::string_view` but leave the contract  for `std::string` narrow as it is. This would cause another issue. According to the theory of *design by contract*, in a correct (i.e., bug-free) program, a function with a narrower precondition `f1()` can be replaced by a function with a wider precondition `f2()` and it does not affect program correctness (even if it impedes the tools for asserting program correctness). But you cannot change `f2()` back to `f1()` because then the contract gets narrower. The only case when you can change from `f1()` to `f2()` and back is when both functions have identical contract.
 
 This happens in preactice when dealing with functions with `std::string` as parameters. There are situations where you need to change the signature from `void f(std::string)` to `void f(const std::string&)` for performance reasosns; and sometimes you have to change the signature from `void f(const std::string&)` to `void f(std::string)`: also for performance reasons, depending on the situation (in case you need to make a copy of the argument inside the function). Contract-wise both these changes are correct.
 
-Similarly, now that we have `std::string_view`, one may need to change the signature from `void f(const std::string&)` to `void f(std::string_view)`, and sometimes from `void f(std::string_view)` to `void f(std::string)`. Now, if both `std::string` and `std::string_view` have the same narrow contract in constructors (null pinter disallowed), the change in either direction is correct contract-wise. (Technically, `std::string` and `std::string_view` have different set of member functions, so mechanically replacing one type with the other may result in a program that does not compile. But in most of the cases we are only interested in the sequence as a whole and the only members that are used are `.begin()` and `.end()`.) But if `std::string_view` had a wider contract in constructor (null pointer is a valid input), migrating from `void f(std::string_view)` to `void f(std::string)` might introduce bugs if someone has started passing null pointers to function `f()`.
+Similarly, now that we have `std::string_view`, one may need to change the signature from `void f(const std::string&)` to `void f(std::string_view)`, and sometimes from `void f(std::string_view)` to `void f(std::string)`. Now, if both `std::string` and `std::string_view` have the same narrow contract in constructors (null pointer disallowed), the change in either direction is correct contract-wise. (Technically, `std::string` and `std::string_view` have different set of member functions, so mechanically replacing one type with the other may result in a program that does not compile. But in most of the cases we are only interested in the sequence as a whole and the only members that are used are `.begin()` and `.end()`.) But if `std::string_view` had a wider contract in constructor (null pointer is a valid input), migrating from `void f(std::string_view)` to `void f(std::string)` might introduce bugs if someone has started passing null pointers to function `f()`.
 
-Widening the contract for `std::string_view`s constructor breaks the interchangability of `std::string` and `std::string_view` in function arguments.
+Widening the contract for `std::string_view`'s constructor breaks the interchangability of `std::string` and `std::string_view` in function arguments.
 
 
 ## 3. Recomendations for migrating from `char*` to `string_view`
