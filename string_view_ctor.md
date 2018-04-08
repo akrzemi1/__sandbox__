@@ -134,12 +134,7 @@ X* foo(const char* p) // desired: p != nullptr
 ```c++
 X* bar(const char* p) // desired: p != nullptr && p is not ""
 {
-  if (p == nullptr) {
-    log_error();
-    return nullptr;
-  }
-  
-  if (*p == '\0') {
+  if (p == nullptr || *p == '\0') {
     log_error();
     return nullptr;
   }
@@ -159,9 +154,9 @@ X* baz(const char* p) // nullptr is fine
 ```
 
 With the current semantics of `std::string_view`'s converting constructor the migration is not possible: invoking the 
-constructor with null pointer is UB, and checking anything later, inside the function is impossible.
+constructor with null pointer is UB, and checking anything later, inside the function is unreliable.
 
-We argue that maybe it is not a good idea to change the interface of this function from taking `const char*` to taking `std::string_view`. The goal of `std::string_view` is not to replace every single ocurrence of type `const char*` in tfunction interaces in the program: only those ocurrences that come wiht the semantics of the *C interface for strings*. `const char*` can be used for other purposes. For instance:
+We argue that maybe it is not a good idea to change the interface of all these functions from taking `const char*` to taking `std::string_view`. The goal of `std::string_view` is not to replace *every* single ocurrence of type `const char*` in function interfaces in the program: only those ocurrences that come with the semantics of the *C interface for strings*. `const char*` can be used for other purposes. For instance:
 
 ```c++
 bool is_default_separator(const char * ch) { return *ch == '-'; }
@@ -171,31 +166,31 @@ return is_default_separator(&SEPARATOR);
 ```
 
 And everyone will agree that it does not make sense, and would be incorrect, to upgrade it to `std::string_view`.
-Similarly, if a function does want a string in `const char *` but associates a different interpretation to the argument, 
-migrating to `std::string_view` would cange the semantic part of the interface, and alter the program behavior, likely causing bugs. In fact, the semantics of function `foo()` above do change if the argument type is replaced with `std::string_view` modified as per P0903R1. Before it had different path for a null pointer and a different on efor an empty string; after the change the two will be indistinguishable. 
+Similarly, if a function does want a string in `const char *` but associates a different interpretation of the argument, 
+migrating to `std::string_view` would cange the semantic part of the interface, and alter the program behavior, likely causing bugs. In fact, the semantics of function `foo()` above do change if the argument type is replaced with `std::string_view` modified as per P0903R1. Before it had different path for a null pointer and a different one for an empty string; after the change the two will be indistinguishable. 
 
-The only case where the change proposed in P0903R1 does help if it is acceptable or desired to conflate the value of a null pointer and the value of a genuine empty C string into one. This occurs in the following cases:
+The only case where the change proposed in P0903R1 does help is when it is acceptable or desired to conflate the value of a null pointer and the value of a genuine empty C string into one. This occurs in the following cases:
 
 1. A genuine empty C string (`""`) is treated as a "degenerate" value already, and cannot ever mean any useful content, and already qualifies for a "defensive if". In that case adding null pointer to the set of degenerate values comes with zero cost and is quite natural. This is the case for function `bar()` above.
 
 2. We want to give the callers an option to say, "I have no string to pass" in two ways, because why not? This is the case for function `baz()` above.
 
-3. When the programmer considers that *any* well defined value is better than UB, regardless of what consequences follow. and since it is likely that there will be a "defensive if" for an empty string, just use the empty-string value to go through this defensive if.
+3. When the programmer considers that *any* well defined value is better than UB, regardless of what consequences follow. And since it is likely that there will be a "defensive if" for an empty string, just use the empty-string value to go through this defensive if.
 
-Regarding case 1; if the specifics of the problem dictate that empty string is a degenerate value or already represents the lack of a string, then the solution to treat null pointer as an empty string makes sense. However, what we are discussing in this paper is not the legitimacy of a solution for a particular application or programming regime, but a semantics of the Standard Library type, which will be used by people solving different problems and working in different programming regimes, where passing null pointer may have different semantics, for instance no-string, which is different value than string that is empty; or where null pointer is a bug, and programmers want it to be diagnosed by tools. Even if `""` is a no-string, it is often passed on purpose to indicate no-string, whereas passing null pointer may indicate the intention to pass a no-string, but additionally it is often passed by mistake due to a bug.
+Regarding case 1; if the specifics of the problem dictate that empty string is a degenerate value or already represents the lack of a string, then the solution to treat null pointer as an empty string makes sense. However, what we are discussing in this paper is not the legitimacy of a solution for a particular application or programming regime, but the semantics of the Standard Library type, which will be used by people solving different problems and working in different programming regimes, where passing null pointer may have different semantics than an empty string, for instance no-string, which is different value than string that is empty; or where null pointer is a bug, and programmers want it to be diagnosed by tools. Even if `""` is a no-string, it is often passed on purpose to indicate no-string, whereas passing null pointer *might* indicate the intention to pass a no-string, but additionally it is often passed by mistake due to a bug.
 
 Regarding case 2; we do not consider it motivated enough to pay the price of not being able to statically check for bugs.
 
 Regarding case 3; we consider it a reasonable approach to minimizing the damage caused by an incorrect use of the interfaces by the callers. This follows the line of reasoning that using *any* predictable value is better than allowing the possibility that *nothig at all* is guaranteed upon UB. However, we note that at the same time, this approach prevents the detection and removal of bugs. Ideally, bugs should be removed by the programmers: not responded to at run-time. Note that not defining behavior for null pointers in the Standard allows for both approaches to co-exist: for test builds or static analysis passes the converting constructor can directly dereference the null pointer; but for release builds (provided that you can afford the run-time penalty of the redundant check) you can switch to producung an empty string reference. This is only the QoI question of the Standard Library implementation. 
 
-Also, when it comes to responding to bugs at run-time, in different applications there may be better ways than producing a default-constructed value, e.g., halting the program, or throwing an exception. The choice to produce an arbitrary value becomes more attractive to programmers/companies that choose to or are forced to not use exceptions; but on enviroments that throw exceptions this choice may be suboptimal. We believe the decision should be left to people who assemble the final products, who know best the environments on which their products will be run and who are best equipped to make the right decision. The decision should not be imposed by the Standard on everyone.
+Also, when it comes to responding to bugs at run-time, in different applications there may be better ways than producing a default-constructed value, e.g., halting the program, or throwing an exception. The choice to produce an arbitrary value becomes more attractive to programmers/companies that choose to, or are forced to, not use exceptions; but on enviroments that throw exceptions this choice may be suboptimal. We believe the decision should be left to people who assemble the final products, who know best the environments on which their products will be run and who are best equipped to make the right decision. A single decision should not be imposed by the Standard on everyone.
 
-Finally, note that we do not argue that the decision to treat null pointer as an empty string is inferior in general. We argue against enforcing this decision in a Standard Library vocabulary type. We propose the following point of view. A Standard Library type does not have to be used directly in user programs, but can be used as a building block for a tool that addresses the needs of a user. This is already the case for:
+Finally, note that we do not argue that the decision to treat null pointer as an empty string is inferior in general. We argue against enforcing this decision in the Standard Library vocabulary type. We propose the following point of view. A Standard Library type does not have to be used directly in user programs, but can be used as a building block for a tool that addresses the needs of a user. This is already the case for:
 
 1. Operator `delete`: it is not recommended to use it directly in program logic. but it is very useful when building smart poiter classes.
 2. `std::thread`: its behavior to call `std::terminate()` in destructor of a joinable thread makes it inconvinient for direct use. But you can use it (as a subobject) to build your thread classes that call `join()` or `detach()` in their destructor. 
 
-In the similar manner we recommend writing a derived tool based on `std::string_view` when offering semantics different than these of the C interface for strings. We show how such derived tool can be implemented in 5 lines in the Recomendations section.
+In the similar manner, we recommend writing a derived tool based on `std::string_view` when offering semantics different than these of the C interface for strings. We show how such derived tool can be implemented in 5 lines in the Recomendations section.
 
 
 ### 2.3. Defensive if-statements
