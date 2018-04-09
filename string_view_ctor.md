@@ -111,8 +111,9 @@ The converting constructor taking `const char*` has a purpose: provide the *C in
 - UB if pointer points to invalid memory
 - UB if there is no character `'\0'` in the pointed to sequence.
 
-Given its purpose, it is expected that this constructor also provides semantics of the C interface for strings.
-That the constructor intended for handling C-style strings preserves both the type and the semantics of the C interface for strings seems to us more important than providing "consistency" with other constructors that were designed to handle different interfaces. What we find important is the consistency with the intended purpose.
+Given its purpose, it is expected that this constructor also provides semantics of the C interface for strings. That is, the length of the string is determined by inspecting the pointed to array of charactes (and looking for a `'\0'`). If there is no array, the size cannot be determined.
+
+That the constructor intended for handling C-style strings preserves both the type and the semantics of the C interface for strings seems to us more important than providing "consistency" with other constructors that were designed to handle different interfaces. What we find important is the consistency with the intended purpose for the constructor.
 
 
 ### 2.2. Migrating `char*` APIs to `string_view` APIs made easier?
