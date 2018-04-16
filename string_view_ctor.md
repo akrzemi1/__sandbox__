@@ -1,9 +1,19 @@
+NOTE: this is a draft version. Work on this document is still in prograss.
+
+
 # Narrow contracts in `string_view` versus P0903R1
 
-Currently `string_view`'s converting constructor from `const char *` has narrow contract: invoking it with a null pointer
-is undefined behavior. Paper P0903R1 proposes to widen the contract so that passing a null pointer is equivalent to calling the
-default constructor instead. In this paper we argue that having a narrow contract is a desired and useful language feature 
-which would be compromised by the change. We also argue with the rationale provided in P0903R1.
+Currently `string_view`'s converting constructor from `const char *` has a precondition (narrow contract):
+invoking it with a null pointer is undefined behavior. Paper P0903R1 proposes to widen the contract so that
+passing a null pointer is equivalent to calling the default constructor instead. That proposal triggered a long discussion
+in the reflector. In this paper we provide the summary of the discussion. In particular, we describe the following:
+
+1. What is the purpose of `string_view`.
+2. Does/can/should `string_view` hold a not-a-string value, which is distinct from an empty string value.
+3. Should `nullptr` passed as `const char *` indicate a not-a-string.
+4. What is gained by keeping the contract narrow, and what is gained by making it wide.
+
+---------
 
 ## 1. On narrow contracts
 
