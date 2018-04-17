@@ -39,6 +39,7 @@ of pointers to null-terminated char sequences. The motivation for P0903R1 is one
 While the extending use cases for `std::string_view` are worth exploring, they should not compromise the first and primary goal:
 uniformly handle the cases previously handled by `const std::string &` (but faster), without compromising the functionality, safety and performance features.
 
+
 ### 1.1. `string_view`'s contract
 
 The contents of `string_view` consist of a pointer to the beginnign of the character sequence and the size of the sequence. This bears similarity to `pair<const char*, size_t>`. However, `string_view` cannot be thought of as `pair<const char*, size_t>`. The latter simply contains a pointer and a number, and assumes no connection between the two pieces of data: they are just two numbers; e.g., `{nullptr, 10}` is fine, or a random address and a random number is fine. This is reflected in `pair`'s `operator==`: two pairs compare equal if their corresponding members all compare equal.
@@ -51,6 +52,16 @@ for (char ch : sv)
 ```
 
 Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues. Or, in other words, `{sv.data(), sv.size()}` should represent a valid counted range. Also, `operator==`, which defines the value of any type takes inot accounts only the values of these characters, not the addresses. Thus two `string_view`s can contain different pointers, but still compare equal. This also implies a precondition on the constructor taking a pointer and a size: these two should represent a valid counted range.
+
+
+## 2. Passing null pointer as `const char*`
+
+`string_view` has a converting constructor taking argument of type `const char*`. It follows the semantics of "C-string interface", which are:
+* The pointer cannot be null (UB otherwise).
+* The pointer must point to a valid array or characters, or a single character with value '\0' (UB otherwise).
+* The array pointed to must contain chatacter with value '\0' (UB otherwise).
+
+Clearly, this constructor has a precondition, and even applying P0903R1 cannot remove it: it can only widen the precondition slightly. There are many ways to assign semantics to type `const char*`. The one described above will be referred to as *C-string interface* in this paper.
 
 
 ---------
