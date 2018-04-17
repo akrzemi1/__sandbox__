@@ -16,9 +16,33 @@ in the reflector. In this paper we provide the summary of the discussion. In par
 
 ---------
 
-## 1. On narrow contracts
+## 1. The purpose of `string_view`
 
-### 1.1. Narrow-contract functions are not bug-prone
+The purpose of `string_view` is indicated in [N3442](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html). Previously, a uniform way of accepting a string in any form (`std::string`, a string literlal, `std::vector<char>`, array of characters of known size, pointer to a null-terminated array of characters), was to use signature:
+
+```c++
+void f(const std::string& s);
+```
+
+This often required the creation of a temporary object of type `std::string` which potenitally allocated heap memory and copied characters. This copying is not really necessary, given that the same sequence already exists somewhere. Now, `std::string_view` offers te ability to represent a string in all the above forms but without incurring any resource allocation or copying of characters. However, its interface is slightly different; in particular, `sv.data()` is not required to point a null-terminated sequence of characters:
+
+```c++
+std::vector<char> v (64, '1'); // 64 identical chars
+std::string_view sv(v.data(), v.size());
+```
+
+This is the goal and the motivation for `std::string_view`. But now that we have it, we can explore if it could fit other
+purposes as well, for instance as a replacement for interfaces that currently only accept pointers to null-terminated char
+sequences, or a replacement for interfaces that currently accept `const char *` with semantics slightly different than these
+of pointers to null-terminated char sequences. The motivation for P0903R1 is one such interface, which allows a null pointer as valid input. 
+
+While the extending use cases for `std::string_view` are worth exploring, they should not compromise the first and primary goal:
+uniformly handle the cases previously handled by `const std::string &` (but faster), without compromising the functionality, safety and performance features.
+
+
+## N. On narrow contracts
+
+### N.1. Narrow-contract functions are not bug-prone
 
 We need to clarify one thing up front. When a function `ncf()` has a <em>narrow contract</em>, it does not mean that it "has UB"
 or that it is "bug prone". It means that the correct program does not invoke `ncf()` with certain values of its parameter types. When the program has no bugs, no disallowed values are passed to `ncf()`, and no UB is reached.
@@ -61,7 +85,7 @@ neither statically nor at run-time, potentially causing damage.
 It seems that people sometimes are more concerned about potential UB resulting from narrow contracts in the Standard than about bugs. But bugs have actually the same characteristics and consequence as UB: you do not know what is going to happen, wehn you code something else than you intended.
 
 
-### 1.2. Narrow contract means implementation flexibility
+### N.2. Narrow contract means implementation flexibility
 
 The Standard does not specify what happens when the precondition is violated (even in the currently proposed contract support), because there is no universal good way of handling such situation. Choosing a solution that satisfies one project in one environment, makes the solution suboptimal or inacceptable in other projects or environments. Therefore the decision is left to the programmer to choose the best option by using tools, compiler switches, `#define`s or collaborating with implementation vendor. In the case of null pointer in `string_view`'s constructor, programmers and implementation vendors can:
 
@@ -76,7 +100,7 @@ This flexibility would no longer be possible if the Standard hard-codes the beha
 This also means that due to this flexibility, if Abseil Authors want to implement "go with default-constructed `string_view` upon null pointer" in their implementation of `std::string_view`, that would also be a standard-conformant implementation. 
 
 
-### 1.3. Narrow contract is not a TBD
+### N.3. Narrow contract is not a TBD
 
 Finally, because the Standard imposes no requirement on implementations about what happens when the precondition is violated,
 one might think that it is an uncontroversial change to actually specify the behavior,
