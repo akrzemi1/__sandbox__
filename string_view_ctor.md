@@ -14,7 +14,6 @@ in the reflector. In this paper we provide the summary of the discussion. In par
 4. How do C and C++ treat null pointers that are supposed to represent strings.
 5. What is gained by keeping the contract narrow, and what is gained by making it wide.
 
----------
 
 ## 1. The purpose of `string_view`
 
@@ -51,7 +50,11 @@ for (char ch : sv)
   read(ch);
 ```
 
-Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues.
+Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues. Or, in other words, `{sv.data(), sv.size()}` should represent a valid counted range. Also, `operator==`, which defines the value of any type takes inot accounts only the values of these characters, not the addresses. Thus two `string_view`s can contain different pointers, but still compare equal. This also implies a precondition on the constructor taking a pointer and a size: these two should represent a valid counted range.
+
+
+---------
+
 
 ## N. On narrow contracts
 
