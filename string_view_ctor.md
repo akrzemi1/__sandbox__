@@ -348,7 +348,7 @@ or if you can request of your vendor such customization.
 
 A question has been asked, how other functions from the standard library behave when a null pointer is passed in place where a pointer to a null-terminated character sequence is expected.
 
-Most functions inherited from C do not define program behavior when a null pointer is passed. This applies to funcitons like `fopen`, or string manipulating functions like `strcpy`. Even its safer cousin, `strncpy` triggers undefined behavior wne a null pointer is passed. The only function from the family that checks for the null pointer is `strncpy_s`. This function in the case of a nul pointer calls a "constraint handler" function: it might call `abort()` or ignore the situation, but it does not treat null pointer as an empty string.
+Most functions inherited from C do not define program behavior when a null pointer is passed. This applies to funcitons like `atoi`, `fopen`, or string manipulating functions like `strcpy`. Even its safer cousin, `strncpy` triggers undefined behavior wne a null pointer is passed. The only function from the family that checks for the null pointer is `strncpy_s`. This function in the case of a nul pointer calls a "constraint handler" function: it might call `abort()` or ignore the situation, but it does not treat null pointer as an empty string.
 
 In genuine C++ functions, passing null pointer to functions expecting a null-terminated character sequences is undefined behavior. This applies to functions like: constructor of `fstream`, constructor of `basic_string`, constructor of `std::filesystem::path`, or argument to `basic_string::find_first_of()`.
 
