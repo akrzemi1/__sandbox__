@@ -40,6 +40,18 @@ of pointers to null-terminated char sequences. The motivation for P0903R1 is one
 While the extending use cases for `std::string_view` are worth exploring, they should not compromise the first and primary goal:
 uniformly handle the cases previously handled by `const std::string &` (but faster), without compromising the functionality, safety and performance features.
 
+### 1.1. `string_view`'s contract
+
+The contents of `string_view` consist of a pointer to the beginnign of the character sequence and the size of the sequence. This bears similarity to `pair<const char*, size_t>`. However, `string_view` cannot be thought of as `pair<const char*, size_t>`. The latter simply contains a pointer and a number, and assumes no connection between the two pieces of data: they are just two numbers; e.g., `{nullptr, 10}` is fine, or a random address and a random number is fine. This is reflected in `pair`'s `operator==`: two pairs compare equal if their corresponding members all compare equal.
+
+In contrast the intended usage of `string_view` is:
+
+```c++
+for (char ch : sv)
+  read(ch);
+```
+
+Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues.
 
 ## N. On narrow contracts
 
