@@ -27,8 +27,9 @@ void f(const std::string& s);
 This often required the creation of a temporary object of type `std::string` which potenitally allocated heap memory and copied characters. This copying is not really necessary, given that the same sequence already exists somewhere. Now, `std::string_view` offers te ability to represent a string in all the above forms but without incurring any resource allocation or copying of characters. However, its interface is slightly different; in particular, `sv.data()` is not required to point a null-terminated sequence of characters:
 
 ```c++
-std::vector<char> v (64, '1'); // 64 identical chars
+std::vector<char> v {'A', 'B', 'C'};
 std::string_view sv(v.data(), v.size());
+// no null in array under sv.data()
 ```
 
 This is the goal and the motivation for `std::string_view`. But now that we have it, we can explore if it could fit other
