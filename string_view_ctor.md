@@ -93,7 +93,11 @@ Fourth, functions like `memcpy` do not take `const char*`, but `const void*` arg
 
 ### 2.2. Null pointers as `const char*` in C++
 
-C++ also follows C-string interface whenever it uses single `const char*` argument to represent a string. This includes constructors of `std::fstream`, `std::string`, `std::filesystem::path`, or argument to `string::find_first_of()`. 
+C++ also follows C-string interface whenever it uses single `const char*` argument to represent a string. This includes constructors of `std::fstream`, `std::string`, `std::filesystem::path`, or argument to `string::find_first_of()`, or `std::char_traits::length()`. 
+
+Occasionally, two `const char*` pointers are used to represent a string, in the same way as ranges are represented in STL by two iterators `[begin, end)`. This is the case for functions like `std::ctype::is`, `std::ctype::do_is` dealing with locales. These can be null pointers provided that `begin == end`. This is logical: because the length of the string can be determined without dereferencing the pointer, the pointer is allowed to be null.
+
+Some functions in `std::char_traits` take two pointers and the size: `ct::copy(s, p, n)`, `ct::move(s, p, n)`. In each case the string is represented by the pointer to the beginning of the string and the size: a *counted nange*. Actually three arguments represent two  ranges: `[s, s + n)` and `[p, p + n)`. Again, because we do not need to dereference the pointer to determine the string's length, the pointers are allowed to be null.
 
 ---------
 
