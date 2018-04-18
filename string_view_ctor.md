@@ -63,6 +63,9 @@ Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv
 
 Clearly, this constructor has a precondition, and even applying P0903R1 cannot remove it: it can only widen the precondition slightly. There are many ways to assign different semantics to type `const char*`. The one described above will be referred to as *C-string interface* in this paper.
 
+
+### 2.1. Null pointers as `const char*` in C
+
 Whenever functions in C want a single argument of type `const char*` to represent a string they use the C-string interface. This is reflected in the C Standard:
 
 7.1.1/1
@@ -76,7 +79,13 @@ the *value of a string* is the sequence of the values of the contained character
 descriptions that follow: If an argument to a function has an invalid value (such as [...]
 a null pointer[...]) [...], the behavior is undefined.
 
-C functions with C-string interface include `atoi`, `frprintf`, `fopen`, or string manipulating functions like `strcpy`, `strcat`.
+C functions with C-string interface include `atoi`, `puts`, `fprintf`, `fopen`, or string manipulating functions like `strcpy`, `strcat`.
+
+There are some exceptions to that rule. First, some functions do specify what happens when a null-pointer is passed and there are good reasons to pass one: `setlocale` (null pointer means "only get current locale, don't set anything"), `system` (null -> determine if command processor exists, non-null -> pass command to processor), `mblen` (not-null -> determine the number of bytes in multi-byte character, null -> determine if state-dependent encodings are supported). In all these cases passing null pointer simply triggers a different path in the functions. This is the C way of reducing the number of function names. In C++ we would probably have two functions per each null and non-null input.
+
+Second, functions with bounds-checking interfaces, such as `strcpy_s` do have a defensive check for null-pointer inputs. Such an input is considered an error and results in the call to a *constraint handler* function: it might call `abort()` or ignore the situation by default, or do whatever handler is installed by in the program.
+
+Third, there are functions, that...
 
 ---------
 
