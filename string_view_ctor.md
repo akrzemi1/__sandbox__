@@ -110,6 +110,11 @@ Second, you can treat the null pointer value as distinct from any sting, even em
 
 Also, type `const char*` can be used for other purposes than representing a string: it can represent an address of a single character. Migrating such usage to `string_view` would be unwise. 
 
+
+### 2.4. Is passing a null pointer where a string is expected fundamentally wrong?
+
+Much of controversy around P0903R1 is about whether it is valid to pass a null pointer where `const char*` is expected to represent a string. If a string is a 0 or longer sequence of characters, then clearly there is no need to intentionally use the null pointer value. Any value, including empty string, can be represented by null-terminated byte sequence that the pointer need to point to.  
+
 ---------
 
 
