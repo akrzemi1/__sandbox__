@@ -42,7 +42,7 @@ uniformly handle the cases previously handled by `const std::string &` (but fast
 
 ### 1.1. `string_view`'s contract
 
-The contents of `string_view` consist of a pointer to the beginnign of the character sequence and the size of the sequence. This bears similarity to `pair<const char*, size_t>`. However, `string_view` cannot be thought of as `pair<const char*, size_t>`. The latter simply contains a pointer and a number, and assumes no connection between the two pieces of data: they are just two numbers; e.g., `{nullptr, 10}` is fine, or a random address and a random number is fine. This is reflected in `pair`'s `operator==`: two pairs compare equal if their corresponding members all compare equal.
+The contents of `string_view` consist of a pointer to the beginning of the character sequence and the size of the sequence. This bears similarity to `pair<const char*, size_t>`. However, `string_view` cannot be thought of as `pair<const char*, size_t>`. The latter simply contains a pointer and a number, and assumes no connection between the two pieces of data: they are just two numbers; e.g., `{nullptr, 10}` is fine, or a random address and a random number is fine. This is reflected in `pair`'s `operator==`: two pairs compare equal if their corresponding members all compare equal.
 
 In contrast the intended usage of `string_view` is:
 
@@ -56,7 +56,7 @@ Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv
 
 ## 2. Passing null pointer as `const char*`
 
-`string_view` has a converting constructor taking argument of type `const char*`. It follows the semantics of "C-string interface", which are:
+`string_view` has a converting constructor taking argument of type `const char*`. It follows the semantics of "C-string interface", which are: the length of the string is determined by dereferencing a pointer, iterating through the array and looking for the null character. The distance from the beginning to the found null character is the stirng's length. This implies a precondition on the input: 
 * The pointer cannot be null (UB otherwise).
 * The pointer must point to a valid array or characters, or a single character with value '\0' (UB otherwise).
 * The array pointed to must contain chatacter with value '\0' (UB otherwise).
@@ -85,7 +85,13 @@ There are some exceptions to that rule. First, some functions do specify what ha
 
 Second, functions with bounds-checking interfaces, such as `strcpy_s` do have a defensive check for null-pointer inputs. Such an input is considered an error and results in the call to a *constraint handler* function: it might call `abort()` or ignore the situation by default, or do whatever handler is installed by in the program.
 
-Third, there are functions, that...
+Third, functions like `strncpy` determine the length in a mixed way. an additional length `len` is provided, if `'\0'` cannot be found in the first `len` locations, value `len` is used as string length. This departs from the C-string interface, but still treats null-pointer input as invalid (UB).
+
+Fourth, functions like `memcpy` do not take `const char*`, but `const void*` arguments, but they are still relevant in the discussion. In this case the length of the sequences is provided separately by additional argument of type `size_t`. Passing null pointers is still UB.
+
+
+### 2.2. Null pointers as `const char*` in C++
+
 
 ---------
 
