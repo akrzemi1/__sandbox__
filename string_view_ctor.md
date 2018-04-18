@@ -61,8 +61,26 @@ Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv
 * The pointer must point to a valid array or characters, or a single character with value '\0' (UB otherwise).
 * The array pointed to must contain chatacter with value '\0' (UB otherwise).
 
-Clearly, this constructor has a precondition, and even applying P0903R1 cannot remove it: it can only widen the precondition slightly. There are many ways to assign semantics to type `const char*`. The one described above will be referred to as *C-string interface* in this paper.
+Clearly, this constructor has a precondition, and even applying P0903R1 cannot remove it: it can only widen the precondition slightly. There are many ways to assign different semantics to type `const char*`. The one described above will be referred to as *C-string interface* in this paper.
 
+Whenever functions in C want a single argument of type `const char*` to represent a string they use the C-string interface. This is reflected in the C Standard:
+
+7.1.1/1
+> A *string* is a contiguous sequence of characters terminated by and including the first null
+character. [...] A *pointer to a string* is a pointer to its initial (lowest addressed)
+character. The *length of a string* is the number of bytes preceding the null character and
+the *value of a string* is the sequence of the values of the contained characters, in order.
+
+7.1.4/1
+> Each of the following statements applies unless explicitly stated otherwise in the detailed
+descriptions that follow: If an argument to a function has an invalid value (such as a value
+outside the domain of the function, or a pointer outside the address space of the program,
+or a null pointer, or a pointer to non-modifiable storage when the corresponding
+parameter is not const-qualified) or a type (after promotion) not expected by a function
+with variable number of arguments, the behavior is undefined. If a function argument is
+described as being an array, the pointer actually passed to the function shall have a value
+such that all address computations and accesses to objects (that would be valid if the
+pointer did point to the first element of such an array) are in fact valid
 
 ---------
 
