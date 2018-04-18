@@ -73,14 +73,10 @@ the *value of a string* is the sequence of the values of the contained character
 
 7.1.4/1
 > Each of the following statements applies unless explicitly stated otherwise in the detailed
-descriptions that follow: If an argument to a function has an invalid value (such as a value
-outside the domain of the function, or a pointer outside the address space of the program,
-or a null pointer, or a pointer to non-modifiable storage when the corresponding
-parameter is not const-qualified) or a type (after promotion) not expected by a function
-with variable number of arguments, the behavior is undefined. If a function argument is
-described as being an array, the pointer actually passed to the function shall have a value
-such that all address computations and accesses to objects (that would be valid if the
-pointer did point to the first element of such an array) are in fact valid
+descriptions that follow: If an argument to a function has an invalid value (such as [...]
+a null pointer[...]) [...], the behavior is undefined.
+
+C functions with C-string interface include `atoi`, `frprintf`, `fopen`, or string manipulating functions like `strcpy`, `strcat`.
 
 ---------
 
