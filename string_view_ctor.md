@@ -12,7 +12,8 @@ in the reflector. In this paper we provide the summary of the discussion. In par
 2. Does/can/should `string_view` hold a not-a-string value, which is distinct from an empty string value.
 3. Should `nullptr` passed as `const char *` indicate a not-a-string.
 4. How do C and C++ treat null pointers that are supposed to represent strings.
-5. What is gained by keeping the contract narrow, and what is gained by making it wide.
+5. The scope of the change: should it be only `string_view`'s constructor, or also `string`'s constructor.
+6. What is gained by keeping the contract narrow, and what is gained by making it wide.
 
 
 ## 1. The purpose of `string_view`
@@ -92,6 +93,7 @@ Fourth, functions like `memcpy` do not take `const char*`, but `const void*` arg
 
 ### 2.2. Null pointers as `const char*` in C++
 
+C++ also follows C-string interface whenever it uses single `const char*` argument to represent a string. This includes constructors of `std::fstream`, `std::string`, `std::filesystem::path`, or argument to `string::find_first_of()`. 
 
 ---------
 
