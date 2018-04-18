@@ -100,7 +100,7 @@ Occasionally, two `const char*` pointers are used to represent a string, in the 
 Some functions in `std::char_traits` take two pointers and the size: `ct::copy(s, p, n)`, `ct::move(s, p, n)`. In each case the string is represented by the pointer to the beginning of the string and the size: a *counted nange*. Actually three arguments represent two  ranges: `[s, s + n)` and `[p, p + n)`. Again, because we do not need to dereference the pointer to determine the string's length, the pointers are allowed to be null.
 
 
-### 2.3. Other possible semantics of `const char*` argumrnts
+### 2.3. Other possible semantics of `const char*` arguments
 
 The above are the semantics associated with type `const char*` in C-string interfaces. They are encouraged by the Standard library. But one can imagine functions in other libraries that interpret the value of type `const char*` differently, especially the null pointer value.
 
