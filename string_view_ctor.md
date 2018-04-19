@@ -311,6 +311,30 @@ To summarize. The goal is to detect bugs (early, statically). The notion of "pre
 Sometimes people worry more about hitting language-level UB than about bugs in their code. But bugs actually have the same dangerous characteristic as UB: if you hit them, the results are unpredictable.
 
 
+### 6.2. Simpler conceptual model
+
+Preconditions bring C++ types closer to the real-life concepts that they describe. Consider a function that takes a range of integer values indicated by the lower and uper bounds:
+
+```c++
+bool indicator::is_in_range(int lo, int hi) const
+// precondition: lo <= hi
+{
+  return lo <= _value && _value <= hi;
+}
+```
+Two value of type `int` are a concept in the C++ type-system. A *range* is a concept from the problem domain. Two types of type `int` can represent a range only to some extent. It is denoted by the precondition. If `lo` passed is greater than `hi` the re is no way to think of them as a range. The abstraction breaks. One could say, "but let's make `lo > hi` nonetheless a valid input"
+
+### 6.3. Improved static analysis
+
+First, null pointer dereference is a common bug, breaking functionality in many popular commercial programs. Also in other languages. The ability to detect such bugs is very useful. Tools and techniques are being developed to help that task. Some tools like static analyzers need help from the programmer and the libraries: this help is provided via UB.
+
+Any portion of code is suspicious and could technically contain a bug. In order for static analyzers not to produce too many false positive warnings, they need to be certain that a given piece of C++-conformant code does not reflect programmer's intentions. How does the static analyzer know what the programmer's intentions are? It doesn't in general, but sometimes the answer is clear: it is *never* the programmers intention to hit an UB. So, when a static analyzer can find an execution path in the program that triggers an UB, it can with certainty report a bug. But for this to work one needs a *potential* to hit an UB. Making a non-null ponter a precondition is such potential to hit an UB: a good one, because dereferencing a null pointer is well explored and tool-friendly type of UB. As explained above, this does not introduce a potential for bugs: it only makes bugs more visible.
+
+UB is close in nature to a [checksum](https://en.wikipedia.org/wiki/Checksum): checksum is redundant, increases the  size of the message, and creates the potential for producing invalid messages (where the payload doesn't match the checksum), so someone might say, "remove it, and there will be no way to send an invalid message". But we still want to use checksums, and we all know why.
+
+
+### 6.4. Flexibility in handling the bug at run-time
+
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
 
@@ -328,9 +352,8 @@ When the program has a bug, it may result in calling `ncf()` with a disallowed v
 2. When compiled with an UB-sanitizer, logging null pointer dereference and halting the program.
 3. On particular implementations of the Standard Library, an exception is thrown.
 
-Static analyzers, in order to avoid false positive warnings, need to be positive that a given situation in a standard-conformant program is a bug. Hitting UB is a certain indication that there is a bug. But for this to work you have got to have the potential to hit UB. UB is close in nature to a [checksum](https://en.wikipedia.org/wiki/Checksum): checksum is redundant, increases the  size of the message, and creates the potential for producing invalid messages (where the payload doesn't match the checksum), so someone might say, "remove it, and there will be no way to send an invalid message". But we still want to use checksums, and we all know why. 
+Static analyzers, in order to avoid false positive warnings, need to be positive that a given situation in a standard-conformant program is a bug. Hitting UB is a certain indication that there is a bug. But for this to work you have got to have the potential to hit UB.  
 
-UB is always a symptom of a bug, but is never a bug on itself. It is possible to artificially widen the contract of function `ncf()` and say: null pointer is a valid input: in such case we will do *something*, maybe not intuitive, but at least it will not cause UB. Widening the contract removes UB, but does not remove the bug: someone is still incorrectly (probably inadvertantly) passing a null pointer to a function, whereas he was supposed to pass a pointer that points ot something. The symptom is cured, but not the disease. Worse, with the contract widened, there is no symptom that would help the tools like static analyzers or UB-sanitizers, or even human code reviewers, detect the bug. We reduce the chances of finding the bug before the program is shipped. Passing a null pointer where an address of an existing object is expected is **a common bug** ocurring in many popular and commercial applications, written in many languages. Detecting such bugs is important and possible. UB helps here.
 
 This can be illustrated with an example. The following code is supposed to open the indicated file, 
 interpret its contents as names, find the best matching name, and finally do something with it:
