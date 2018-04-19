@@ -304,7 +304,7 @@ f(q); // BUG: intended to call f(p);
 
 First, suppose that function `f()` has a precondition: the argument cannot be a null pointer. If you plant this bug you are violating a precondition. Automatic tools, like static analyzers, do not know our intentions, they cannot recognize such things as "you wanted to pass different argument" or "you confused this name with that one", or "you wanted to pass that value instead", "you have a type-o". But they are good at detecting precondition violations, or illegal values. Invalid input is not a bug itself, but an indication of a bug (in our case: confusing pointers), but if this is reported it is enough for the programmer to kick in and correct it. Static analyzer has *helped* find the bug, but didn't actually find it: the programmer found it based on the information from static analyzer.
 
-No,w consider what happens when you widen the contract. The bug is still there, the pointers are still confused, but there is no precondition fiolation anymore. Static analyzer is blind and cannot help you detect the bug.
+Now, consider what happens when you widen the contract. The bug is still there, the pointers are still confused, but there is no precondition fiolation anymore. Static analyzer is blind and cannot help you detect the bug.
 
 To summarize. The goal is to detect bugs (early, statically). The notion of "precondition violation" or "invalid input" is only a tool that helps detect bugs (or, assert program correctness). The goal is not to detect invalid inputs: it is only a means to the real goal. By widening contracts you render the notion of invalid input unhelpful (or less helpful) in achieving the goal of detecting bugs.
 
