@@ -127,7 +127,55 @@ In a third party library with lots of functions taking single `const char *` to 
 
 Whatever answer 1, 2, 3, 4 is chosen the semantics are different than these for the C-string interface. C-string interface, being selected in the Standard Library of C and C++, is automatically a recomentdation to the developers. Its UB cases (preconditions) are designed carefully to bring closer the concrete type `const char *` to the abstract notion of a string. Many libraries also adapt the C-string interface, and expect its preconditions as a safety feature. For the programmers that choose to adapt the C-string interface, weakening its preconditions means that the concrete type `const char *` looses the connection with the concept of a string. This will be discussed later.
 
+## 3. Can `string_view` be used to replace `const char*` interfaces?
+
+The question in the section title is ambiguous. This reflects the ambiguity in the discussions around P0903R1. An interface is not only a type alone, but also the semantics associated with the type. Type alone, especially a general purpose basic type like `const char*`, can be interpret by different functions in different ways.
+
+Here is one example:
+
+```c++
+bool is_default_separator(const char * ch) { return *ch == '-'; }
+
+const char SEPARATOR = '/';
+return is_default_separator(&SEPARATOR);
+```
+
+Type `const char *` is assumed to be a reference to a single character, here represented by the object's address. No terminating null character is assumed. Migrting this usage to `string_view` would be an error. There is no concept of string associated wit this usage of type `const char *`.
+
+The above is a very obvious case, but consider migrating the C-string interface to `string_view`. We have a user-defined function with C-string interface which forwards to the Standard Library function with C-string interface:
+
+```c++
+void display(const char* message)
+{
+  std::puts(message);
+}
+```
+
+If we change the interface of function `display()` to take `string_view` we need to answer the quesion what should be passed to function `std::puts()`. The only candidate matching by type is `message.data()`:
+
+```c++
+void display2(string_view message)
+{
+  std::puts(message.data());
+}
+```
+
+But `message.data()` after refactoring has different semantics than pointer `message` before refactoring. Before refactoring we had guarantee that the pointed to array is null terminated. After refactoring this guarantee does not exist. Well, it exists only for a short time after refactoring because the only usages by the callers were through the C-string interface. But now that the type of the argument has changed, so has the contract: callers are sent a message that they can also pass strings that are not null-terminated:
+
+```c++
+display2({"abcd", 2}); // supposedly allowed
+display2({vec.data(), vec.size()}); // supposedly allowed
+```
+
+Technically, to fix it one can add a precondition on `display2()`: "`message.data()` should point to a null-terminated sequence", but this is probably nobody's intention.
+
+This illustrates that a top-bottom approach to migrating C-string interfaces to `std::string_view` is impossible in general. Only bottom-up is possible in a subset of cases. 
+
+This also illustrates that it is not possible to migrate even C-string interfaces to `std::string_view`. At least not all of them. Regardless if we accept P0903R1 or not.
+
+
 ---------
+WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
 
 
 ## N. On narrow contracts
