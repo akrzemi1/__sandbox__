@@ -238,17 +238,34 @@ In this case conflating not-a-string with a zero-sized string is acceptable.
 
 2. The not-a-string state is never expected to occur, but if it occurs it is treated as a bug in the program and functions that otain it should immediately stop execution, e.g. by calling `std::terminate()`, trowing an exception, or performing a comparable avasive action. In such case departing from regular/value semantics does not matter, as the program or a part thereof will be shut down anyway.
 
+```c++
 X* baz(const char* p) // desired: p != nullptr
 {
   if (p == nullptr) {
     SIGNAL_BUG();
-    return nullptr;  // may still be needed!!
+    return nullptr;   // may still be needed!!
   }
   
   return process(p);
 }
+```
 
-...
+## 5. Interchangeability of `std::string` and `std::string_view`
+
+Given that `std::string_view` is intended to be a faster replacement for `const std::string&` a quesion need to be answered whether we can change the interface of one without changing the interface of the other.
+
+P0903R1 proposes to widen the contract of `std::string_view`'s converting constructor. According to the theory of *design by contract*, in a correct (i.e., bug-free) program, a function with a narrower precondition `f1()` can be replaced by a function with a wider precondition `f2()` and it does not affect program correctness (measured by functions inuts satisfying their preconditions). But you cannot replace `f2()` back with `f1()`, because then the contract gets narrower. The only case when you can change from `f1()` to `f2()` and back is when both functions have identical contract.
+
+This is relevant in preactice when dealing with functions with `std::string` as parameters. There are situations where you need to change the signature from `void f(std::string)` to `void f(const std::string&)` for performance reasosns; and sometimes you have to change the signature from `void f(const std::string&)` to `void f(std::string)`: also for performance reasons, depending on the situation (in case you need to make a copy of the argument inside the function). Contract-wise both these changes are correct: both signatures have the same contract.
+
+Similarly, now that we have `std::string_view`, one may need to change the signature from `void f(const std::string&)` to `void f(std::string_view)`, and sometimes from `void f(std::string_view)` to `void f(std::string)`. Now, if both `std::string` and `std::string_view` have the same narrow contract in constructors (null pointer disallowed in both), the change in either direction is correct contract-wise. (Technically, `std::string` and `std::string_view` have different set of member functions, so mechanically replacing one type with the other may result in a program that does not compile. But in most of the cases we are only interested in the sequence as a whole and the only members that are used are `.begin()` and `.end()`.) But if `std::string_view` had a wider contract in constructor (null pointer is a valid input), migrating from `void f(std::string_view)` to `void f(std::string)` might introduce bugs if someone has started passing null pointers to function `f()`.
+
+Widening the contract for `std::string_view`'s constructor breaks the interchangability of `std::string` and `std::string_view` in function arguments.
+
+Also, the theory of *design by contract*, which was described for the purpose of Eiffel programming language, does not take into account speciffics of C++, where UB is in fact a guarantee that the programmers (at least some of them) rely on. For instance, specifying UB for conversion from null poiter to `std::string` is a guarantee that I can agree with the vendor of libstdc++ that the said conversion will throw an exception, and that the Standard will not try to compromize my agreement with the vendor. This sill be considered in more detail later. 
+
+If widening the contract of `std::string`'s converting constructor is considered, one should answer another quesion. Should the same widening be applied to other types, such as `std::filesystem::path`? Should other member functions of `std::string` be also widened their contract? For instance, `string::find_first_of(nullptr)` is currently UB.
+
 
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
@@ -494,16 +511,6 @@ Now consider what happens when you widen the contract. The bug is still there, b
 
 To summarize. The goal is to detect bugs (early, statically). The notion of "invalid input" is only a tool that helps detect bugs (or, "assert program correctness"). The goal is not to detect invalid inputs: it is only a means to the real goal. By widening contracts you render the notion of invalid input unhelpful (or less helpful) in achieving the goal of detecting bugs. 
 
-
-### 2.5. Interchangeability of `std::string` and `std::string_view`
-
-Unlike P0903R0 (the initial version), P0903R1 proposes to widen the contract only for `std::string_view` but leave the contract  for `std::string` narrow as it is. This would cause another issue. According to the theory of *design by contract*, in a correct (i.e., bug-free) program, a function with a narrower precondition `f1()` can be replaced by a function with a wider precondition `f2()` and it does not affect program correctness (even if it impedes the tools for asserting program correctness). But you cannot change `f2()` back to `f1()` because then the contract gets narrower. The only case when you can change from `f1()` to `f2()` and back is when both functions have identical contract.
-
-This happens in preactice when dealing with functions with `std::string` as parameters. There are situations where you need to change the signature from `void f(std::string)` to `void f(const std::string&)` for performance reasosns; and sometimes you have to change the signature from `void f(const std::string&)` to `void f(std::string)`: also for performance reasons, depending on the situation (in case you need to make a copy of the argument inside the function). Contract-wise both these changes are correct.
-
-Similarly, now that we have `std::string_view`, one may need to change the signature from `void f(const std::string&)` to `void f(std::string_view)`, and sometimes from `void f(std::string_view)` to `void f(std::string)`. Now, if both `std::string` and `std::string_view` have the same narrow contract in constructors (null pointer disallowed), the change in either direction is correct contract-wise. (Technically, `std::string` and `std::string_view` have different set of member functions, so mechanically replacing one type with the other may result in a program that does not compile. But in most of the cases we are only interested in the sequence as a whole and the only members that are used are `.begin()` and `.end()`.) But if `std::string_view` had a wider contract in constructor (null pointer is a valid input), migrating from `void f(std::string_view)` to `void f(std::string)` might introduce bugs if someone has started passing null pointers to function `f()`.
-
-Widening the contract for `std::string_view`'s constructor breaks the interchangability of `std::string` and `std::string_view` in function arguments.
 
 
 ## 3. Recomendations for migrating from `char*` to `string_view`
