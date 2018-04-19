@@ -11,9 +11,10 @@ in the reflector. In this paper we provide the summary of the discussion. In par
 1. What is the purpose of `string_view`.
 2. Does/can/should `string_view` hold a not-a-string value, which is distinct from an empty string value.
 3. Should `nullptr` passed as `const char *` indicate a not-a-string.
-4. How do C and C++ treat null pointers that are supposed to represent strings.
-5. The scope of the change: should it be only `string_view`'s constructor, or also `string`'s constructor.
-6. What is gained by keeping the contract narrow, and what is gained by making it wide.
+4. Can `string_view` be used as a replacement for `const char *` in interfaces?
+5. How do C and C++ treat null pointers that are supposed to represent strings.
+6. The scope of the change: should it be only `string_view`'s constructor, or also `string`'s constructor.
+7. What is gained by keeping the contract narrow, and what is gained by making it wide.
 
 
 ## 1. The purpose of `string_view`
