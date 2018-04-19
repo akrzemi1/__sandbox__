@@ -114,7 +114,18 @@ Also, type `const char*` can be used for other purposes than representing a stri
 
 ### 2.4. Is passing a null pointer where a string is expected fundamentally wrong?
 
-Much of controversy around P0903R1 is about whether it is valid to pass a null pointer where `const char*` is expected to represent a string. If a string is a 0 or longer sequence of characters, then clearly there is no need to intentionally use the null pointer value. Any value, including empty string, can be represented by null-terminated byte sequence that the pointer need to point to.  
+Much of controversy around P0903R1 is about whether it is valid to pass a null pointer where `const char*` is expected to represent a string. If by a "string" we mean a sequence of 0 or more characters, then clearly there is no need to intentionally use the null pointer value. Any value, including empty string, can be represented by null-terminated byte sequence that the pointer need to point to. Plus, it is a well established idiom in C and C++ Standard Library that passing null pointer in such case is illegal, and therefore is an indication of the porgrammer bug. When such bug is diagnosed the code is changed so that a non-null pointer is passed to function `f()` or function `f()` is not called at all. So, at least when dealing with the Standard Library functions, passing null pointer that is supposed to indicate a string happens only temporarily, and inadvertantly, and is ideally corrected as soon as possible.
+
+But this is only the C-string interface. In custom libraries developers can associate other semantics with a sinngle `const char *` parameters intended to represent strings. The will typically be similar to the C-string interface except that null pointer value is treated in a different manner, which can be one of:
+
+1. Null pointer represents the zero-length string.
+2. Null pointer represents a yet another value distinct from any sequence of characters. This is equivalent to `optional<string>` not containing a value, which is different even from an empty string.
+3. Null pointer value is unwelcome and indicates a bug, but we want functions to accept it and deal with the bug internally at run-time, trough defensive if statements or exceptions or something similar.
+4. Null pointer value is unwelcome and indicates a bug, but we expect the function to accept it and not cause language-level UB, but we fave no further expectations of what happens.
+
+In a third party library with lots of functions taking single `const char *` to indicate a string with semantics different than the C-string interface, different functions may have different answers to the above question. This means that one cannot automatically refactor all these functions to take `some_string_view` in place of `const char *`, Instead, for each of these functions the semantics need to be determined and only then an appropriate refactoring action can be taken.
+
+Whatever answer 1, 2, 3, 4 is chosen the semantics are different than these for the C-string interface. C-string interface, being selected in the Standard Library of C and C++, is automatically a recomentdation to the developers. Its UB cases (preconditions) are designed carefully to bring closer the concrete type `const char *` to the abstract notion of a string. Many libraries also adapt the C-string interface, and expect its preconditions as a safety feature. For the programmers that choose to adapt the C-string interface, weakening its preconditions means that the concrete type `const char *` looses the connection with the concept of a string. This will be discussed later.
 
 ---------
 
