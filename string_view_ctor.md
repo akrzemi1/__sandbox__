@@ -322,7 +322,22 @@ bool indicator::is_in_range(int lo, int hi) const
   return lo <= _value && _value <= hi;
 }
 ```
-Two value of type `int` are a concept in the C++ type-system. A *range* is a concept from the problem domain. Two types of type `int` can represent a range only to some extent. It is denoted by the precondition. If `lo` passed is greater than `hi` the re is no way to think of them as a range. The abstraction breaks. One could say, "but let's make `lo > hi` nonetheless a valid input"
+
+Two value of type `int` are a concept in the C++ type-system. A *range* is a concept from the problem domain. Two types of type `int` can represent a range only to some extent. It is denoted by the precondition. If `lo` passed is greater than `hi` there is no way to think of them as a range. The abstraction breaks. One could say, "but let's make `lo > hi` nonetheless a valid input", but then what do you do with this input? One option:
+
+```c++
+bool indicator::is_in_range(int lo, int hi) const
+// no precondition
+{
+  if (lo > hi) return false;
+  return lo <= _value && _value <= hi;
+}
+```
+
+Whetever you do, you are not dealing with a range now, but with two objects of type `int`. There is no notion of being *in range* for two arbitrary `int` values, and the value in the additional return statement is probably wrong, because there is no good answer. The logic of this function has descended from dealing with abstract ranges to performing operations on C++ type-system objects. Reasoning at this level is harder and more bug prone. Intuition fails, and code reviews are less effective.
+
+Similarly, a null pointer value does not represent a string, not even a zero-sized string. Once it is accepted as valid input to `string_view` something has to be done with it: maybe call it an empty string, maybe call it a distinct value from any string value. In either case the abstraction is weakened. We cannot safely think interms of strings, character sequences, but one level down: about the numeric value of address `sv.data()`.
+
 
 ### 6.3. Improved static analysis
 
