@@ -350,77 +350,28 @@ UB is close in nature to a [checksum](https://en.wikipedia.org/wiki/Checksum): c
 
 ### 6.4. Flexibility in handling the bug at run-time
 
+When the standard says that he behavior of some operation is undefined, especially in the case of UB as easily dianosable as dereferencing a null pointer or precondition violation, vendors are allowed to define their guaranteed behavior. Vendors and programmers may use this opportunity to settle on an error reporting scheme for invalid inputs that is best suited for a given program. Ideally, bug should be removed from the code rather than being responded to at run-time. There is no good universal way to respond to them. A solution good for one project would be detrimental in another. Therefore the best the Standard can do is to leave the decision to engineers that assemble the program from the components, that know the environment that the program will be executed in, and that are best equipped to make the right decision. Such decision might be:
+
+1. Compile the program with UB sanitizer. If null pointer dereference is encountered a message will be logged and the program halted.
+2. When the function is evaluaed in the `constexpr` context,a compiler error is reported.
+3. The vendor's implementation of the library component may throw an exception upon invalid (null pointer) argument to the constructor. In fact, libstdc++ implementation of `std::string` throws an exception wnen you construct it from null pointer.
+4. The vendor's implementation of the library component may use a replacement value which is valid when an original value is invalid. This is what the libstdc++ implementation of `std::string_view` does when you pass null pointer to the constructor: it initializes to `{nullptr 0}`.
+5. You can switch between any of the above based on compiler switches and macro definitions. Vendors can offer different modes in which their implementation of the Standard library operates.
+
+These all options are possible only because the Standard leaves undefined what happens. They may not sound like an option if one thinks, "the Standard is my allay, the compiler vendor is my enemy", but if you trust your platform and tools the picture is completely different. In particular this, flexibility means that if Abseil Authors want to implement "go with default-constructed `string_view` upon null pointer" in their implementation of `std::string_view`, that is also a standard-conformant implementation. 
+
+But all these options will suddenly be gone if the Standard suddenly defines the behavior to only one right solution. Such one solution cannot serve the entire community.
+
+This illustrates that UB in well designed places is a feature offered to the programmers. Not an omission. Not something to be defined in the future releases of the Standard.
+
+
+## 7. What is gained by widening the contract
+
+
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
 
 
-## N. On narrow contracts
-
-### N.1. Narrow-contract functions are not bug-prone
-
-We need to clarify one thing up front. When a function `ncf()` has a <em>narrow contract</em>, it does not mean that it "has UB"
-or that it is "bug prone". It means that the correct program does not invoke `ncf()` with certain values of its parameter types. When the program has no bugs, no disallowed values are passed to `ncf()`, and no UB is reached.
-
-When the program has a bug, it may result in calling `ncf()` with a disallowed value: this in turn results in reaching UB. The C++ Standard does not specify what happens with the program in such case, but implementations may specify what happens; and many implementations do. We are focusing here on a very popular, well understood and well explored type of UB: dereferencing a null pointer. Current implementations respond to dereferencing a null pointer by:
-
-1. Reporting error during statc analysis, before the program is even run. This is comparable to detecting bugs at compile-time.
-2. When compiled with an UB-sanitizer, logging null pointer dereference and halting the program.
-3. On particular implementations of the Standard Library, an exception is thrown.
-
-Static analyzers, in order to avoid false positive warnings, need to be positive that a given situation in a standard-conformant program is a bug. Hitting UB is a certain indication that there is a bug. But for this to work you have got to have the potential to hit UB.  
-
-
-This can be illustrated with an example. The following code is supposed to open the indicated file, 
-interpret its contents as names, find the best matching name, and finally do something with it:
-
-```c++
-const char * fileName = "contents.txt";
-const char * foundName = 0; // will be assigned to later
-Names names = parse_file(foundName);
-foundName = find(names);
-// ...
-```
-
-There is a bug in this piece of code: pointer `fileName` was supposed to be passed to funciton `parse_file`,
-but a different one with a similar name was passed instead. Type-system-wise it is a valid C++ program. 
-
-Whether the bug is detected by tools depends on the type of parameter in `parse_file` and whether this type's converting constructor from `const char *` has a narrow or wide contract.
-
-If the parameter type is `const char *`, this is a null-pointer-dereference type of UB, easily recognized by the tools, and clang's static analyzer issues a warning in this case.
-
-If the parameter type is `std::string`, this is an UB in library and the vendor is allowed to inject arbitrary code in this path.
-For instance, cstdlib++ chooses to throw `std::logic_error` in this case.
-
-But if parameter is `string_view` with the widened contract in constructor (as proposed in P0903R1), 
-the null pointer is replaced with an arbitrary (zero-sized) valid range, and the bug goes unnoticed: 
-neither statically nor at run-time, potentially causing damage.
-
-It seems that people sometimes are more concerned about potential UB resulting from narrow contracts in the Standard than about bugs. But bugs have actually the same characteristics and consequence as UB: you do not know what is going to happen, wehn you code something else than you intended.
-
-
-### N.2. Narrow contract means implementation flexibility
-
-The Standard does not specify what happens when the precondition is violated (even in the currently proposed contract support), because there is no universal good way of handling such situation. Choosing a solution that satisfies one project in one environment, makes the solution suboptimal or inacceptable in other projects or environments. Therefore the decision is left to the programmer to choose the best option by using tools, compiler switches, `#define`s or collaborating with implementation vendor. In the case of null pointer in `string_view`'s constructor, programmers and implementation vendors can:
-
-1. Throw an exception,
-2. Signal error in any other way, statically or in run-time,
-3. Go with a default-constructed range,
-4. Go with a unique range value, distinct from any real empty range (e.g., `{&_unique_global, 0}`),
-5. Do any of the above based on vendor-speciffic switches.
-
-This flexibility would no longer be possible if the Standard hard-codes the behavior to a single decision.
-
-This also means that due to this flexibility, if Abseil Authors want to implement "go with default-constructed `string_view` upon null pointer" in their implementation of `std::string_view`, that would also be a standard-conformant implementation. 
-
-
-### N.3. Narrow contract is not a TBD
-
-Finally, because the Standard imposes no requirement on implementations about what happens when the precondition is violated,
-one might think that it is an uncontroversial change to actually specify the behavior,
-because "no one could rely on that behavior anyway". In order words, one might be tempted to think that UB means
-"behavior to be specified in the future releases of the Standard". 
-
-Such reasoning is not correct because, as has been indicated above, the UB in the standard is in many cases a feature that users rely on. The Standard by guaranteeing nothing implies that the behavior is settled between the programmer and the compiler vendor. These guarantees from vendors would suddenly be compromised if the Standard widens the contract in the interface. 
 
 
 ## 2. Criticism of P0903R1
@@ -428,40 +379,7 @@ Such reasoning is not correct because, as has been indicated above, the UB in th
 In this section we summarize and challenge the rationale provided in P0903R1.
 
 
-### 2.1. Analogy with 0- and 2-argument constructors
 
-Proponents of P0903R1 argue that because the default constructor and the constructor `string_view((const char*)0, 0)` render the same state:
-`sv.data() == nullptr` and `sv.size() == 0`, it would be "more consistent" or "symmetrical" if `string_view((const char*)0)` also rendered the same state.
-
-We believe that speaking about the "symmetry" or "uniformity" of two constructors is illogical. How does one define when two different constructors are "consistent"? Different constructors serve different purposes, expose different signatures, provide different semantics, and it does not makesense to expect the same postconditions of them.
-
-Let's get back to the purpose of `string_view`. It is supposed to be a replacement (type-safe, type-erased, requiring no memory allocation), primarily in function arguments, for three different ways of passing strings for reading in C++ and (by inheritance) in C:
-
-1. As type `std::string` or a const reference to one.
-2. As a pointer to NTBS (Null-terminated Byte String).
-3. As a `char` array denoted the pointer to its beginning and its size.
-
-A `string_view` *is not* a pair `pair<const char*, size_t>`. The latter accepts any two values of the corresponding types and doesn't care whether they make sense or not, for instance `{reinterpret_cast<const char*>(&this), 4}` or `{(const char*)nullptr, 7}`. In contrast, an object of type `string_view` represents a *string*: a sequence of characters that *really* resides somewhere in memory.
-
-The constructor taking a pointer `p` and a size `s` has a purpose: it is an interface for constructing a view to a string form anything that provides "counted range" interface: a pointer to the beginning of the sequence and the sequence size. This implies the precondition: `[p, p + s)` must be a valid range. You cannot just pass an arbitrary pointer and an arbitrary number. It does allow initialization `string_view((const char*)0, 0)`, but not as a "singular" value representing not-a-range, but because some containers representing valid ranges really encode the state as two zeros:
-
-```c++
-std::vector<char> v {};
-
-assert (v.data() == nullptr); // on some implementations
-assert (v.size() == 0);
-```
-
-`string_view` also provides the default constructor. Its purpose is to mimic the behavior or `std::string` which default constructs to a 0-sized range of characters. Analogously, `std::string_view` default-constructs to a zero-sized range of characters not associated with any object. *Not* in order to be consistent with `string_view{nullptr, 0}` but in order to be consistent with the interface of `std::string`.
-
-The converting constructor taking `const char*` has a purpose: provide the *C interface for strings*. After all, `string_view` was created to provide one interface replacing both C++-style `std::string`s and C-style `const char*`. The C interface for strings is not just type `const char*` alone, but also the semantics characteristic of C-style strings, which are:
-- UB if pointer is null,
-- UB if pointer points to invalid memory
-- UB if there is no character `'\0'` in the pointed to sequence.
-
-Given its purpose, it is expected that this constructor also provides semantics of the C interface for strings. That is, the length of the string is determined by inspecting the pointed to array of charactes (and looking for a `'\0'`). If there is no array, the size cannot be determined.
-
-That the constructor intended for handling C-style strings preserves both the type and the semantics of the C interface for strings seems to us more important than providing "consistency" with other constructors that were designed to handle different interfaces. What we find important is the consistency with the intended purpose for the constructor.
 
 
 ### 2.2. Migrating `char*` APIs to `string_view` APIs made easier?
