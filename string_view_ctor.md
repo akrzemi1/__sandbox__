@@ -284,9 +284,29 @@ If widening the contract of `std::string`'s converting constructor is considered
 
 ## 6. What is gained by keeping the contract narrow
 
-## 6.1. The difference between bugs and invalid inputs
+### 6.1. The difference between bugs and precondition violations
 
+A *Bug* (like a type-o, or misunderstanding of the interface, or reading one variable instead of another) is an inadverant logic in the code that makes the program do something else than what we intended. We cannot define it formally. But we definately do not want them inour source code. Bugs make programs misbihave and crash. Bugs may cause injuries and fatalities.
 
+An *precondition violation* is a very formal situation. A function (or expression) has a *precondition*: a constraint on the set of values/states. This condition can be specified quite formally, e.g. "`[b, e)` represent a valid range"; sometimes the precondition can be expressed as a c++ expression, e.g. `i >= 0`. An *precondition violation* is a situation when a function has a precondition (a constraint on input values) and yet it is passed a value/state that does not meet the constraint. This is so formal that we can communicate unambigously using these terms. Even tools like compilers and static analyzers can understand the notion of precondition violations. Here, we are not talking about bad things that can happen to the outside world, or human intentions. The notion of *precondition violation* is in a different level of abstraction than the notion of a *bug*. Tools are not concerned with potential injuries, but tools can diagnose precondition violations in functions.
+
+A precondition violation is a symptom of a bug; but it is not a bug on itself. By specifying preconditions and making the contracts narrow, you build a connection between the two notions: a precondition violation can now indicate a bug. This is possible only when there are some input values disallowed by the function. The notion of *undiefined behavior* or *invalid input* also come close to the notion of precondition violation.
+
+Now, sometimes people are concerned with precondition violations (and invalid inputs) more than with bugs. They claim that if you get rid of preconditions (invalid inputs), you get rid of precondition violations; and when you get rid of precondition violations, you get rid of the problems. In consequence, they postulate to design function interfaces so that any input is "valid", i.e. have no preconditions. 
+
+The first part of that claim is actually true: if you get rid of preconditions, you get rid of potential precondition violations. But with this you are only curing the symptoms and let the disease (the bug) spoil your system: and now that you have one symptom less, it will be more difficult to detect it. You simply loosen the connection between the technical notion of "precondition violation" and human notion of "bug". Consider this example containing a bug, where we inedvertantly pass a null pointer, whereas we intended to pass a different value:
+
+```c++
+const char * p = "contents.txt";
+const char * q = 0;
+f(q); // BUG: intended to call f(p);
+```
+
+First, suppose that function `f()` has a precondition: the argument cannot be a null pointer. If you plant this bug you are violating a precondition. Automatic tools, like static analyzers, do not know our intentions, they cannot recognize such things as "you wanted to pass different argument" or "you confused this name with that one", or "you wanted to pass that value instead", "you have a type-o". But they are good at detecting precondition violations, or illegal values. Invalid input is not a bug itself, but an indication of a bug (in our case: confusing pointers), but if this is reported it is enough for the programmer to kick in and correct it. Static analyzer has *helped* find the bug, but didn't actually find it: the programmer found it based on the information from static analyzer.
+
+No,w consider what happens when you widen the contract. The bug is still there, the pointers are still confused, but there is no precondition fiolation anymore. Static analyzer is blind and cannot help you detect the bug.
+
+To summarize. The goal is to detect bugs (early, statically). The notion of "precondition violation" or "invalid input" is only a tool that helps detect bugs (or, assert program correctness). The goal is not to detect invalid inputs: it is only a means to the real goal. By widening contracts you render the notion of invalid input unhelpful (or less helpful) in achieving the goal of detecting bugs.
 
 
 ---------
@@ -511,29 +531,7 @@ void process(std::function<void()> f)
   // ...
 }
 ```
-
-### 2.4. If we widen the contract there is no invalid inputs anymore
-
-One argument that was also brought up is that if the contract of the `string_view`'s constructor is widened, null-pointer inputs become valid everywhere, and any further discussion about invalid arguments becomes moot: there is no invalid inputs anymore.
-
-While this statement is correct, it overlooks a very important thing. Once you do widen the contract, the notion of a bug and the notion of invalid input loose the connection. It does not matter in programs that do not have bugs, but most, if not all, serious programs used for serious things in real life do have bugs.
-
-Suppose we have a bug in the program: we wanted to pass a poiter to function `f()` that points to an existing array of strings, but we accidentally passed a null pointer:
-
-
-```c++
-const char * p = "contents.txt";
-const char * q = 0;
-f(q); // BUG: intended to call f(p);
-```
-
-Suppose that it has a narrow contract. If so, we are passing an invalid input to it. Automatic tools, like static analyzers, do not know our intentions, they cannot recognize such things as "you wanted to pass different argument" or "you confused this name with that one", or "you wanted to pass that value instead", "you have a typeo". But they are good at detecting invalid input, because the notion of invalid input (or UB) is well defined and quite formal. The tool cannot detect a bug in its general form, but it can detect an invalid input. And indirectly it detects the bug. The bug is not the invalid input, but a typeo in argument name. But finding and reporting an invalid input is sufficient information for the programmer to find the bug.
-
-Now consider what happens when you widen the contract. The bug is still there, but there is no invalid input anymore. Static analyzer is blind and cannot help you detect the bug.
-
-To summarize. The goal is to detect bugs (early, statically). The notion of "invalid input" is only a tool that helps detect bugs (or, "assert program correctness"). The goal is not to detect invalid inputs: it is only a means to the real goal. By widening contracts you render the notion of invalid input unhelpful (or less helpful) in achieving the goal of detecting bugs. 
-
-
+ 
 
 ## 3. Recomendations for migrating from `char*` to `string_view`
 
