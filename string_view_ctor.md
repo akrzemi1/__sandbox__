@@ -191,7 +191,7 @@ assert (sv.empty());
 
 This means that if P0903R1 is adopted, inside functions taking `string_view` it will be impossible to tell if the argument was constructed from a zero-sized string or from a special not-a-string value. This precludes the usages of `string_view` in places where a distinction needs to be made between not-a-string value and zero-sized-string value. 
 
-One could ask if the same problem does not already occur in the current `std::string_view` when it is default-constructed. The answer is *no*. In te current model, `std::string_view`'s default constructor simply refers to a zero-sized string. No not-a-string value exists. No one should have any need to observe the numeric value of address `sv.data()` alone. This makes `string_view` compatible with `std::string` which also represents a zero-sized string when default-constructed.
+One could ask if the same problem does not already occur in the current `std::string_view` when it is default-constructed. The answer is *no*. In the current model, `std::string_view`'s default constructor simply refers to a zero-sized string. No not-a-string value exists. No one should have any need to observe the numeric value of address `sv.data()` alone. This makes `string_view` compatible with `std::string` which also represents a zero-sized string when default-constructed.
 
 Holding a distinct not-a-string value would be possible if another value, different than `{nullptr, 0}` is chosen. For instance:
 
@@ -205,6 +205,48 @@ string_view::string_view(const char* s)
 ```
 
 But it is not clear if anyone wants this. Also, even this implementation has its problems. `operator==`, which traditionaly defines the value of an object, compares the contents of the strings: number of and values of the characters. It is not able to distinguish not-a-string value from zero-sized-string value. `std::hash<std::string_view>` does not distinguish not-a-string value from zero-sized-string value. This will make the type not refular: functions that attempt to distinguish the special not-a-string state and trigger a different control path will give different results for equal inputs (as defined by `hash`, `operator<`, `operator==`). Putting results of such functions to maps, sets, doing memoization, all these will break.
+
+Of course, this is all acceptable if the requirement is, "anything else than immediate language-level UB". But wi will not pursue that path in tis document.
+
+This above discussion implies that, unless more extensive changes are made to `string_view`, there are two self-consistent conceptual models for `string_view` that accepts null pointer as `const char *`.
+
+1. Just treat it as any other zero-sized string. This is acceptable in programs where people want to have two ways of saying zero-sized string: `f("")` and `f(nullptr)`. This is also acceptable in programs that already treat a zero-sized string as inacceptable value: when all functions have a defensive if up front for the zero-sized string:
+
+```c++
+X* foo(const char* p) // desired: p != nullptr && p is not ""
+{
+  if (p == nullptr || *p == '\0') {
+    log_error();
+    return nullptr;
+  }
+  
+  return process(p);
+}
+```
+
+```c++
+X* bar(const char* p) // nullptr is fine
+{
+  if (p == nullptr)
+    p = "";
+  
+  return foo(p);
+}
+```
+
+In this case conflating not-a-string with a zero-sized string is acceptable.
+
+2. The not-a-string state is never expected to occur, but if it occurs it is treated as a bug in the program and functions that otain it should immediately stop execution, e.g. by calling `std::terminate()`, trowing an exception, or performing a comparable avasive action. In such case departing from regular/value semantics does not matter, as the program or a part thereof will be shut down anyway.
+
+X* baz(const char* p) // desired: p != nullptr
+{
+  if (p == nullptr) {
+    SIGNAL_BUG();
+    return nullptr;  // may still be needed!!
+  }
+  
+  return process(p);
+}
 
 ...
 
