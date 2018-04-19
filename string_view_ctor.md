@@ -174,6 +174,40 @@ This illustrates that a top-bottom approach to migrating C-string interfaces to 
 This also illustrates that it is not possible to migrate even C-string interfaces to `std::string_view`. At least not all of them. Regardless if we accept P0903R1 or not.
 
 
+## 4. Holding not-a-string value in `std::string_view`
+
+P0903R1 simply proposes to represent a `string_view` converted from null pointer as `{nullptr, 0}`, without going into details of what use would be made of this value. In the Standard Library component we have to answer a quesition: should a value in a `string_view` converted from null pointer be distinguishable from a zero-sized string?
+
+One thing that needs to be observed is that value `{nullptr, 0}` can be produced when constructing a `string_view` that point to a zero-sized string. This is becuse a `string_view` can be constructed from the contents of `vector<char>`, and the default constructed `vector<char>` is allowed to return `vec.data() == nullptr`. And in fact the libstdc++ implementation does this:
+
+```c++
+std::vector<char> vec {};
+assert (vec.data() == nullptr); // on some implementations
+
+std::string_view sv {vec.data(), vec.size()};
+assert (sv.data() == nullptr); // on some implementations
+assert (sv.empty()); 
+```
+
+This means that if P0903R1 is adopted, inside functions taking `string_view` it will be impossible to tell if the argument was constructed from a zero-sized string or from a special not-a-string value. This precludes the usages of `string_view` in places where a distinction needs to be made between not-a-string value and zero-sized-string value. 
+
+One could ask if the same problem does not already occur in the current `std::string_view` when it is default-constructed. The answer is *no*. In te current model, `std::string_view`'s default constructor simply refers to a zero-sized string. No not-a-string value exists. No one should have any need to observe the numeric value of address `sv.data()` alone. This makes `string_view` compatible with `std::string` which also represents a zero-sized string when default-constructed.
+
+Holding a distinct not-a-string value would be possible if another value, different than `{nullptr, 0}` is chosen. For instance:
+
+```c++
+inline const char private_global = '\0';
+
+string_view::string_view(const char* s)
+  : _data(s ? s : &private_global)
+  , _size(traits::length(_data))
+{}
+```
+
+But it is not clear if anyone wants this. Also, even this implementation has its problems. `operator==`, which traditionaly defines the value of an object, compares the contents of the strings: number of and values of the characters. It is not able to distinguish not-a-string value from zero-sized-string value. `std::hash<std::string_view>` does not distinguish not-a-string value from zero-sized-string value. This will make the type not refular: functions that attempt to distinguish the special not-a-string state and trigger a different control path will give different results for equal inputs (as defined by `hash`, `operator<`, `operator==`). Putting results of such functions to maps, sets, doing memoization, all these will break.
+
+...
+
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
 
