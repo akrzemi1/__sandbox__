@@ -308,6 +308,8 @@ Now, consider what happens when you widen the contract. The bug is still there, 
 
 To summarize. The goal is to detect bugs (early, statically). The notion of "precondition violation" or "invalid input" is only a tool that helps detect bugs (or, assert program correctness). The goal is not to detect invalid inputs: it is only a means to the real goal. By widening contracts you render the notion of invalid input unhelpful (or less helpful) in achieving the goal of detecting bugs.
 
+Sometimes people worry more about hitting language-level UB than about bugs in their code. But bugs actually have the same dangerous characteristic as UB: if you hit them, the results are unpredictable.
+
 
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
