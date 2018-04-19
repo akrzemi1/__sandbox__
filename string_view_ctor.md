@@ -5,7 +5,7 @@ NOTE: this is a draft version. Work on this document is still in prograss.
 
 Currently `string_view`'s converting constructor from `const char *` has a precondition (narrow contract):
 invoking it with a null pointer is undefined behavior. Paper P0903R1 proposes to widen the contract so that
-passing a null pointer is equivalent to calling the default constructor instead. That proposal triggered a long discussion
+passing a null pointer is equivalent to calling the default constructor instead. The declared motivation for the change is to be able to migrate `const char*` interfaces to `std::string_view`. That proposal triggered a long discussion
 in the reflector. In this paper we provide the summary of the discussion. In particular, we describe the following:
 
 1. What is the purpose of `string_view`.
