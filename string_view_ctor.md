@@ -267,6 +267,13 @@ Also, the theory of *design by contract*, which was described for the purpose of
 If widening the contract of `std::string`'s converting constructor is considered, one should answer another quesion. Should the same widening be applied to other types, such as `std::filesystem::path`? Should other member functions of `std::string` be also widened their contract? For instance, `string::find_first_of(nullptr)` is currently UB.
 
 
+## 6. What is gained by keeping the contract narrow
+
+## 6.1. The difference between bugs and invalid inputs
+
+
+
+
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
 
