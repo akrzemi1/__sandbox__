@@ -367,11 +367,45 @@ This illustrates that UB in well designed places is a feature offered to the pro
 
 ## 7. What is gained by widening the contract
 
+### 7.1. Handle cases where not-a-string is conflated with zero-sized string
 
+The following is a modified version of the example provided by Jorg.
+
+```c++
+bool fun(const char * filename, int other_data)
+// filename can be null (no file provided by user)
+{
+  if (file_verification_required)
+    if (!is_file_acceptable(filename))
+      return false;;
+    
+  // ...  
+}
+
+bool is_file_acceptable(const char * filename)
+// filename can be null (no file provided by user)
+{
+  if (filename == nullptr) return false; // not defensive
+  
+  chat prefix [BIG_MAGIC_NUMBER];
+  const char * dot = std::find(filename, filename + std::strlen(filename), '.');
+  std::strncpy(prefix, filaname, std::distance(filename, dot));
+  return is_prefix_refistered(prefix);
+}
+```
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
 
 
+const char * Request::get_attribute1();
+const char * Request::get_attribute2();
+// can return null (attribute not provided)
+
+bool requires_compression(const char * attribute1, const char * attribute2)
+// request_header can be null (no header provided)
+{
+  if (modeA) requires_compression
+}
 
 
 ## 2. Criticism of P0903R1
