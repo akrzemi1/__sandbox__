@@ -516,90 +516,12 @@ bool SafeToCompressForWhitelist(const char *user_agent,
 }
 ```
 
+### 8.1. What can be offered to programmers that want null pointers passed to `string_view` to remain UB?
 
----------
-WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
-
-
-
-## 2. Criticism of P0903R1
-
-In this section we summarize and challenge the rationale provided in P0903R1.
+Write your own type that handles strings your way. Or derive from the altered `std::string_view` and implement UB in the constructor yourself at the cost of checking for the null pointer twice. 
 
 
-
-
-
-### 2.2. Migrating `char*` APIs to `string_view` APIs made easier?
-
-
-Finally, note that we do not argue that the decision to treat null pointer as an empty string is inferior in general. We argue against enforcing this decision in the Standard Library vocabulary type. We propose the following point of view. A Standard Library type does not have to be used directly in user programs, but can be used as a building block for a tool that addresses the needs of a user. This is already the case for:
-
-1. Operator `delete`: it is not recommended to use it directly in program logic. but it is very useful when building smart poiter classes.
-2. `std::thread`: its behavior to call `std::terminate()` in destructor of a joinable thread makes it inconvinient for direct use. But you can use it (as a subobject) to build your thread classes that call `join()` or `detach()` in their destructor. 
-
-In the similar manner, we recommend writing a derived tool based on `std::string_view` when offering semantics different than these of the C interface for strings. We show how such derived tool can be implemented in 5 lines in the Recomendations section.
-
-
-### 2.3. Defensive if-statements
-
-One argument oft repeated in the discussions is that inside the function one has to perform the check `sv.empty()` up front anyway in case the `string_view` object is empty, so why not use this check to also test for a string view created from a null pointer. But this works on false assumptions that it should be a good practice to perform such checks. Some programmers do, and some consider it a good practice; but this is also considered a poor practice by others. In the author's working environment no such checks are performed as they are simply incorrect. In our environemnt an empty string is often a valid input, for which we do not need or want to do a branch. Such argument is only convincing in environments that treat an empty string as a "degenerate" value.
-
-It has beed further suggested that if `string_view` is changed as per D0903R1, and if someone is interested in detecting if a `string_view` has been constructed from a null pointer passed as `const char *` argument, one can use a more targeted check `sv.data() == nullptr`. We disagree with this reasoning for two reasons. First, it does not take into consideration that state  `sv.data() == nullptr` can be observed in `string_view`s constructed form real ranges existing in the program! Let us repeat the example:
-
-```c++
-std::vector<char> v {};
-
-assert (v.data() == nullptr); // on some implementations
-assert (v.size() == 0);
-
-fun({v.data(), v.size()});
-```
-
-Default-constructing a `string_view` or constructing it from a null pointer (if it were allowed) renders state `{nullptr, 0}`; but observing state `{nullptr, 0}` does not necessarily mean that a `string_view` was default-constructed or nullptr-constructed.
-
-Second, such suggestions work under the assumption that all programmers by "preventing bugs" mean "detecting invalid input at run-time and taking a different branch (which maybe skips some instructions)". But this is not the case. Some programmers want UB to happen precisely becuse they want to prevent bugs: not necessarily at run-time, not necessarily by taking a different branch and skipping instructions. This has been disussed above.
-
-Also, cluttering the code with defensive checks makes functions longer and more difficult to read and comprehend. For instance, one never knows if a particular `if`-statement is defensive or is part of program logic. This in turn may cause more bugs in the future. In the author's environment, functions never check for nullptr `std::funcion`s or `std::shared_ptr`s. There is a program-wide contract that if someone passes these types to funcitons they are never null, and there is no need to check them time and again at every depth of function call chain:
-
-```c++
-void process(std::function<void()> f)
-{
-  // no check for: f != nullptr
-  f();
-  // ...
-}
-```
- 
-
-## 3. Recomendations for migrating from `char*` to `string_view`
-
-In this section we provide a number of recomendations for migrating codebases that use `char*` in their interfaces to `string_view`.
-
-First, determine if a function that has argument `char*` provides the contract of *C interface for strings* 
-(null pointer is disallowed, pointer points to array of characters, character sequence without trailing zero is disallowed).
-If not, do not update the interface to `string_view` as it could silently change the semantics of your program; or it might make the bugs in the code more difficult to find by tools or porgrammers doing code reviews.
-
-This also means that you cannot mechanically change all occurences of `char*` to `string_view`, because not every usage of `char*` stands for the *C interface for strings*. `char*` can still mean "a pointer to a single character".
-
-If for a particular function you want to provide the *C interface for strings* with one exception: you want a particular well-defined semantics when a null pointer is passed (like: create zero-sized range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics. In case you want the semantics described in P0903R1, the type definition would as simmple as be:
-
-```c++
-struct protective_string_view : std::string_view
-{
-  using std::string_view::string_view;
-  constexpr protective_string_view (const char * p) noexcept : std::string_view(p, p ? std::char_traits<char>::length(p) : 0) {}
-};
-```
-
-If the need for `string_view` + particular semantics appies to every replacement of `char*` and you never need  `string_view`
-with the standard *C interface for strings*, see if you can customize the null pointer behavior in your vendor's implementation,
-or if you can request of your vendor such customization.   
-
-
-
-
-## 5. Acknowledgements
+## 9. Acknowledgements
 
 Ashley Hedberg and Jorg Brown devoted their time to explain in detail the use cases for null-aware `string_view`, which helped improve the discussion in this paper.
 
