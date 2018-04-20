@@ -466,6 +466,56 @@ and how the use cases of the opponents of P0903R1 can be addressed once `std::st
 
 ### 8.1. What can be offered to programmers that want to pass null pointers to `string_view`?
 
+First, make sure if you really need to migrate the argument of type `const char *` to type `std::string_view`. `std::string_view` represents a reference to a string, `const char *` does not necessarily represent a string. Also it might represent the string but with different semantics than you think.
+
+Second, if the goal of the function input is to represent either a string or not-a-string value, use the Standard Library type that is designed to represent this notion of not-a-value: `std::optioal<std::string_view>>`. But this will require a change in the calees.
+
+Third, if the size of `std::optioal<std::string_view>>` or its set of constructors does not match your use case, define your own type that implements semantics in P0903R1. It only takes 6 lines (including braces):
+
+```c++
+struct conflating_string_view : std::string_view
+{
+  using std::string_view::string_view;
+  constexpr conflating_string_view (const char * p) noexcept
+    : std::string_view(p, p ? std::char_traits<char>::length(p) : 0) {}
+};
+```
+
+Different semantics require a different type. And you are offering a different semantics. True, programmers will have to learn a new type. But the alternative is, they will use only one type and will not be aware that at different places the same type has different semantics. And they will only learn it when a bug is found.
+
+Fourth, choose the Standard Library implementation that already implements the semantics of P0903R1. The Standard Specifies the behavior as UB, so this is legal for Standard-conforming implementation to implement your desired semantics. If this is not already the case influence your library vendor to implement the behavior of P0903R1, or give you the option to configure the library to do what you want.
+
+Fifth, you can provide two overloads for the function you are refactoring. This does nod add a single type, and clearly separates the code that handles null pointers from the code that handles strings. The problem from section 7.1 can be solved like this:
+
+
+```c++
+// this overload handles strings:
+bool SafeToCompressForWhitelist(string_view user_agent,
+                                string_view accept_encoding,
+                                string_view content_type) const {
+  if (!accept_encoding.starts_with("gzip") && 
+      accept_encoding.find(" gzip") == string_view::npos &&
+      accept_encoding.find(",gzip") == string_view::npos) {
+    return false;
+  }
+
+  // more logic
+  return true;
+}
+
+// this overload handles the null cases
+bool SafeToCompressForWhitelist(const char *user_agent,
+                                const char *accept_encoding,
+                                const char *content_type) const {
+  // If they don't let us know the 3 things we need, we bail
+  if (!user_agent || !accept_encoding || !content_type) return false;
+
+  return SafeToCompressForWhitelist(string_view{user_agent},
+                                    string_view{accept_encoding},
+                                    string_view{content_type};
+}
+```
+
 
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
