@@ -428,7 +428,9 @@ bool SafeToCompressForWhitelist(const char *user_agent,
 }
 ```
 
-Functions `CheckCompressionType()` and `SafeToCompressForWhitelist()` both accept null pointer values; the meaning is, "this piece of data did not come in the request".
+Functions `CheckCompressionType()` and `SafeToCompressForWhitelist()` both accept null pointer values; the meaning is, "this piece of data did not come in the request". Unlike a zero-sized string, which means this data came in request and was a zero-sized string.
+
+The goal is to change the interface of function `SafeToCompressForWhitelist()` to take values of type `string_view`. This is because it is easier to describe the logic of the function (inspecting substrings) using the interface of `string_view`. Also, if wee needed to produce a substring at some point, it would be a costly operation on `const char*`.
 
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
