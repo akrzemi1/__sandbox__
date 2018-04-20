@@ -9,13 +9,17 @@ passing a null pointer is equivalent to calling the default constructor instead.
 in the reflector. In this paper we provide the summary of the discussion. In particular, we describe the following:
 
 1. What is the purpose of `string_view`.
-2. Does/can/should `string_view` hold a not-a-string value, which is distinct from an empty string value.
+2. Does/can/should `string_view` hold a not-a-string value, which is distinct from an zero-sized string value.
 3. Should `nullptr` passed as `const char *` indicate a not-a-string.
 4. Can `string_view` be used as a replacement for `const char *` in interfaces?
 5. How do C and C++ treat null pointers that are supposed to represent strings.
 6. The scope of the change: should it be only `string_view`'s constructor, or also `string`'s constructor.
 7. What is gained by keeping the contract narrow, and what is gained by making it wide.
 
+
+## 0. Definitions
+
+In this document we use concept *String*. By this we mean a sequence of characters; in particular, a sequence of size zero. We do not use term "empty" as it turned out to be ambiguous and caused some confusion. Instead, we use two term to denote two different values: a *zero-sized* string, and *not-a-string*. Empty quotes (`""`) denote a zero-sized string.
 
 ## 1. The purpose of `string_view`
 
@@ -124,21 +128,21 @@ and expecting that the algorithm will deduce that we intended a zero-sized range
 
 The above are the semantics associated with type `const char*` in C-string interfaces. They are encouraged by the Standard library. But one can imagine functions in other libraries that interpret the value of type `const char*` differently, especially the null pointer value.
 
-First, you can treat the null pointer value as an empty string  (`""`). Whenever you call `f(nullptr)` the effect is the same as if you called `f("")`.
+First, you can treat the null pointer value as a zero-sized string  (`""`). Whenever you call `f(nullptr)` the effect is the same as if you called `f("")`.
 
-Second, you can treat the null pointer value as distinct from any sting, even empty. This implies that `const char *` is similar to `optional<string>`:`optstr == nullopt` is a different state than `optstr == ""s`, and calling `f(nullptr)` can give different results than calling `f("")`.
+Second, you can treat the null pointer value as distinct from any sting, even zero-sized string. This implies that `const char *` is similar to `optional<string>`:`optstr == nullopt` is a different state than `optstr == ""s`, and calling `f(nullptr)` can give different results than calling `f("")`.
 
 Also, type `const char*` can be used for other purposes than representing a string: it can represent an address of a single character. Migrating such usage to `string_view` would be unwise. 
 
 
 ### 2.4. Is passing a null pointer where a string is expected fundamentally wrong?
 
-Much of controversy around P0903R1 is about whether it is valid to pass a null pointer where `const char*` is expected to represent a string. If by a "string" we mean a sequence of 0 or more characters, then clearly there is no need to intentionally use the null pointer value. Any value, including empty string, can be represented by null-terminated byte sequence that the pointer need to point to. Plus, it is a well established idiom in C and C++ Standard Library that passing null pointer in such case is illegal, and therefore is an indication of the porgrammer bug. When such bug is diagnosed the code is changed so that a non-null pointer is passed to function `f()` or function `f()` is not called at all. So, at least when dealing with the Standard Library functions, passing null pointer that is supposed to indicate a string happens only temporarily, and inadvertantly, and is ideally corrected as soon as possible.
+Much of controversy around P0903R1 is about whether it is valid to pass a null pointer where `const char*` is expected to represent a string. If by a "string" we mean a sequence of 0 or more characters, then clearly there is no need to intentionally use the null pointer value. Any value, including zero-sized string, can be represented by null-terminated byte sequence that the pointer need to point to. Plus, it is a well established idiom in C and C++ Standard Library that passing null pointer in such case is illegal, and therefore is an indication of the porgrammer bug. When such bug is diagnosed the code is changed so that a non-null pointer is passed to function `f()` or function `f()` is not called at all. So, at least when dealing with the Standard Library functions, passing null pointer that is supposed to indicate a string happens only temporarily, and inadvertantly, and is ideally corrected as soon as possible.
 
 But this is only the C-string interface. In custom libraries developers can associate other semantics with a sinngle `const char *` parameters intended to represent strings. The will typically be similar to the C-string interface except that null pointer value is treated in a different manner, which can be one of:
 
 1. Null pointer represents the zero-length string.
-2. Null pointer represents a yet another value distinct from any sequence of characters. This is equivalent to `optional<string>` not containing a value, which is different even from an empty string.
+2. Null pointer represents a yet another value distinct from any sequence of characters. This is equivalent to `optional<string>` not containing a value, which is different even from a zero-sized string.
 3. Null pointer value is unwelcome and indicates a bug, but we want functions to accept it and deal with the bug internally at run-time, trough defensive if statements or exceptions or something similar.
 4. Null pointer value is unwelcome and indicates a bug, but we expect the function to accept it and not cause language-level UB, but we fave no further expectations of what happens.
 
@@ -340,7 +344,7 @@ bool indicator::is_in_range(int lo, int hi) const
 
 Whetever you do, you are not dealing with a range now, but with two objects of type `int`. There is no notion of being *in range* for two arbitrary `int` values, and the value in the additional return statement is probably wrong, because there is no good answer. The logic of this function has descended from dealing with abstract ranges to performing operations on C++ type-system objects. Reasoning at this level is harder and more bug prone. Intuition fails, and code reviews are less effective.
 
-Similarly, a null pointer value does not represent a string, not even a zero-sized string. Once it is accepted as valid input to `string_view` something has to be done with it: maybe call it an empty string, maybe call it a distinct value from any string value. In either case the abstraction is weakened. We cannot safely think interms of strings, character sequences, but one level down: about the numeric value of address `sv.data()`.
+Similarly, a null pointer value does not represent a string, not even a zero-sized string. Once it is accepted as valid input to `string_view` something has to be done with it: maybe call it a zero-sized string, maybe call it a distinct value from any string value. In either case the abstraction is weakened. We cannot safely think interms of strings, character sequences, but one level down: about the numeric value of address `sv.data()`.
 
 
 ### 6.3. Improved static analysis
@@ -472,9 +476,9 @@ return is_default_separator(&SEPARATOR);
 
 And everyone will agree that it does not make sense, and would be incorrect, to upgrade it to `std::string_view`.
 Similarly, if a function does want a string in `const char *` but associates a different interpretation of the argument, 
-migrating to `std::string_view` would cange the semantic part of the interface, and alter the program behavior, likely causing bugs. In fact, the semantics of function `foo()` above do change if the argument type is replaced with `std::string_view` modified as per P0903R1. Before it had different path for a null pointer and a different one for an empty string; after the change the two will be indistinguishable. 
+migrating to `std::string_view` would cange the semantic part of the interface, and alter the program behavior, likely causing bugs. In fact, the semantics of function `foo()` above do change if the argument type is replaced with `std::string_view` modified as per P0903R1. Before it had different path for a null pointer and a different one for a zero-sized string; after the change the two will be indistinguishable. 
 
-The only case where the change proposed in P0903R1 does help is when it is acceptable or desired to conflate the value of a null pointer and the value of a genuine empty C string into one. This occurs in the following cases:
+The only case where the change proposed in P0903R1 does help is when it is acceptable or desired to conflate the value of a null pointer and the value of a zero-sized C string into one. This occurs in the following cases:
 
 1. A genuine empty C string (`""`) is treated as a "degenerate" value already, and cannot ever mean any useful content, and already qualifies for a "defensive if". In that case adding null pointer to the set of degenerate values comes with zero cost and is quite natural. This is the case for function `bar()` above.
 
@@ -539,7 +543,7 @@ If not, do not update the interface to `string_view` as it could silently change
 
 This also means that you cannot mechanically change all occurences of `char*` to `string_view`, because not every usage of `char*` stands for the *C interface for strings*. `char*` can still mean "a pointer to a single character".
 
-If for a particular function you want to provide the *C interface for strings* with one exception: you want a particular well-defined semantics when a null pointer is passed (like: create empty range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics. In case you want the semantics described in P0903R1, the type definition would as simmple as be:
+If for a particular function you want to provide the *C interface for strings* with one exception: you want a particular well-defined semantics when a null pointer is passed (like: create zero-sized range, create a not-a-range different from any valid range, throw an exception), provide a custom type that clearly reflects in the type the additional semantics. In case you want the semantics described in P0903R1, the type definition would as simmple as be:
 
 ```c++
 struct protective_string_view : std::string_view
