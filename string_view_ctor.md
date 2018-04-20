@@ -140,7 +140,7 @@ Also, type `const char*` can be used for other purposes than representing a stri
 
 Much of controversy around P0903R1 is about whether it is valid to pass a null pointer where `const char*` is expected to represent a string. If by a "string" we mean a sequence of 0 or more characters, then clearly there is no need to intentionally use the null pointer value. Any value, including zero-sized string, can be represented by null-terminated byte sequence that the pointer need to point to. Plus, it is a well established idiom in C and C++ Standard Library that passing null pointer in such case is illegal, and therefore is an indication of the porgrammer bug. When such bug is diagnosed the code is changed so that a non-null pointer is passed to function `f()` or function `f()` is not called at all. So, at least when dealing with the Standard Library functions, passing null pointer that is supposed to indicate a string happens only temporarily, and inadvertantly, and is ideally corrected as soon as possible.
 
-But this is only the C-string interface. In custom libraries developers can associate other semantics with a sinngle `const char *` parameters intended to represent strings. The will typically be similar to the C-string interface except that null pointer value is treated in a different manner, which can be one of:
+But this is only the C-string interface. In custom libraries developers can associate other semantics with a single `const char *` parameters intended to represent strings. They will typically be similar to the C-string interface except that null pointer value is treated in a different manner, which can be one of:
 
 1. Null pointer represents the zero-length string.
 2. Null pointer represents a yet another value distinct from any sequence of characters. This is equivalent to `optional<string>` not containing a value, which is different even from a zero-sized string.
@@ -456,6 +456,16 @@ bool SafeToCompressForWhitelist(string_view user_agent,
 And nothing needs to be changed in the callers. And there can be hundreds of callers.
 
 A special case of this use case is in programs or their modules where a zero-sized string is already being treated as an invalid value. In such cases when we conflate the invalid null-pointer input with an invalid zero-sized string input, this will not affect the semantics as they will be processed uniformly with defensive checks of the form `sv.empty()`.
+
+
+## 8. Alternatives
+
+In this chapter we explore how the use cases of the proponents of P0903R1 can be addressed without changing `std::string_view`,
+and how the use cases of the opponents of P0903R1 can be addressed once `std::string_view` is changed.    
+
+
+### 8.1. What can be offered to programmers that want to pass null pointers to `string_view`?
+
 
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
