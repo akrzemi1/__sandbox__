@@ -25,7 +25,11 @@ The purpose of `string_view` is indicated in [N3442](http://www.open-std.org/jtc
 void f(const std::string& s);
 ```
 
-This often required the creation of a temporary object of type `std::string` which potenitally allocated heap memory and copied characters. This copying is not really necessary, given that the same sequence already exists somewhere. Now, `std::string_view` offers te ability to represent a string in all the above forms but without incurring any resource allocation or copying of characters. However, its interface is slightly different; in particular, `sv.data()` is not required to point a null-terminated sequence of characters:
+This often required the creation of a temporary object of type `std::string` which potenitally allocated heap memory and copied characters. This copying is not really necessary, given that the same sequence already exists somewhere. Now, `std::string_view` offers te ability to represent a string in all the above forms but without incurring any resource allocation or copying of characters.
+
+Second, similar motivation is that `string_view` allows to take its sub-strings cheaply, without the necessity to allocate a second buffer for storing a null-terminated substring.
+
+However, `string_view`'s interface is slightly different; in particular, `sv.data()` is not required to point a null-terminated sequence of characters:
 
 ```c++
 std::vector<char> v {'A', 'B', 'C'};
