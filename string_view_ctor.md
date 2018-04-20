@@ -344,6 +344,19 @@ bool indicator::is_in_range(int lo, int hi) const
 
 Whetever you do, you are not dealing with a range now, but with two objects of type `int`. There is no notion of being *in range* for two arbitrary `int` values, and the value in the additional return statement is probably wrong, because there is no good answer. The logic of this function has descended from dealing with abstract ranges to performing operations on C++ type-system objects. Reasoning at this level is harder and more bug prone. Intuition fails, and code reviews are less effective.
 
+One could say, given that we have to accept `lo > hi` let's make it useful. Say, in such case change the check form "in range" ot "outside range":
+
+```c++
+bool indicator::is_in_range(int lo, int hi) const
+// no precondition
+{
+  if (lo > hi) return _value <= hi || lo <= _value;
+  else         return lo <= _value && _value <= hi;
+}
+```
+
+This is similar to what C functions like `setenv()` do. Now every combination of values triggers a useful combination. But now we have completely departed form the notion of a range. We have conflated two concepts into one interface. We have created an unintuitive abstraction. Thinking about it is hard, and bugs very likely to occur.  
+
 Similarly, a null pointer value does not represent a string, not even a zero-sized string. Once it is accepted as valid input to `string_view` something has to be done with it: maybe call it a zero-sized string, maybe call it a distinct value from any string value. In either case the abstraction is weakened. We cannot safely think interms of strings, character sequences, but one level down: about the numeric value of address `sv.data()`.
 
 
@@ -377,30 +390,46 @@ This illustrates that UB in well designed places is a feature offered to the pro
 
 ### 7.1. Handle cases where not-a-string is conflated with zero-sized string
 
-The following is a modified version of the example provided by Jorg.
+The following is a motivating example.
 
 ```c++
-bool fun(const char * filename, int other_data)
-// filename can be null (no file provided by user)
-{
-  if (file_verification_required)
-    if (!is_file_acceptable(filename))
-      return false;;
-    
-  // ...  
+// caller:
+can_compress_ = CheckCompressionType(
+  input_headers().GetHeader("User-agent"),       // can be null
+  input_headers().GetHeader("Accept-encoding"),  // can be null
+  output_headers().GetHeader("Content-type"));   // can be null
+
+// callee:
+bool CheckCompressionType(const char *agent,
+                          const char *encoding,
+                          const char *content_type) {
+  if (use_permissive_policy) {
+    return SafeToCompressForBlacklist(user_agent, accept_encoding,
+                                      content_type);
+  }
+  return SafeToCompressForWhitelist(user_agent, accept_encoding,
+                                    content_type);
 }
 
-bool is_file_acceptable(const char * filename)
-// filename can be null (no file provided by user)
-{
-  if (filename == nullptr) return false; // not defensive
-  
-  chat prefix [BIG_MAGIC_NUMBER];
-  const char * dot = std::find(filename, filename + std::strlen(filename), '.');
-  std::strncpy(prefix, filaname, std::distance(filename, dot));
-  return is_prefix_refistered(prefix);
+bool SafeToCompressForWhitelist(const char *user_agent,
+                                const char *accept_encoding,
+                                const char *content_type) const {
+  // If they don't let us know the 3 things we need, we bail
+  if (!user_agent || !accept_encoding || !content_type) return false;
+
+  if (!strprefix(accept_encoding, "gzip") &&     // starts with "gzip"
+      !strstr(accept_encoding, " gzip") &&       // gzip is a word
+      !strstr(accept_encoding, ",gzip")) {
+    return false;
+  }
+
+  // more logic
+  return true;
 }
 ```
+
+Functions `CheckCompressionType()` and `SafeToCompressForWhitelist()` both accept null pointer values; the meaning is, "this piece of data did not come in the request".
+
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
 
