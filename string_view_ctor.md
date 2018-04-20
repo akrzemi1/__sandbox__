@@ -5,7 +5,8 @@ NOTE: this is a draft version. Work on this document is still in prograss.
 
 Currently `string_view`'s converting constructor from `const char *` has a precondition (narrow contract):
 invoking it with a null pointer is undefined behavior. Paper P0903R1 proposes to widen the contract so that
-passing a null pointer is equivalent to calling the default constructor instead. The declared motivation for the change is to be able to migrate `const char*` interfaces to `std::string_view`. That proposal triggered a long discussion
+passing a null pointer is equivalent to calling the default constructor instead. The declared motivation for the change
+is to be able to migrate `const char*` interfaces to `std::string_view`. That proposal triggered a long discussion
 in the reflector. In this paper we provide the summary of the discussion. In particular, we describe the following:
 
 1. What is the purpose of `string_view`.
@@ -390,7 +391,7 @@ This illustrates that UB in well designed places is a feature offered to the pro
 
 ### 7.1. Handle cases where not-a-string is conflated with zero-sized string
 
-The following is a motivating example.
+The application of P0903R1 could be helpful in situations where the callers produce null pointer values that indicate not-a-string, which have different semantics than zero-sized strings, and the callees conflate the two values. The following is a motivating example.
 
 ```c++
 // caller:
