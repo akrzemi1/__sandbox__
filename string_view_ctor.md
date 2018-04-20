@@ -518,7 +518,7 @@ bool SafeToCompressForWhitelist(const char *user_agent,
 
 ### 8.1. What can be offered to programmers that want null pointers passed to `string_view` to remain UB?
 
-Write your own type that handles strings your way. Or derive from the altered `std::string_view` and implement UB in the constructor yourself at the cost of checking for the null pointer twice. 
+Write your own type that handles strings your way. Or derive from the altered `std::string_view` and implement UB in the constructor yourself. 
 
 
 ## 9. Acknowledgements
