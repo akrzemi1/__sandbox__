@@ -430,7 +430,29 @@ bool SafeToCompressForWhitelist(const char *user_agent,
 
 Functions `CheckCompressionType()` and `SafeToCompressForWhitelist()` both accept null pointer values; the meaning is, "this piece of data did not come in the request". Unlike a zero-sized string, which means this data came in request and was a zero-sized string.
 
-The goal is to change the interface of function `SafeToCompressForWhitelist()` to take values of type `string_view`. This is because it is easier to describe the logic of the function (inspecting substrings) using the interface of `string_view`. Also, if wee needed to produce a substring at some point, it would be a costly operation on `const char*`.
+The goal is to change the interface of function `SafeToCompressForWhitelist()` to take values of type `string_view`. This is because it is easier to describe the logic of the function (inspecting substrings) using the interface of `string_view`. Also, if wee needed to produce a substring at some point, it would be a costly operation on `const char*`. Inside function `SafeToCompressForWhitelist()` not-a-sting value and zero-sized string value are treated uniformly, so conflating both values is acceptable.
+
+If `string_view` is modified as per P0903R1, the refactoring of function `SafeToCompressForWhitelist` becomes simple:
+
+```c++
+bool SafeToCompressForWhitelist(string_view user_agent,
+                                string_view accept_encoding,
+                                string_view content_type) const {
+  // If they don't let us know the 3 things we need, we bail
+  if (user_agent.empty() || accept_encoding.empty() || content_type.empty()) return false;
+
+  if (!accept_encoding.starts_with("gzip") && 
+      accept_encoding.find(" gzip") == string_view::npos &&
+      accept_encoding.find(",gzip") == string_view::npos) {
+    return false;
+  }
+
+  // more logic
+  return true;
+}
+```
+
+And nothing needs to be changed in the callers. And there can be hundreds of callers.
 
 ---------
 WARNING: THE REMAINDER OF THE DOCUMENT WILL CHANGE.
