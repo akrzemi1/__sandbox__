@@ -503,7 +503,7 @@ bool SafeToCompressForWhitelist(string_view user_agent,
   return true;
 }
 
-// this overload handles the null cases
+// this overload handles the null cases:
 bool SafeToCompressForWhitelist(const char *user_agent,
                                 const char *accept_encoding,
                                 const char *content_type) const {
