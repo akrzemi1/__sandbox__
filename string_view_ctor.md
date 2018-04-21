@@ -62,7 +62,7 @@ for (char ch : sv)
   read(ch);
 ```
 
-Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues. Or, in other words, `{sv.data(), sv.size()}` should represent a valid counted range. Also, `operator==`, which defines the value of any type takes inot accounts only the values of these characters, not the addresses. Thus two `string_view`s can contain different pointers, but still compare equal. This also implies a precondition on the constructor taking a pointer and a size: these two should represent a valid counted range.
+Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues. Or, in other words, `{sv.data(), sv.size()}` should represent a valid counted range. Also, `operator==`, which defines the value of any type takes into accounts only the values of these characters, not the addresses. Thus two `string_view`s can contain different pointers, but still compare equal. This also implies a precondition on the constructor taking a pointer and a size: these two should represent a valid counted range.
 
 
 ## 2. Passing null pointer as `const char*`
@@ -228,7 +228,7 @@ string_view::string_view(const char* s)
 {}
 ```
 
-But it is not clear if anyone wants this. Also, even this implementation has its problems. `operator==`, which traditionaly defines the value of an object, compares the contents of the strings: number of and values of the characters. It is not able to distinguish not-a-string value from zero-sized-string value. `std::hash<std::string_view>` does not distinguish not-a-string value from zero-sized-string value. This will make the type not refular: functions that attempt to distinguish the special not-a-string state and trigger a different control path will give different results for equal inputs (as defined by `hash`, `operator<`, `operator==`). Putting results of such functions to maps, sets, doing memoization, all these will break.
+But it is not clear if anyone wants this. Also, even this implementation has its problems. `operator==`, which traditionaly defines the value of an object, compares the contents of the strings: number of and values of the characters. It is not able to distinguish not-a-string value from zero-sized string value. `std::hash<std::string_view>` does not distinguish not-a-string value from zero-sized string value. This will make any function that tries to test for special not-a -string value not regular: functions that attempt to distinguish the special not-a-string state and trigger a different control path will give different results for equal inputs (as defined by `hash`, `operator<`, `operator==`). Putting results of such functions to maps, sets, doing memoization, all these will break.
 
 Of course, this is all acceptable if the requirement is, "anything else than immediate language-level UB". But we will not pursue that path in tis document.
 
@@ -260,7 +260,7 @@ X* bar(const char* p) // nullptr is fine
 
 In this case conflating not-a-string with a zero-sized string is acceptable.
 
-2. The not-a-string state is never expected to occur, but if it occurs it is treated as a bug in the program and functions that otain it should immediately stop execution, e.g. by calling `std::terminate()`, trowing an exception, or performing a comparable avasive action. In such case departing from regular/value semantics does not matter, as the program or a part thereof will be shut down anyway.
+2. The not-a-string state is never expected to occur, but if it occurs it is treated as a bug in the program and functions that obtain it should immediately stop execution, e.g. by calling `std::terminate()`, throwing an exception, or performing a comparable avasive action. In such case departing from regular/value semantics does not matter, as the program or a part thereof will be shut down anyway.
 
 ```c++
 X* baz(const char* p) // desired: p != nullptr
@@ -295,7 +295,7 @@ If widening the contract of `std::string`'s converting constructor is considered
 
 ### 6.1. The difference between bugs and precondition violations
 
-A *Bug* (like a type-o, or misunderstanding of the interface, or reading one variable instead of another) is an inadverant logic in the code that makes the program do something else than what we intended. We cannot define it formally. But we definately do not want them inour source code. Bugs make programs misbihave and crash. Bugs may cause injuries and fatalities.
+A *Bug* (like a type-o, or misunderstanding of the interface, or reading one variable instead of another) is an inadverant logic in the code that makes the program do something else than what we intended. We cannot define it formally. But we definitely do not want them in our source code. Bugs make programs misbihave and crash. Bugs may cause injuries and fatalities.
 
 An *precondition violation* is a very formal situation. A function (or expression) has a *precondition*: a constraint on the set of values/states. This condition can be specified quite formally, e.g. "`[b, e)` represent a valid range"; sometimes the precondition can be expressed as a c++ expression, e.g. `i >= 0`. An *precondition violation* is a situation when a function has a precondition (a constraint on input values) and yet it is passed a value/state that does not meet the constraint. This is so formal that we can communicate unambigously using these terms. Even tools like compilers and static analyzers can understand the notion of precondition violations. Here, we are not talking about bad things that can happen to the outside world, or human intentions. The notion of *precondition violation* is in a different level of abstraction than the notion of a *bug*. Tools are not concerned with potential injuries, but tools can diagnose precondition violations in functions.
 
@@ -468,7 +468,7 @@ and how the use cases of the opponents of P0903R1 can be addressed once `std::st
 
 First, make sure if you really need to migrate the argument of type `const char *` to type `std::string_view`. `std::string_view` represents a reference to a string, `const char *` does not necessarily represent a string. Also it might represent the string but with different semantics than you think.
 
-Second, if the goal of the function input is to represent either a string or not-a-string value, use the Standard Library type that is designed to represent this notion of not-a-value: `std::optioal<std::string_view>>`. You can use it in interfaces where not-a-string is allowed, and you can still use `std::sting_view` where not-a-string is incorrect. The additional benefit is tat your interfaces will clearly indicate for which functions it is correct to pass not-a-string and for which it is an error. But this will require a change in the calees.
+Second, if the goal of the function input is to represent either a string or not-a-string value, use the Standard Library type that is designed to represent this notion of not-a-value: `std::optioal<std::string_view>>`. You can use it in interfaces where not-a-string is allowed, and you can still use `std::sting_view` where not-a-string is incorrect. The additional benefit is that your interfaces will clearly indicate for which functions it is correct to pass not-a-string and for which it is an error. But this will require a change in the calees.
 
 Third, if the size of `std::optioal<std::string_view>>` or its set of constructors does not match your use case, define your own type that implements semantics in P0903R1. It only takes 6 lines (including braces):
 
@@ -516,9 +516,18 @@ bool SafeToCompressForWhitelist(const char *user_agent,
 }
 ```
 
-### 8.1. What can be offered to programmers that want null pointers passed to `string_view` to remain UB?
+### 8.2. What can be offered to programmers that want null pointers passed to `string_view` to remain UB?
 
-Write your own type that handles strings your way, and ro not use `std::string_view` anywhere in your code. Or derive from the altered `std::string_view` and implement UB in the constructor yourself. 
+Write your own type that handles strings your way, and ro not use `std::string_view` anywhere in your code. Or derive from the altered `std::string_view` and implement UB in the constructor yourself:
+
+```c++
+struct ub_string_view : std::string_view
+{
+  using std::string_view::string_view;
+  ub_string_view(const char * s) noexcept 
+    : std::string_view{s, std::char_traits<char>::length(s)} {}
+};
+```
 
 
 ## 9. Acknowledgements
