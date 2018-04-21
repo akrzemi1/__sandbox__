@@ -230,7 +230,7 @@ string_view::string_view(const char* s)
 
 But it is not clear if anyone wants this. Also, even this implementation has its problems. `operator==`, which traditionaly defines the value of an object, compares the contents of the strings: number of and values of the characters. It is not able to distinguish not-a-string value from zero-sized-string value. `std::hash<std::string_view>` does not distinguish not-a-string value from zero-sized-string value. This will make the type not refular: functions that attempt to distinguish the special not-a-string state and trigger a different control path will give different results for equal inputs (as defined by `hash`, `operator<`, `operator==`). Putting results of such functions to maps, sets, doing memoization, all these will break.
 
-Of course, this is all acceptable if the requirement is, "anything else than immediate language-level UB". But wi will not pursue that path in tis document.
+Of course, this is all acceptable if the requirement is, "anything else than immediate language-level UB". But we will not pursue that path in tis document.
 
 This above discussion implies that, unless more extensive changes are made to `string_view`, there are two self-consistent conceptual models for `string_view` that accepts null pointer as `const char *`.
 
