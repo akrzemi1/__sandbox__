@@ -468,7 +468,7 @@ and how the use cases of the opponents of P0903R1 can be addressed once `std::st
 
 First, make sure if you really need to migrate the argument of type `const char *` to type `std::string_view`. `std::string_view` represents a reference to a string, `const char *` does not necessarily represent a string. Also it might represent the string but with different semantics than you think.
 
-Second, if the goal of the function input is to represent either a string or not-a-string value, use the Standard Library type that is designed to represent this notion of not-a-value: `std::optioal<std::string_view>>`. But this will require a change in the calees.
+Second, if the goal of the function input is to represent either a string or not-a-string value, use the Standard Library type that is designed to represent this notion of not-a-value: `std::optioal<std::string_view>>`. You can use it in interfaces where not-a-string is allowed, and you can still use `std::sting_view` where not-a-string is incorrect. The additional benefit is tat your interfaces will clearly indicate for which functions it is correct to pass not-a-string and for which it is an error. But this will require a change in the calees.
 
 Third, if the size of `std::optioal<std::string_view>>` or its set of constructors does not match your use case, define your own type that implements semantics in P0903R1. It only takes 6 lines (including braces):
 
@@ -518,7 +518,7 @@ bool SafeToCompressForWhitelist(const char *user_agent,
 
 ### 8.1. What can be offered to programmers that want null pointers passed to `string_view` to remain UB?
 
-Write your own type that handles strings your way. Or derive from the altered `std::string_view` and implement UB in the constructor yourself. 
+Write your own type that handles strings your way, and ro not use `std::string_view` anywhere in your code. Or derive from the altered `std::string_view` and implement UB in the constructor yourself. 
 
 
 ## 9. Acknowledgements
