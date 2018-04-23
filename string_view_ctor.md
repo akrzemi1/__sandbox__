@@ -651,3 +651,10 @@ Unlike in 8.1. You need to use `ub_string_view` *everywhere* and (the modified) 
 Ashley Hedberg and Jorg Brown devoted their time to explain in detail the use cases for null-aware `string_view`, which helped improve the discussion in this paper.
 
 Tomasz Kamiński offered a number of useful suggestions that improved the quality of the paper.
+
+
+## 10. References
+
+1. Ashley Hedberg, ["Define `basic_string_view(nullptr)`"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0903r1.pdf).
+
+2. Jeffrey Yasskin, ["string_ref: a non-owning reference to a string"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html)
