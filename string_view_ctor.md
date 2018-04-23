@@ -387,6 +387,18 @@ But all these options will suddenly be gone if the Standard suddenly defines the
 This illustrates that UB in well designed places is a feature offered to the programmers. Not an omission. Not something to be defined in the future releases of the Standard.
 
 
+### 6.5. No need for defensive checks or preconditions
+
+This subsection assumes that the intention of P0903R1 is to modify `std::string_view` so that it can unambiguously store both not-a-string value and a zero-sized string value, and that the callees can later retrieve the inforrmation which of the two values was intended. In section 4 we already showed that this is not doable with state `{nullptr, 0}` as proposed by P0903R1. 
+
+If `std::string_view` is altered to additionally store the not-a-string value, then in each function taking `std::string_view` needs to make a concious decision, what the function should do if it receives not-a-string value. Programmers often forget about it, which causes bugs. If they do not forget and they do not want the not-a-string value even to be passed to the function (because in a given context it makes no sense), they have two options:
+
+1. Put a defensive if-statement in the beginning (and there is no good choice as to what to do inside).
+2. Put an explicit precondition in the function.
+
+In either case the logic becomes more complicated. In the first case we have an additional branch which is useless in correct programs (that do not pass unintended values). In the second case we have a precondition that anyone needs to be aware of. A precondition is superior to defensive if-statement, but is inferior to strong types that encode the same condition in their *invariants*. Currently in `std::string_view` without P0903R1 we have a *strong invariant*: object of type `std::string_view`, if constructed correctly, and lifetime issues observed, *always* represents a reference to a string. There is no question of "what to do with a not-a-string". Even its default constructor creates a reference to a globally accessible zero-sized string. Everyone who uses type `std::string_view` knows that it deals with strings of different sizes and nothing else. This is similar in nature to RAII: if an object managing a resource is in its lifetime, you get the guarantee that the resource is available to you and you do not have to check for anything. 
+
+
 ## 7. What is gained by widening the contract
 
 ### 7.1. Handle cases where not-a-string is conflated with zero-sized string
