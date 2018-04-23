@@ -470,18 +470,32 @@ First, make sure if you really need to migrate the argument of type `const char 
 
 Second, if the goal of the function input is to represent either a string or not-a-string value, use the Standard Library type that is designed to represent this notion of not-a-value: `std::optioal<std::string_view>>`. You can use it in interfaces where not-a-string is allowed, and you can still use `std::sting_view` where not-a-string is incorrect. The additional benefit is that your interfaces will clearly indicate for which functions it is correct to pass not-a-string and for which it is an error. But this will require a change in the calees.
 
-Third, if the size of `std::optioal<std::string_view>>` or its set of constructors does not match your use case, define your own type that implements semantics in P0903R1. It only takes 6 lines (including braces):
+Third, if the size of `std::optioal<std::string_view>>` or its set of constructors does not match your use case, define your own type that implements semantics in P0903R1:
 
 ```c++
-struct conflating_string_view : std::string_view
+class conflating_string_view : std::string_view
 {
-  using std::string_view::string_view;
+  using super = std::string_view;
+  constexpr super as_super() const noexcept { return static_cast<super>(*this); }
+  
+public:
+  using super::super;
   constexpr conflating_string_view (const char * p) noexcept
-    : std::string_view(p, p ? std::char_traits<char>::length(p) : 0) {}
+    : super(p, p ? std::char_traits<char>::length(p) : 0) {}
+    
+  // modify the interface of functions taking string_view:
+  constexpr size_type find_first_of(conflating_string_view sv, size_type pos = 0) const noexcept {
+    return super::find_first_of(sv.as_super(), pos);
+  }
+  
+  // just redeclare other members as public:
+  using super::empty;
 };
 ```
 
 Different semantics require a different type. And you are offering a different semantics. True, programmers will have to learn a new type. But the alternative is, they will use only one type and will not be aware that at different places the same type has different semantics. And they will only learn it when a bug is found.
+
+(Note: it has been previously suggested that such implementation can be written in 5 lines, but these suggestions did not take into consideration that member functions like `find_first_of()` also need the change in contract.)
 
 Fourth, choose the Standard Library implementation that already implements the semantics of P0903R1. The Standard Specifies the behavior as UB, so this is legal for Standard-conforming implementation to implement your desired semantics. If this is not already the case influence your library vendor to implement the behavior of P0903R1, or give you the option to configure the library to do what you want.
 
@@ -521,11 +535,23 @@ bool SafeToCompressForWhitelist(const char *user_agent,
 Write your own type that handles strings your way, and ro not use `std::string_view` anywhere in your code. Or derive from the altered `std::string_view` and implement UB in the constructor yourself:
 
 ```c++
-struct ub_string_view : std::string_view
+class ub_string_view : std::string_view
 {
-  using std::string_view::string_view;
-  ub_string_view(const char * s) noexcept 
-    : std::string_view{s, std::char_traits<char>::length(s)} {}
+  using super = std::string_view;
+  constexpr super as_super() const noexcept { return static_cast<super>(*this); }
+
+public:
+  using super::super;
+  constexpr ub_string_view(const char * s) noexcept 
+    : super{s, std::char_traits<char>::length(s)} {} // assuming that length() has narrow contract
+    
+  // modify the interface of functions taking string_view:
+  constexpr size_type find_first_of(ub_string_view sv, size_type pos = 0) const noexcept {
+    return super::find_first_of(sv.as_super(), pos);
+  }
+  
+  // just redeclare other members as public:
+  using super::empty;
 };
 ```
 
