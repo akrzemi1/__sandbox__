@@ -49,8 +49,7 @@ purposes as well, for instance as a replacement for interfaces that currently on
 sequences, or a replacement for interfaces that currently accept `const char *` with semantics slightly different than these
 of pointers to null-terminated char sequences. The motivation for P0903R1 is one such interface, which allows a null pointer as valid input. 
 
-While the extending use cases for `std::string_view` are worth exploring, they should not compromise the first and primary goal:
-uniformly handle the cases previously handled by `const std::string &` (but faster), without compromising the functionality, safety and performance features.
+While the extension of the use cases for `std::string_view` are worth exploring, they should not compromise the first and primary goal: uniformly handle the cases previously handled by `const std::string &` (but faster), without compromising the functionality, safety and performance features.
 
 
 ### 1.1. `string_view`'s contract
@@ -172,6 +171,7 @@ But this is only the C-string interface. In custom libraries developers can asso
 In a third party library with lots of functions taking single `const char *` to indicate a string with semantics different than the C-string interface, different functions may have different answers to the above question. This means that one cannot automatically refactor all these functions to take `some_string_view` in place of `const char *`, Instead, for each of these functions the semantics need to be determined and only then an appropriate refactoring action can be taken.
 
 Whatever answer 1, 2, 3, 4 is chosen the semantics are different than these for the C-string interface. C-string interface, being selected in the Standard Library of C and C++, is automatically a recomentdation to the developers. Its UB cases (preconditions) are designed carefully to bring closer the concrete type `const char *` to the abstract notion of a string. Many libraries also adapt the C-string interface, and expect its preconditions as a safety feature. For the programmers that choose to adapt the C-string interface, weakening its preconditions means that the concrete type `const char *` looses the connection with the concept of a string. This will be discussed later.
+
 
 ## 3. Can `string_view` be used to replace `const char*` interfaces?
 
@@ -429,7 +429,11 @@ If `std::string_view` is altered to additionally store the not-a-string value, t
 1. Put a defensive if-statement in the beginning (and there is no good choice as to what to do inside).
 2. Put an explicit precondition in the function.
 
-In either case the logic becomes more complicated. In the first case we have an additional branch which is useless in correct programs (that do not pass unintended values). In the second case we have a precondition that anyone needs to be aware of. A precondition is superior to defensive if-statement, but is inferior to strong types that encode the same condition in their *invariants*. Currently in `std::string_view` without P0903R1 we have a *strong invariant*: object of type `std::string_view`, if constructed correctly, and lifetime issues observed, *always* represents a reference to a string. There is no question of "what to do with a not-a-string". Even its default constructor creates a reference to a globally accessible zero-sized string. Everyone who uses type `std::string_view` knows that it deals with strings of different sizes and nothing else. A strong invariant is similar in nature to RAII: if an object managing a resource is in its lifetime, you get the guarantee that the resource is available to you and you do not have to check for anything. 
+In either case the logic becomes more complicated. In the first case we have an additional branch which is useless in correct programs (that do not pass unintended values). In the second case we have a precondition that anyone needs to be aware of. A precondition is superior to defensive if-statement, but is inferior to strong types that encode the same condition in their *invariants*. Currently in `std::string_view` without P0903R1 we have a *strong invariant*: object of type `std::string_view`, if constructed correctly, and lifetime issues observed, *always* represents a reference to a string. There is no question of "what to do with a not-a-string". Even its default constructor creates a reference to a globally accessible zero-sized string. Everyone who uses type `std::string_view` knows that it deals with strings of different sizes and nothing else. A strong invariant is similar in nature to RAII: if an object managing a resource is in its lifetime, you get the guarantee that the resource is available to you and you do not have to check for anything.
+
+### 6.6. Performance
+
+In the extension proposed in P0903R1 the constructor taking `const char *` has to perform a test whether the value of the pointer is null before trying to dereference it. When the compiler cannot track how the value of the pointer is obtained, it has to actually perform this check in run-time. In contrast, when the constructor in question adheres to the C-string interface, this check can be skipped.
 
 
 ## 7. What is gained by widening the contract
