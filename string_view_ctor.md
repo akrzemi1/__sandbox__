@@ -569,14 +569,14 @@ can_compress_ = CheckCompressionType(
 
 This requires the change in the caller (which can be considered a disadvantage in its own right), but at the same time it makes the intentions and the logic of the program more clear and penetrable: "from this point we treat not-a-string value and the zero-sized string value in the same way".
 
-Sixth, you can provide two overloads for the function you are refactoring. This does nod add a single type, and clearly separates the code that handles null pointers from the code that handles strings. The problem from section 7.1 can be solved like this:
+Sixth, if the goal is to enable a more convenient/idiomatic implementation of the body of the function, like in section 7.1, this can be addressed by conversion from `const char *` to `string_view` not in the interface but inside the implementation:
 
 
 ```c++
-// this overload handles strings:
-bool SafeToCompressForWhitelist(string_view user_agent,
-                                string_view accept_encoding,
-                                string_view content_type) const {
+// this handles strings:
+bool private_SafeToCompressForWhitelist(string_view user_agent,
+                                        string_view accept_encoding,
+                                        string_view content_type) const {
   if (!accept_encoding.starts_with("gzip") && 
       accept_encoding.find(" gzip") == string_view::npos &&
       accept_encoding.find(",gzip") == string_view::npos) {
@@ -587,16 +587,16 @@ bool SafeToCompressForWhitelist(string_view user_agent,
   return true;
 }
 
-// this overload handles the null cases:
+// this handles the null cases:
 bool SafeToCompressForWhitelist(const char *user_agent,
                                 const char *accept_encoding,
                                 const char *content_type) const {
   // If they don't let us know the 3 things we need, we bail
   if (!user_agent || !accept_encoding || !content_type) return false;
 
-  return SafeToCompressForWhitelist(string_view{user_agent},
-                                    string_view{accept_encoding},
-                                    string_view{content_type};
+  return private_SafeToCompressForWhitelist(string_view{user_agent},
+                                            string_view{accept_encoding},
+                                            string_view{content_type};
 }
 ```
 
