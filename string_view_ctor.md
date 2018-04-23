@@ -240,9 +240,9 @@ But it is not clear if anyone wants this. Also, even this implementation has its
 
 Of course, this is all acceptable if the requirement is, "anything else than immediate language-level UB". But we will not pursue that path in tis document.
 
-This above discussion implies that, unless more extensive changes are made to `string_view`, there are two self-consistent conceptual models for `string_view` that accepts null pointer as `const char *`.
+This above discussion implies that, unless more extensive changes are made to `string_view`, there is only one self-consistent conceptual model for `string_view` that accepts null pointer as `const char *`.
 
-1. Just treat it as any other zero-sized string. This is acceptable in programs where people want to have two ways of saying zero-sized string: `f("")` and `f(nullptr)`. This is also acceptable in programs that already treat a zero-sized string as inacceptable value: when all functions have a defensive if up front for the zero-sized string:
+Just treat it as any other zero-sized string. This is acceptable in programs where people want to have two ways of saying zero-sized string: `f("")` and `f(nullptr)`. This is also acceptable in programs that already treat a zero-sized string as inacceptable value: when all functions have a defensive if up front for the zero-sized string:
 
 ```c++
 X* foo(const char* p) // desired: p != nullptr && p is not ""
@@ -268,7 +268,9 @@ X* bar(const char* p) // nullptr is fine
 
 In this case conflating not-a-string with a zero-sized string is acceptable.
 
-2. The not-a-string state is never expected to occur, but if it occurs it is treated as a bug in the program and functions that obtain it should immediately stop execution, e.g. by calling `std::terminate()`, throwing an exception, or performing a comparable avasive action. In such case departing from regular/value semantics does not matter, as the program or a part thereof will be shut down anyway.
+There is another model, which is self-consistent provided that no attempt at memoization is made. This includes the attempts of storing the results of functions discriminationg `sv.data() == nullptr` in maps.
+
+The not-a-string state is never expected to occur, but if it occurs it is treated as a bug in the program and functions that obtain it should immediately stop execution, e.g. by calling `std::terminate()`, throwing an exception, or performing a comparable avasive action. In such case departing from regular/value semantics does not matter, as the program or a part thereof will be shut down anyway.
 
 ```c++
 X* baz(const char* p) // desired: p != nullptr
@@ -281,6 +283,9 @@ X* baz(const char* p) // desired: p != nullptr
   return process(p);
 }
 ```
+
+This second model can still break memoization: a function that discriminates `sv.data() == nullptr` might want to signall the bug and tetminate the program, but the value of `sv` (measured with `std::hash<>` or `operator<` but not `sv.data() == nullptr`) has been previously memoized, but at that time the state had not been `sv.data() == nullptr`.
+
 
 ## 5. Interchangeability of `std::string` and `std::string_view`
 
