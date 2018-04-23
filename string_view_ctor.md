@@ -493,13 +493,33 @@ public:
 };
 ```
 
-Different semantics require a different type. And you are offering a different semantics. True, programmers will have to learn a new type. But the alternative is, they will use only one type and will not be aware that at different places the same type has different semantics. And they will only learn it when a bug is found.
+Different semantics require a different type. And you are offering a different semantics. True, programmers will have to learn a new type. But the alternative is, they will use only one type and will not be aware that at different places the same type has different semantics. And they will only learn it when a bug is found. Similarly here, we encourage to use this type only when you want to provide semantics, "I accept not-a-string value, I conflate it with zero-sized string value". In other cases go with `std::string_view` which has stronger contract.
 
 (Note: it has been previously suggested that such implementation can be written in 5 lines, but these suggestions did not take into consideration that member functions like `find_first_of()` also need the change in contract.)
 
 Fourth, choose the Standard Library implementation that already implements the semantics of P0903R1. The Standard Specifies the behavior as UB, so this is legal for Standard-conforming implementation to implement your desired semantics. If this is not already the case influence your library vendor to implement the behavior of P0903R1, or give you the option to configure the library to do what you want.
 
-Fifth, you can provide two overloads for the function you are refactoring. This does nod add a single type, and clearly separates the code that handles null pointers from the code that handles strings. The problem from section 7.1 can be solved like this:
+Fifth, change the callers, so that they decide how they want to treat the not-a-string value. For instance define function `conflate_null()` which takes a `const char*` argument interpreted as "either a string or not-a-string" and returns a `const char*` value interpretted as string:
+
+```c++
+constexpr const char * not_null(const char * s) noexcept {
+  return s ? s : "";
+}
+```
+
+Or you can have `not_null` accept return a dedicated type which can convert to either `const char*` interpretted as string or to `conflating_string_view`. When applying this solution the caller from the example in 8.1 has to be changed to:
+
+```c++
+// caller:
+can_compress_ = CheckCompressionType(
+  conflate_null(input_headers().GetHeader("User-agent")),
+  conflate_null(input_headers().GetHeader("Accept-encoding")),
+  conflate_null(output_headers().GetHeader("Content-type")));
+```
+
+This requires the change in the caller (which can be considered a disadvantage in its own right), but at the same time it makes the intentions and the logic of the program more clear and penetrable: "from this point we treat not-a-string value and the zero-sized string value in the same way".
+
+Sixth, you can provide two overloads for the function you are refactoring. This does nod add a single type, and clearly separates the code that handles null pointers from the code that handles strings. The problem from section 7.1 can be solved like this:
 
 
 ```c++
