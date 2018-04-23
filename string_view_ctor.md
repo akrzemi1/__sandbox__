@@ -222,6 +222,8 @@ This illustrates that a top-bottom approach to migrating C-string interfaces to 
 
 This also illustrates that it is not possible to migrate even C-string interfaces to `std::string_view`. At least not all of them. Regardless if we accept P0903R1 or not.
 
+Also, when changing the interfaces from `const char *` to `std::string_view` one needs to have a clear purpose: why was `const char*` bad? what is better after such change? One answer for this question is, "we do not want `const char*` because it allows the null pointer value and it causes mess: we want to avoid answering the question what to do on null pointer for every function. In that case changing `std::string_view` modified by P0903R1 to reflect this mess does no good to anyone. You have a type now with no clear semantics which becomes a mess on its own. And you have deprived yourself of the old narrow-contract `std::string_view` that was able to introduce clear semantics (string and nothing else) to the parts of your program that got rid of not-a-string value.
+
 
 ## 4. Holding not-a-string value in `std::string_view`
 
