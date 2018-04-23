@@ -137,7 +137,7 @@ template <class InputIt, class OutputIt>
 OutputIt copy(InputIt first, InputIt last, OutputIt d_first);
 ```
 
-This algorithm can be instantiated with three `const char*` values. THese three values represent two ranges: `[first, last)` and `[d_first, d_first + distance(first, last)]`. And again, all three pointers can be null (tey would represent two zero-sized ranges), because the sizes of the underlying sequences can be determined without dereferencing the pointers.
+This algorithm can be instantiated with three `const char*` values. These three values represent two ranges: `[first, last)` and `[d_first, d_first + distance(first, last)]`. And again, all three pointers can be null (tey would represent two zero-sized ranges), because the sizes of the underlying sequences can be determined without dereferencing the pointers.
 
 A question has been asked, if and how the Ranges TS handles the case of a null pointer passed as type `const char*`. The answer is, Ranges TS describes constraints on inputs representing *ranges* denoted by begin and end. A C interface for strings is not a range in the sense of Ranges TS. If we want to talk about the analogy to ranges, passing a null pointer to a function with the C-string interface would be analogous to calling:
 
@@ -189,7 +189,7 @@ const char SEPARATOR = '/';
 return is_default_separator(&SEPARATOR);
 ```
 
-Type `const char *` is assumed to be a reference to a single character, here represented by the object's address. No terminating null character is assumed. Migrting this usage to `string_view` would be an error. There is no concept of string associated wit this usage of type `const char *`.
+Type `const char *` is assumed to be a reference to a single character, here represented by the object's address. No terminating null character is assumed. Migrating this usage to `string_view` would be an error. There is no concept of string associated wit this usage of type `const char *`.
 
 The above is a very obvious case, but consider migrating the C-string interface to `string_view`. We have a user-defined function with C-string interface which forwards to the Standard Library function with C-string interface:
 
@@ -222,7 +222,7 @@ This illustrates that a top-bottom approach to migrating C-string interfaces to 
 
 This also illustrates that it is not possible to migrate even C-string interfaces to `std::string_view`. At least not all of them. Regardless if we accept P0903R1 or not.
 
-Also, when changing the interfaces from `const char *` to `std::string_view` one needs to have a clear purpose: why was `const char*` bad? what is better after such change? One answer for this question is, "we do not want `const char*` because it allows the null pointer value and it causes mess: we want to avoid answering the question what to do on null pointer for every function. In that case changing `std::string_view` modified by P0903R1 to reflect this mess does no good to anyone. You have a type now with no clear semantics which becomes a mess on its own. And you have deprived yourself of the old narrow-contract `std::string_view` that was able to introduce clear semantics (string and nothing else) to the parts of your program that got rid of not-a-string value.
+Also, when changing the interfaces from `const char *` to `std::string_view` one needs to have a clear purpose: why was `const char*` bad? What is better after such change? One answer for this question is, "we do not want `const char*` because it allows the null pointer value and it causes mess: we want to avoid answering the question what to do on null pointer for every function." In that case changing `std::string_view` modified by P0903R1 to reflect this mess does no good to anyone. You have a type now with no clear semantics which becomes a mess on its own. And you have deprived yourself of the old narrow-contract `std::string_view` that was able to introduce clear semantics (string and nothing else) to the parts of your program that got rid of not-a-string value.
 
 
 ## 4. Holding not-a-string value in `std::string_view`
@@ -429,7 +429,7 @@ When the standard says that he behavior of some operation is undefined, especial
 4. The vendor's implementation of the library component may use a replacement value which is valid when an original value is invalid. This is what the libstdc++ implementation of `std::string_view` does when you pass null pointer to the constructor: it initializes to `{nullptr 0}`.
 5. You can switch between any of the above based on compiler switches and macro definitions. Vendors can offer different modes in which their implementation of the Standard library operates. In particular for unit-test builds you can configure the `std::string_view`'s constructor to report unit-test as failed, and then proceed with the zero-sized string value.
 
-These all options are possible only because the Standard leaves undefined what happens. They may not sound like an option if one thinks, "the Standard is my allay, the compiler vendor is my enemy", but if you trust your platform and tools the picture is completely different. In particular this, flexibility means that if Abseil Authors want to implement "go with default-constructed `string_view` upon null pointer" in their implementation of `std::string_view`, that is also a standard-conformant implementation. 
+These all options are possible only because the Standard leaves undefined what happens. They may not sound like an option if one thinks, "the Standard is my ally, the compiler vendor is my enemy", but if you trust your platform and tools the picture is completely different. In particular this, flexibility means that if Abseil Authors want to implement "go with default-constructed `string_view` upon null pointer" in their implementation of `std::string_view`, that is also a standard-conformant implementation. 
 
 But all these options will suddenly be gone if the Standard suddenly defines the behavior to only one right solution. Such one solution cannot serve the entire community.
 
@@ -572,7 +572,7 @@ Fourth, choose the Standard Library implementation that already implements the s
 Fifth, change the callers, so that they decide how they want to treat the not-a-string value. For instance define function `conflate_null()` which takes a `const char*` argument interpreted as "either a string or not-a-string" and returns a `const char*` value interpretted as string:
 
 ```c++
-constexpr const char * not_null(const char * s) noexcept {
+constexpr const char * conflate_null(const char * s) noexcept {
   return s ? s : "";
 }
 ```
