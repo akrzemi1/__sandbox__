@@ -20,7 +20,9 @@ in the reflector. In this paper we provide the summary of the discussion. In par
 
 ## 0. Definitions
 
-In this document we use concept *String*. By this we mean a sequence of characters; in particular, a sequence of size zero. We do not use term "empty" as it turned out to be ambiguous and caused some confusion. Instead, we use two terms to denote two different values: a *zero-sized* string, and *not-a-string*. Empty quotes (`""`) denote a zero-sized string.
+In this document we use concept *String*. By this we mean a sequence of characters; in particular, a sequence of size zero. This concept is independent of any representation on a machine; in particular it does not depend on whether the representation requires a pointer to some remote data, or if the size of the string is denoted by a trailing null character. The only thing that the concept is concerned with is the number and the value of the characters that constitute the sequence.
+
+We do not use term "empty", as it turned out to be ambiguous and caused some confusion. Instead, we use two terms to denote two different values: a *zero-sized* string, and *not-a-string*. The not-a-string value is not part of concept String.
 
 ## 1. The purpose of `string_view`
 
