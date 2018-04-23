@@ -69,15 +69,32 @@ Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv
 
 ## 2. Passing null pointer as `const char*`
 
-`string_view` has a converting constructor taking argument of type `const char*`. It follows the semantics of "C-string interface", which are: the length of the string is determined by dereferencing a pointer, iterating through the array and looking for the null character. The distance from the beginning to the found null character is the stirng's length. This implies a precondition on the input: 
+
+## 2.1. The C-string interface
+
+In C and C++ special semantics are associated to single arguments of type `const char *` that are expected to represent values of concept String. We will refer to these semantics in this paper as the *C-string interface*. These semantics are:
+
+* The pointer represents an address to an array of characters.
+* While iterating through these characters we are guaranteed to observe a character of value `'\0'` at some point.
+* The values of the characters up to but excluding the first observed character `'\0'` constitute the value of the string.
+
+This implies a number of things:
+
+1. The size/length of the string is the distance from the address denoted by the pointer to the address of the `'\0'` character. The size is determined by observing the values of the characters; not from the numeric value of the input pointer.
+2. An array represented by literal `""` represents a zero-sized string even though the array's size is 1. Similarly, a pointer obtained from expression `("A" + 1)` represents a zero-sized string. 
+
+This also implies a precondition on the input:
+
 * The pointer cannot be null (UB otherwise).
-* The pointer must point to a valid array or characters, or a single character with value '\0' (UB otherwise).
+* The pointer must point to a valid array of characters, or a single character with value '\0' (UB otherwise).
 * The array pointed to must contain chatacter with value '\0' (UB otherwise).
 
-Clearly, this constructor has a precondition, and even applying P0903R1 cannot remove it: it can only widen the precondition slightly. There are many ways to assign different semantics to type `const char*`. The one described above will be referred to as *C-string interface* in this paper.
+Clearly, this constructor has a precondition, and even applying P0903R1 cannot remove it: it can only widen the precondition slightly.
+
+There are other ways to assign different semantics to type inputs of type `const char*` than the one described above. The *C-string interface* will be paid to the most attention in this paper.
 
 
-### 2.1. Null pointers as `const char*` in C
+### 2.2. Null pointers as `const char*` in C
 
 Whenever functions in C want a single argument of type `const char*` to represent a string they use the C-string interface. This is reflected in the C Standard:
 
@@ -103,7 +120,7 @@ Third, functions like `strncpy` determine the length in a mixed way. an addition
 Fourth, functions like `memcpy` do not take `const char*`, but `const void*` arguments, but they are still relevant in the discussion. In this case the length of the sequences is provided separately by additional argument of type `size_t`. Passing null pointers is still UB.
 
 
-### 2.2. Null pointers as `const char*` in C++
+### 2.3. Null pointers as `const char*` in C++
 
 C++ also follows C-string interface whenever it uses single `const char*` argument to represent a string. This includes constructors of `std::fstream`, `std::string`, `std::filesystem::path`, or argument to `string::find_first_of()`, or `std::char_traits::length()`. 
 
@@ -127,7 +144,8 @@ std::for_each(v.begin(), fun); // no v.end()
 ```
 and expecting that the algorithm will deduce that we intended a zero-sized range.
 
-### 2.3. Other possible semantics of `const char*` arguments
+
+### 2.4. Other possible semantics of `const char*` arguments
 
 The above are the semantics associated with type `const char*` in C-string interfaces. They are encouraged by the Standard library. But one can imagine functions in other libraries that interpret the value of type `const char*` differently, especially the null pointer value.
 
@@ -138,7 +156,7 @@ Second, you can treat the null pointer value as distinct from any sting, even ze
 Also, type `const char*` can be used for other purposes than representing a string: it can represent an address of a single character. Migrating such usage to `string_view` would be unwise. 
 
 
-### 2.4. Is passing a null pointer where a string is expected fundamentally wrong?
+### 2.5. Is passing a null pointer where a string is expected fundamentally wrong?
 
 Much of controversy around P0903R1 is about whether it is valid to pass a null pointer where `const char*` is expected to represent a string. If by a "string" we mean a sequence of 0 or more characters, then clearly there is no need to intentionally use the null pointer value. Any value, including zero-sized string, can be represented by null-terminated byte sequence that the pointer need to point to. Plus, it is a well established idiom in C and C++ Standard Library that passing null pointer in such case is illegal, and therefore is an indication of the porgrammer bug. When such bug is diagnosed the code is changed so that a non-null pointer is passed to function `f()` or function `f()` is not called at all. So, at least when dealing with the Standard Library functions, passing null pointer that is supposed to indicate a string happens only temporarily, and inadvertantly, and is ideally corrected as soon as possible.
 
