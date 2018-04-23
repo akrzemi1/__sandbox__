@@ -1,6 +1,6 @@
 NOTE: this is a draft version. Work on this document is still in prograss.
 
-Audience: LEWG, LWR, EWG
+Audience: LEWG, LWG, EWG
 
 # Narrow contracts in `string_view` versus P0903R1
 
