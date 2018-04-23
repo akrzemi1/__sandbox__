@@ -1,5 +1,6 @@
 NOTE: this is a draft version. Work on this document is still in prograss.
 
+Audience: LEWG, LWR, EWG
 
 # Narrow contracts in `string_view` versus P0903R1
 
@@ -657,5 +658,7 @@ Tomasz Kamiński offered a number of useful suggestions that improved the qualit
 
 1. Ashley Hedberg, ["Define `basic_string_view(nullptr)`"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0903r1.pdf).
 2. Jeffrey Yasskin, ["string_ref: a non-owning reference to a string"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html).
-3. Andrzej Krzemieński, ["Value constraints"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4160.html).
-4. G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, [" A Contract Design "](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0380r1.pdf).
+3.  Lawrence Crowl, ["The Use and Implementation of Contracts"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0147r0.html).
+4. Alisdair Meredith, John Lakos, ["`noexcept` Prevents Library Validation"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3248.pdf).
+5. Andrzej Krzemieński, ["Value constraints"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4160.html).
+6. G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, [" A Contract Design "](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0380r1.pdf).
