@@ -501,6 +501,11 @@ And nothing needs to be changed in the callers. And there can be hundreds of cal
 A special case of this use case is in programs or their modules where a zero-sized string is already being treated as an invalid value. In such cases when we conflate the invalid null-pointer input with an invalid zero-sized string input, this will not affect the semantics as they will be processed uniformly with defensive checks of the form `sv.empty()`.
 
 
+### 7.2. Inability to enforce narrow contracts
+
+Sometimes it is acknowledged that having narrow contracts is desireable, and helps in asserting program correcness. But for economical reasons it is infeasible to migrate a large code-base of a program which previously did not make a dsitinction into narrow and wide contracts, given the resources that the developement team has to spare. In those cases leaving the wide contracts as they are and manually trying address the unexpected input in each function may be the only option within economical reach. In this case one expects every new type to have a wide contract.
+
+
 ## 8. Alternatives
 
 In this chapter we explore how the use cases of the proponents of P0903R1 can be addressed without changing `std::string_view`,
@@ -592,6 +597,9 @@ bool SafeToCompressForWhitelist(const char *user_agent,
                                     string_view{content_type};
 }
 ```
+
+Finally, even if it is not economically possible to prepare the large source code base for migration to narrow-contract components, as described in section 7.2, it may still be possible to identify some smaller components within the source code base, where declaring and enforcing narrow contracts is possible. In those cases the recommendation would be to adapt the narrow-contract `std::string_view` in these components, so at least in these components the correctness of the code can be better asserted.
+
 
 ### 8.2. What can be offered to programmers that want null pointers passed to `string_view` to remain UB?
 
