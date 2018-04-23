@@ -71,7 +71,7 @@ A zero-sized string is represented by a `string_view` object `sv` when `sv.size(
 ## 2. Passing null pointer as `const char*`
 
 
-## 2.1. The C-string interface
+### 2.1. The C-string interface
 
 In C and C++ special semantics are associated to single arguments of type `const char *` that are expected to represent values of concept String. We will refer to these semantics in this paper as the *C-string interface*. These semantics are:
 
