@@ -224,6 +224,9 @@ This also illustrates that it is not possible to migrate even C-string interface
 
 P0903R1 simply proposes to represent a `string_view` converted from null pointer as `{nullptr, 0}`, without going into details of what use would be made of this value. In the Standard Library component we have to answer a quesition: should a value in a `string_view` converted from null pointer be distinguishable from a zero-sized string?
 
+
+### 4.1. Containers may use `{nullptr, 0}` to represent zero-sized string
+
 One thing that needs to be observed is that value `{nullptr, 0}` can be produced when constructing a `string_view` that point to a zero-sized string. This is becuse a `string_view` can be constructed from the contents of `vector<char>`, and the default constructed `vector<char>` is allowed to return `vec.data() == nullptr`. And in fact the libstdc++ implementation does this:
 
 ```c++
@@ -245,6 +248,9 @@ One could say that having UB in `std::string_view{nullptr}` has the same problem
 
 Also, one could ask if the same problem does not already occur in the current `std::string_view` when it is default-constructed. The answer is *no*. In the current model, `std::string_view`'s default constructor simply refers to a zero-sized string. No not-a-string value exists. No one should have any need to observe the numeric value of address `sv.data()` alone. This makes `string_view` compatible with `std::string` which also represents a zero-sized string when default-constructed.
 
+
+# 4.2. Reliable implementation of not-a-string
+
 Holding a distinct not-a-string value would be possible if another value, different than `{nullptr, 0}` is chosen. For instance:
 
 ```c++
@@ -256,7 +262,12 @@ string_view::string_view(const char* s)
 {}
 ```
 
-But it is not clear if anyone wants this. Also, even this implementation has its problems. `operator==`, which traditionaly defines the value of an object, compares the contents of the strings: number of and values of the characters. It is not able to distinguish not-a-string value from zero-sized string value. `std::hash<std::string_view>` does not distinguish not-a-string value from zero-sized string value. This will make any function that tries to test for special not-a -string value not regular: functions that attempt to distinguish the special not-a-string state and trigger a different control path will give different results for equal inputs (as defined by `hash`, `operator<`, `operator==`). Putting results of such functions to maps, sets, doing memoization, all these will break.
+But it is not clear if anyone wants this. 
+
+
+# 4.3. A non-regular interface
+
+Also, even the implementation in section 4.2 has its problems. `operator==`, which traditionaly defines the value of an object, compares the contents of the strings: number of and values of the characters. It is not able to distinguish not-a-string value from zero-sized string value. `std::hash<std::string_view>` does not distinguish not-a-string value from zero-sized string value. This will make any function that tries to test for special not-a -string value not regular: functions that attempt to distinguish the special not-a-string state and trigger a different control path will give different results for equal inputs (as defined by `hash`, `operator<`, `operator==`). Putting results of such functions to maps, sets, doing memoization, all these will break.
 
 Of course, this is all acceptable if the requirement is, "anything else than immediate language-level UB". But we will not pursue that path in tis document.
 
