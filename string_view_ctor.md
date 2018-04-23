@@ -656,5 +656,6 @@ Tomasz Kamiński offered a number of useful suggestions that improved the qualit
 ## 10. References
 
 1. Ashley Hedberg, ["Define `basic_string_view(nullptr)`"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0903r1.pdf).
-
-2. Jeffrey Yasskin, ["string_ref: a non-owning reference to a string"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html)
+2. Jeffrey Yasskin, ["string_ref: a non-owning reference to a string"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html).
+3. Andrzej Krzemieński, ["Value constraints"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4160.html).
+4. G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, [" A Contract Design "](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0380r1.pdf).
