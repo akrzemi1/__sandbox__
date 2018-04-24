@@ -663,5 +663,6 @@ Tomasz Kamiński offered a number of useful suggestions that improved the qualit
 2. Jeffrey Yasskin, ["string_ref: a non-owning reference to a string"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html).
 3.  Lawrence Crowl, ["The Use and Implementation of Contracts"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/p0147r0.html).
 4. Alisdair Meredith, John Lakos, ["`noexcept` Prevents Library Validation"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3248.pdf).
-5. Andrzej Krzemieński, ["Value constraints"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4160.html).
-6. G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, [" A Contract Design "](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0380r1.pdf).
+5. John Lakos, ["Normative Language to Describe Value Copy Semantics"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2479.pdf).
+6. Andrzej Krzemieński, ["Value constraints"](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4160.html).
+7. G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, [" A Contract Design "](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0380r1.pdf).
