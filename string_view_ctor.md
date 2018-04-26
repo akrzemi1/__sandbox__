@@ -428,6 +428,24 @@ When the standard says that he behavior of some operation is undefined, especial
 4. The vendor's implementation of the library component may use a replacement value which is valid when an original value is invalid. This is what the libstdc++ implementation of `std::string_view` does when you pass null pointer to the constructor: it initializes to `{nullptr 0}`.
 5. You can switch between any of the above based on compiler switches and macro definitions. Vendors can offer different modes in which their implementation of the Standard library operates. In particular for unit-test builds you can configure the `std::string_view`'s constructor to report unit-test as failed, and then proceed with the zero-sized string value.
 
+For instance, the following is an example of a standard-conformant impelemntation of `std::string_view`'s converting constructor that allows to control if passing `nullptr` should trap both at compile-time and run-time or if it should render `{nullptr, 0}`:
+
+```c++
+#infdef _CPP_LIB_ENFORCE_HARD_UB
+  constexpr basic_string_view(const _CharT* __str)
+  : _len{__str == nullptr ? 0 : traits_type::length(__str)},
+    _str{__str}
+  { }
+#else
+  constexpr basic_string_view(const _CharT* __str)
+  : _len{traits_type::length(__str)},
+    _str{__str}
+  { }
+#endif
+```
+
+The programmer may (if he wishes) define macro `_CPP_LIB_ENFORCE_HARD_UB` to alter the definition. This impleme is Standard-conforming only because passing null pointer to the constructor is specified as undefined behavior in the Standard.
+
 These all options are possible only because the Standard leaves undefined what happens. They may not sound like an option if one thinks, "the Standard is my ally, the compiler vendor is my enemy", but if you trust your platform and tools the picture is completely different. In particular this, flexibility means that if Abseil Authors want to implement "go with default-constructed `string_view` upon null pointer" in their implementation of `std::string_view`, that is also a standard-conformant implementation. 
 
 But all these options will suddenly be gone if the Standard suddenly defines the behavior to only one right solution. Such one solution cannot serve the entire community.
