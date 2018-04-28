@@ -445,7 +445,7 @@ Any portion of code is suspicious and could technically contain a bug. In order 
 UB is close in nature to a [checksum](https://en.wikipedia.org/wiki/Checksum): checksum is redundant, increases the  size of the message, and creates the potential for producing invalid messages (where the payload doesn't match the checksum), so someone might say, "remove it, and there will be no way to send an invalid message". But we still want to use checksums, and we all know why.
 
 
-### 6.2.4. Flexibility in handling the bug at run-time
+#### 6.2.4. Flexibility in handling the bug at run-time
 
 When the standard says that he behavior of some operation is undefined, especially in the case of UB as easily dianosable as dereferencing a null pointer or precondition violation, vendors are allowed to define their guaranteed behavior. Vendors and programmers may use this opportunity to settle on an error reporting scheme for invalid inputs that is best suited for a given program. Ideally, bug should be removed from the code rather than being responded to at run-time. There is no good universal way to respond to them. A solution good for one project would be detrimental in another. Therefore the best the Standard can do is to leave the decision to engineers that assemble the program from the components, that know the environment that the program will be executed in, and that are best equipped to make the right decision. Such decision might be:
 
