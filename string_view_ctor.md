@@ -1,4 +1,6 @@
-
+Doc. No.: D1043r0
+Date: 2018-04-28
+Reply to: Andrzej Krzemieński
 Audience: LEWG, LWG, EWG
 
 # Narrow contracts in `string_view` versus P0903R1
@@ -123,7 +125,7 @@ Fourth, functions like `memcpy` do not take `const char*`, but `const void*` arg
 
 ### 2.3. Null pointers as `const char*` in C++
 
-C++ also follows C-string interface whenever it uses single `const char*` argument to represent a string. This includes constructors of `std::fstream`, `std::string`, `std::filesystem::path`, or argument to `string::find_first_of()`, or `std::char_traits::length()`. 
+C++ also follows C-string interface whenever it uses single `const char*` argument to represent a string. This includes constructors of `std::fstream`, `std::string`, `std::filesystem::path`, `std::regex`, or argument to `string::find_first_of()`, or `std::char_traits::length()`. 
 
 Occasionally, two `const char*` pointers are used to represent a string, in the same way as ranges are represented in STL by two iterators `[begin, end)`. This is the case for functions like `std::ctype::is`, `std::ctype::do_is` dealing with locales. These can be null pointers provided that `begin == end`. This is logical: because the length of the string can be determined without dereferencing the pointer, the pointer is allowed to be null.
 
@@ -172,7 +174,7 @@ In a third party library with lots of functions taking single `const char *` to 
 
 During the discussion we have witnessed people saying, "I have passed null pointer as `const char*` and it was always obvious that it indicates a zero-sized string", other said that in their code base null pointer always indicates a not-a-string. Other replies are that such string is empty (different opinions whether it means zero-sized or not-a-string, or if it matters at all), or is "null" (whatever that means for strings). Whatever answer you chose, you will serve one group, and surprise others, causing bugs.
 
-Whatever answer 1, 2, 3, 4 is chosen, the semantics are different than these for the C-string interface. C-string interface, being selected in the Standard Library of C and C++, is automatically a recomentdation to the developers. Its UB cases (preconditions) are designed carefully to bring closer the concrete type `const char *` to the abstract notion of a string. Many libraries also adapt the C-string interface, and expect its preconditions as a safety feature. For the programmers that choose to adapt the C-string interface, weakening its preconditions means that the concrete type `const char *` looses the connection with the concept of a string. This will be discussed later.
+Whatever answer 1, 2, 3, 4 is chosen, the semantics are different than these for the C-string interface. C-string interface, being selected in the Standard Library of C and C++, is automatically a recomentdation to the developers. Its UB cases (preconditions) are designed carefully to bring closer the concrete type `const char *` to the abstract notion of a string. Many libraries also adapt the C-string interface, and expect its preconditions as a safety feature. For instance Boost libraries like Lexical Cast, Regex, String Algo. For the programmers that choose to adapt the C-string interface, weakening its preconditions means that the concrete type `const char *` looses the connection with the concept of a string. This will be discussed later.
 
 
 ## 3. Can `string_view` be used to replace `const char*` interfaces?
@@ -341,34 +343,7 @@ If widening the contract of `std::string`'s converting constructor is considered
 
 ## 6. What is gained by keeping the contract narrow
 
-### 6.1. The difference between bugs and precondition violations
-
-A *Bug* (like a type-o, or misunderstanding of the interface, or reading one variable instead of another) is an inadverant logic in the code that makes the program do something else than what we intended. We cannot define it formally. But we definitely do not want them in our source code. Bugs make programs misbihave and crash. Bugs may cause injuries and fatalities.
-
-An *precondition violation* is a very formal situation. A function (or expression) has a *precondition*: a constraint on the set of values/states. This condition can be specified quite formally, e.g. "`[b, e)` represent a valid range"; sometimes the precondition can be expressed as a c++ expression, e.g. `i >= 0`. An *precondition violation* is a situation when a function has a precondition (a constraint on input values) and yet it is passed a value/state that does not meet the constraint. This is so formal that we can communicate unambigously using these terms. Even tools like compilers and static analyzers can understand the notion of precondition violations. Here, we are not talking about bad things that can happen to the outside world, or human intentions. The notion of *precondition violation* is in a different level of abstraction than the notion of a *bug*. Tools are not concerned with potential injuries, but tools can diagnose precondition violations in functions.
-
-A precondition violation is a symptom of a bug; but it is not a bug on itself. By specifying preconditions and making the contracts narrow, you build a connection between the two notions: a precondition violation can now indicate a bug. This is possible only when there are some input values disallowed by the function. The notion of *undiefined behavior* or *invalid input* also come close to the notion of precondition violation.
-
-Now, sometimes people are concerned with precondition violations (and invalid inputs) more than with bugs. They claim that if you get rid of preconditions (invalid inputs), you get rid of precondition violations; and when you get rid of precondition violations, you get rid of the problems. In consequence, they postulate to design function interfaces so that any input is "valid", i.e. have no preconditions. 
-
-The first part of that claim is actually true: if you get rid of preconditions, you get rid of potential precondition violations. But with this you are only curing the symptoms and let the disease (the bug) spoil your system: and now that you have one symptom less, it will be more difficult to detect it. You simply loosen the connection between the technical notion of "precondition violation" and human notion of "bug". Consider this example containing a bug, where we inedvertantly pass a null pointer, whereas we intended to pass a different value:
-
-```c++
-const char * p = "contents.txt";
-const char * q = 0;
-f(q); // BUG: intended to call f(p);
-```
-
-That is, we pass a different pointer than we intended, but the types accidentally match, which forms a well-formed C++ program. First, suppose that function `f()` has a precondition: the argument cannot be a null pointer. If you plant this bug you are violating a precondition. Automatic tools, like static analyzers, do not know our intentions, they cannot recognize such things as "you wanted to pass different argument" or "you confused this name with that one", or "you wanted to pass that value instead", "you have a type-o". But they are good at detecting precondition violations, or illegal values. Invalid input is not a bug itself, but an indication of a bug (in our case: confusing pointers), but if this is reported it is enough for the programmer to kick in and correct it. Static analyzer has *helped* find the bug, but didn't actually find it: the programmer found it based on the information from static analyzer.
-
-Now, consider what happens when you widen the contract. The bug is still there, the pointers are still confused, but there is no precondition fiolation anymore. Static analyzer is blind and cannot help you detect the bug.
-
-To summarize. The goal is to detect bugs (early, statically). The notion of "precondition violation" or "invalid input" is only a tool that helps detect bugs (or, assert program correctness). The goal is not to detect invalid inputs: it is only a means to the real goal. By widening contracts you render the notion of invalid input unhelpful (or less helpful) in achieving the goal of detecting bugs.
-
-Sometimes people worry more about hitting language-level UB than about bugs in their code. But bugs actually have the same dangerous characteristic as UB: if you hit them, the results are unpredictable. A bug can be thought of as UB at business logic level.
-
-
-### 6.2. Simpler conceptual model
+### 6.1. Simpler conceptual model
 
 Preconditions bring C++ types closer to the real-life concepts that they describe. Consider a function that takes a range of integer values indicated by the lower and uper bounds:
 
@@ -409,16 +384,68 @@ This is similar to what C functions like `setenv()` do. Now every combination of
 Similarly, a null pointer value does not represent a string, not even a zero-sized string. Once it is accepted as valid input to `string_view` something has to be done with it: maybe call it a zero-sized string, maybe call it a distinct value from any string value. In either case the abstraction is weakened. We cannot safely think interms of strings, character sequences, but one level down: about the numeric value of address `sv.data()`.
 
 
-### 6.3. Improved static analysis
+### 6.2. Better bug detection with tools
 
-First, null pointer dereference is a common bug, breaking functionality in many popular commercial programs. Also in other languages. The ability to detect such bugs is very useful. Tools and techniques are being developed to help that task. Some tools like static analyzers need help from the programmer and the libraries: this help is provided via UB.
+#### 6.2.1. The difference between bugs and precondition violations
+
+A *Bug* (like a type-o, or misunderstanding of the interface, or reading one variable instead of another) is an inadverant logic in the code that makes the program do something else than what we intended. We cannot define it formally. But we definitely do not want them in our source code. Bugs make programs misbihave and crash. Bugs may cause injuries and fatalities.
+
+An *precondition violation* is a very formal situation. A function (or expression) has a *precondition*: a constraint on the set of values/states. This condition can be specified quite formally, e.g. "`[b, e)` represent a valid range"; sometimes the precondition can be expressed as a c++ expression, e.g. `i >= 0`. An *precondition violation* is a situation when a function has a precondition (a constraint on input values) and yet it is passed a value/state that does not meet the constraint. This is so formal that we can communicate unambigously using these terms. Even tools like compilers and static analyzers can understand the notion of precondition violations. Here, we are not talking about bad things that can happen to the outside world, or human intentions. The notion of *precondition violation* is in a different level of abstraction than the notion of a *bug*. Tools are not concerned with potential injuries, but tools can diagnose precondition violations in functions.
+
+A precondition violation is a symptom of a bug; but it is not a bug on itself. By specifying preconditions and making the contracts narrow, you build a connection between the two notions: a precondition violation can now indicate a bug. This is possible only when there are some input values disallowed by the function. The notion of *undiefined behavior* or *invalid input* also come close to the notion of precondition violation.
+
+Now, sometimes people are concerned with precondition violations (and invalid inputs) more than with bugs. They claim that if you get rid of preconditions (invalid inputs), you get rid of precondition violations; and when you get rid of precondition violations, you get rid of the problems. In consequence, they postulate to design function interfaces so that any input is "valid", i.e. have no preconditions. 
+
+The first part of that claim is actually true: if you get rid of preconditions, you get rid of potential precondition violations. But with this you are only curing the symptoms and let the disease (the bug) spoil your system: and now that you have one symptom less, it will be more difficult to detect it. You simply loosen the connection between the technical notion of "precondition violation" and human notion of "bug". Consider this example containing a bug, where we inedvertantly pass a null pointer, whereas we intended to pass a different value:
+
+```c++
+const char * p = "contents.txt";
+const char * q = 0;
+f(q); // BUG: intended to call f(p);
+```
+
+That is, we pass a different pointer than we intended, but the types accidentally match, which forms a well-formed C++ program. First, suppose that function `f()` has a precondition: the argument cannot be a null pointer. If you plant this bug you are violating a precondition. Automatic tools, like static analyzers, do not know our intentions, they cannot recognize such things as "you wanted to pass different argument" or "you confused this name with that one", or "you wanted to pass that value instead", "you have a type-o". But they are good at detecting precondition violations, or illegal values. Invalid input is not a bug itself, but an indication of a bug (in our case: confusing pointers), but if this is reported it is enough for the programmer to kick in and correct it. Static analyzer has *helped* find the bug, but didn't actually find it: the programmer found it based on the information from static analyzer.
+
+Now, consider what happens when you widen the contract. The bug is still there, the pointers are still confused, but there is no precondition violation anymore. Static analyzer is blind and cannot help you detect the bug.
+
+To summarize. The goal is to detect bugs (early, statically). The notion of "precondition violation" or "invalid input" is only a tool that helps detect bugs (or, assert program correctness). The goal is not to detect invalid inputs: it is only a means to the real goal. By widening contracts you render the notion of invalid input unhelpful (or less helpful) in achieving the goal of detecting bugs.
+
+Sometimes people worry more about hitting language-level UB than about bugs in their code. But bugs actually have the same dangerous characteristic as UB: if you hit them, the results are unpredictable. A bug can be thought of as UB at business logic level.
+
+
+#### 6.2.2. Null pointer as a symptom of a bug
+
+Many commercial programs and online services will give you a "null pointer dereference" error message and fail to process your
+task. This problem is quite popular even nowadays, not limited to C++. The ability to detect this problem and remove it on time 
+is important. In such cases dereferencing a null pointer is not the source of the problem, it is just a symptom of one. The source of the problem is that we are passing a null pointer value where we are not supposed to. This happens due to omission of the programmer, for instance:
+
+```c++
+void Display::output(std::string_view s); 
+
+class Controller
+{
+  const char * _name;
+  
+public:
+  void display() { Display::output(_name); }
+  void setName(const char * n) { _name = n; }
+}
+```
+
+Function `display()` was called before function `setNumber()` was able to overwite the null pointer value. In the current version
+of `std::string_view` this causes a null pointer dereference, and null pointer dereference can be easily detected by various tools today. But this can only be detected if passing null pointer value to `std::string_view`s constarctor is UB.
+
+
+#### 6.2.3. Improved static analysis
+
+Some tools, like static analyzers, in order to detect bugs, need help from the programmer and the libraries: this help is provided via UB.
 
 Any portion of code is suspicious and could technically contain a bug. In order for static analyzers not to produce too many false positive warnings, they need to be certain that a given piece of C++-conformant code does not reflect programmer's intentions. How does the static analyzer know what the programmer's intentions are? It doesn't in general, but sometimes the answer is clear: it is *never* the programmers intention to hit an UB. So, when a static analyzer can find an execution path in the program that triggers an UB, it can with certainty report a bug. But for this to work one needs a *potential* to hit an UB. Making a non-null ponter a precondition is such potential to hit an UB: a good one, because dereferencing a null pointer is well explored and tool-friendly type of UB. As explained above, this does not introduce a potential for bugs: it only makes bugs more visible.
 
 UB is close in nature to a [checksum](https://en.wikipedia.org/wiki/Checksum): checksum is redundant, increases the  size of the message, and creates the potential for producing invalid messages (where the payload doesn't match the checksum), so someone might say, "remove it, and there will be no way to send an invalid message". But we still want to use checksums, and we all know why.
 
 
-### 6.4. Flexibility in handling the bug at run-time
+### 6.2.4. Flexibility in handling the bug at run-time
 
 When the standard says that he behavior of some operation is undefined, especially in the case of UB as easily dianosable as dereferencing a null pointer or precondition violation, vendors are allowed to define their guaranteed behavior. Vendors and programmers may use this opportunity to settle on an error reporting scheme for invalid inputs that is best suited for a given program. Ideally, bug should be removed from the code rather than being responded to at run-time. There is no good universal way to respond to them. A solution good for one project would be detrimental in another. Therefore the best the Standard can do is to leave the decision to engineers that assemble the program from the components, that know the environment that the program will be executed in, and that are best equipped to make the right decision. Such decision might be:
 
@@ -435,7 +462,7 @@ But all these options will suddenly be gone if the Standard suddenly defines the
 This illustrates that UB in well designed places is a feature offered to the programmers. Not an omission. Not something to be defined in the future releases of the Standard.
 
 
-### 6.5. No need for defensive checks or preconditions
+### 6.3. No need for defensive checks or preconditions
 
 This subsection assumes that the intention of P0903R1 is to modify `std::string_view` so that it can unambiguously store both not-a-string value and a zero-sized string value, and that the callees can later retrieve the inforrmation which of the two values was intended. In section 4 we already showed that this is not doable with state `{nullptr, 0}` as proposed by P0903R1. 
 
@@ -446,7 +473,8 @@ If `std::string_view` is altered to additionally store the not-a-string value, t
 
 In either case the logic becomes more complicated. In the first case we have an additional branch which is useless in correct programs (that do not pass unintended values). In the second case we have a precondition that anyone needs to be aware of. A precondition is superior to defensive if-statement, but is inferior to strong types that encode the same condition in their *invariants*. Currently in `std::string_view` without P0903R1 we have a *strong invariant*: object of type `std::string_view`, if constructed correctly, and lifetime issues observed, *always* represents a reference to a string. There is no question of "what to do with a not-a-string". Even its default constructor creates a reference to a globally accessible zero-sized string. Everyone who uses type `std::string_view` knows that it deals with strings of different sizes and nothing else. A strong invariant is similar in nature to RAII: if an object managing a resource is in its lifetime, you get the guarantee that the resource is available to you and you do not have to check for anything.
 
-### 6.6. Performance
+
+### 6.4. Performance
 
 In the extension proposed in P0903R1 the constructor taking `const char *` has to perform a test whether the value of the pointer is null before trying to dereference it. When the compiler cannot track how the value of the pointer is obtained, it has to actually perform this check in run-time. In contrast, when the constructor in question adheres to the C-string interface, this check can be skipped.
 
