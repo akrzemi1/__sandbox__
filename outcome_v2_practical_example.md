@@ -1,3 +1,37 @@
+# A practical example of using Boost.Outcome for non-performance critical things.
+
+## The task to be implemented
+
+Function `parse` validates the input text if it matches the required form, and builds a corresponding data structure. One example of a correct input:
+
+```
+"1-10|11-20|21-99;1-10|10-50|51-99"
+```
+
+A `;` separates 'distributions'. Each distribution 'covers' numbers from 1 to 99 using 'ranges'.
+Ranges are separated with a `|`. There are exactly 3 rages in every distribution. Each 'range' consists of two integers: denoting minimum and maximum value (inclusive).
+Ranges cannot overlap, and no holes between ranges are allowed.
+First range in any distribution always starts at 1, last ends at 99.
+
+The allowed syntax in EBNF notation:
+
+```
+valid_input  ::= distribution (";" distribution)*
+distribution ::= range "|" range "|" range
+range        ::= integer "-" integer
+```
+
+The goal of the validation is not only to report a binary success or failure,
+but to give the user a good feedback on what in paricular is considered wrong with her input.
+
+### Constraints
+
+Note that I am creating a lot of stringc underway. They may throw `std::bad_alloc`. I am ok with that. I do not want to avoid any exceptions. I want to report validation failures in `expected` and other run-time situations like resurce shortage are dealt through stack unwinding.
+
+This is validation. It is not a performance-critical component.
+
+## The source code
+
 ```c++
 #include "outcome.hpp"
 #include <boost/tokenizer.hpp>
