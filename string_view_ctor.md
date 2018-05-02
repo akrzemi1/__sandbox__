@@ -1,7 +1,11 @@
 Doc. No.: D1043r0
+
 Date: 2018-04-28
+
 Reply to: Andrzej Krzemieński
+
 Audience: LEWG, LWG, EWG
+
 
 # Narrow contracts in `string_view` versus P0903R1
 
@@ -680,6 +684,8 @@ Unlike in 8.1. You need to use `ub_string_view` *everywhere* and (the modified) 
 ## 9. Acknowledgements
 
 Ashley Hedberg and Jorg Brown devoted their time to explain in detail the use cases for null-aware `string_view`, which helped improve the discussion in this paper.
+
+Titus Winters has reviewed the paper and offered a number of suggestions.   
 
 Tomasz Kamiński offered a number of useful suggestions that improved the quality of the paper.
 
