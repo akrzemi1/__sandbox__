@@ -4,9 +4,7 @@ Date: 2018-05-07
 
 Audience: LEWG, LWG, EWG
 
-Authors: Andrzej Krzemieński
-
-Reply to: akrzemi1 (at) gmail (dot) com
+Reply to: Andrzej Krzemieński (akrzemi1 (at) gmail (dot) com)
 
 
 
