@@ -1,10 +1,14 @@
 Doc. No.: D1043r0
 
-Date: 2018-04-28
-
-Reply to: Andrzej Krzemieński
+Date: 2018-05-07
 
 Audience: LEWG, LWG, EWG
+
+Authors: Andrzej Krzemieński
+
+Reply to: akrzemi1 (at) gmail (dot) com
+
+
 
 
 # Narrow contracts in `string_view` versus P0903R1
