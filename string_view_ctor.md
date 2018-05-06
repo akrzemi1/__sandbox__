@@ -71,7 +71,7 @@ for (char ch : sv)
   read(ch);
 ```
 
-Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues. Or, in other words, `{sv.data(), sv.size()}` should represent a valid counted range. Also, `operator==`, which defines the value of any type takes into accounts only the values of these characters, not the addresses. Thus two `string_view`s can contain different pointers, but still compare equal. This also implies a precondition on the constructor taking a pointer and a size: these two should represent a valid counted range.
+Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues. Or, in other words, `{sv.data(), sv.size()}` should represent a valid counted range. Also, `operator==`, which defines the value of any type, takes into accounts only the values of these characters, not the addresses. Thus two `string_view`s can contain different pointers, but still compare equal. This also implies a precondition on the constructor taking a pointer and a size: these two should represent a valid counted range.
 
 A zero-sized string is represented by a `string_view` object `sv` when `sv.size() == 0`, which includes objects created as follows: `string_view{nullptr, 0}` or `string_view{"A", 0}`. For zero-sized strings the pointer `sv.data()` need not be dereferenced to observe the value of the string. `string_view` objects cannot store a not-a-string value. This is discussed in detail in section 4.
 
