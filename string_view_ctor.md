@@ -612,22 +612,22 @@ Different semantics require a different type. And you are offering a different s
 
 Fourth, choose the Standard Library implementation that already implements the semantics of P0903R1. The Standard Specifies the behavior as UB, so this is legal for Standard-conforming implementation to implement your desired semantics. If this is not already the case influence your library vendor to implement the behavior of P0903R1, or give you the option to configure the library to do what you want.
 
-Fifth, change the callers, so that they decide how they want to treat the not-a-string value. For instance define function `conflate_null()` which takes a `const char*` argument interpreted as "either a string or not-a-string" and returns a `const char*` value interpreted as string:
+Fifth, change the callers, so that they decide how they want to treat the not-a-string value. For instance define function `null_as_empty()` which takes a `const char*` argument interpreted as "either a string or not-a-string" and returns a `const char*` value interpreted as String:
 
 ```c++
-constexpr const char * conflate_null(const char * s) noexcept {
+constexpr const char * null_as_empty(const char * s) noexcept {
   return s ? s : "";
 }
 ```
 
-Or you can have `not_null` accept return a dedicated type which can convert to either `const char*` interpreted as string or to `conflating_string_view`. When applying this solution the caller from the example in 8.1 has to be changed to:
+Or you can have `null_as_empty` return a dedicated type which can convert to either `const char*` interpreted as string or to `conflating_string_view`. When applying this solution the caller from the example in 8.1 has to be changed to:
 
 ```c++
 // caller:
 can_compress_ = CheckCompressionType(
-  conflate_null(input_headers().GetHeader("User-agent")),
-  conflate_null(input_headers().GetHeader("Accept-encoding")),
-  conflate_null(output_headers().GetHeader("Content-type")));
+  null_as_empty(input_headers().GetHeader("User-agent")),
+  null_as_empty(input_headers().GetHeader("Accept-encoding")),
+  null_as_empty(output_headers().GetHeader("Content-type")));
 ```
 
 This requires the change in the caller (which can be considered a disadvantage in its own right), but at the same time it makes the intentions and the logic of the program more clear and penetrable: "from this point we treat not-a-string value and the zero-sized string value in the same way".
