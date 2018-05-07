@@ -71,7 +71,7 @@ for (char ch : sv)
   read(ch);
 ```
 
-Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues. Or, in other words, `{sv.data(), sv.size()}` should represent a valid counted range. Also, `operator==`, which defines the value of any type, takes into accounts only the values of these characters, not the addresses. Thus two `string_view`s can contain different pointers, but still compare equal. This also implies a precondition on the constructor taking a pointer and a size: these two should represent a valid counted range.
+Therefore the type has an *invariant*: the value of `sv.data()` is such that `sv.data()[0]`, `sv.data()[1]`, ..., `sv.data()[sv.size() - 1]` are valid rvalues. Or, in other words, `{sv.data(), sv.size()}` should represent a valid counted range. Also, `operator==`, which defines the value of any type, takes into account only the values of these characters, not the addresses. Thus two `string_view`s can contain different pointers, but still compare equal. This also implies a precondition on the constructor taking a pointer and a size: these two should represent a valid counted range.
 
 A zero-sized string is represented by a `string_view` object `sv` when `sv.size() == 0`, which includes objects created as follows: `string_view{nullptr, 0}` or `string_view{"A", 0}`. For zero-sized strings the pointer `sv.data()` need not be dereferenced to observe the value of the string. `string_view` objects cannot store a not-a-string value. This is discussed in detail in section 4.
 
@@ -124,7 +124,7 @@ There are some exceptions to that rule. First, some functions do specify what ha
 
 Second, functions with bounds-checking interfaces, such as `strcpy_s` do have a defensive check for null-pointer inputs. Such an input is considered an error and results in the call to a *constraint handler* function: it might call `abort()` or ignore the situation by default, or do whatever handler is installed by in the program.
 
-Third, functions like `strncpy` determine the length in a mixed way. an additional length `len` is provided, if `'\0'` cannot be found in the first `len` locations, value `len` is used as string length. This departs from the C-string interface, but still treats null-pointer input as invalid (UB).
+Third, functions like `strncpy` determine the length in a mixed way. An additional length `len` is provided, if `'\0'` cannot be found in the first `len` locations, value `len` is used as string length. This departs from the C-string interface, but still treats null-pointer input as invalid (UB).
 
 Fourth, functions like `memcpy` do not take `const char*`, but `const void*` arguments, but they are still relevant in the discussion. In this case the length of the sequences is provided separately by additional argument of type `size_t`. Passing null pointers is still UB.
 
@@ -144,9 +144,9 @@ template <class InputIt, class OutputIt>
 OutputIt copy(InputIt first, InputIt last, OutputIt d_first);
 ```
 
-This algorithm can be instantiated with three `const char*` values. These three values represent two ranges: `[first, last)` and `[d_first, d_first + distance(first, last)]`. And again, all three pointers can be null (tey would represent two zero-sized ranges), because the sizes of the underlying sequences can be determined without dereferencing the pointers.
+This algorithm can be instantiated with three `const char*` values. These three values represent two ranges: `[first, last)` and `[d_first, d_first + distance(first, last)]`. And again, all three pointers can be null (they would represent two zero-sized ranges), because the sizes of the underlying sequences can be determined without dereferencing the pointers.
 
-A question has been asked, if and how the Ranges TS handles the case of a null pointer passed as type `const char*`. The answer is, Ranges TS describes constraints on inputs representing *ranges* denoted by begin and end. A C interface for strings is not a range in the sense of Ranges TS. If we want to talk about the analogy to ranges, passing a null pointer to a function with the C-string interface would be analogous to calling:
+A question has been asked, if and how the Ranges TS handles the case of a null pointer passed as type `const char*`. The answer is, Ranges TS describes constraints on inputs representing *ranges* denoted by begin and end. The C-string interface is not a range in the sense of Ranges TS. If we want to talk about the analogy to ranges, passing a null pointer to a function with the C-string interface would be analogous to calling:
 
 ```c++
 std::for_each(v.begin(), fun); // no v.end()
@@ -160,23 +160,23 @@ The above are the semantics associated with type `const char*` in C-string inter
 
 First, you can treat the null pointer value as a zero-sized string  (`""`). Whenever you call `f(nullptr)` the effect is the same as if you called `f("")`.
 
-Second, you can treat the null pointer value as distinct from any sting, even zero-sized string. This implies that `const char *` is similar to `optional<string>`:`optstr == nullopt` is a different state than `optstr == ""s`, and calling `f(nullptr)` can give different results than calling `f("")`.
+Second, you can treat the null pointer value as distinct from any sting, even zero-sized string. This implies that `const char *` is similar to `optional<string>`: `optstr == nullopt` is a different state than `optstr == ""s`, and calling `f(nullptr)` can give different results than calling `f("")`.
 
 Also, type `const char*` can be used for other purposes than representing a string: it can represent an address of a single character. Migrating such usage to `string_view` would be unwise. 
 
 
 ### 2.5. Is passing a null pointer where a string is expected fundamentally wrong?
 
-Much of controversy around P0903R1 is about whether it is valid to pass a null pointer where `const char*` is expected to represent a string. If by a "string" we mean the String concept: a sequence of 0 or more characters, then clearly there is no need to intentionally use the null pointer value. Any value of String, including zero-sized string, can be represented by null-terminated byte sequence that the pointer need to point to. Plus, it is a well established idiom in C and C++ Standard Library that passing null pointer in such case is illegal, and therefore is an indication of the porgrammer bug. When such bug is diagnosed the code is changed so that a non-null pointer is passed to function `f()` or function `f()` is not called at all. So, at least when dealing with the Standard Library functions, passing null pointer that is supposed to indicate a string happens only temporarily, and inadvertantly, and is ideally corrected as soon as possible.
+Much of controversy around P0903R1 is about whether it is valid to pass a null pointer where `const char*` is expected to represent a string. If by a "string" we mean the String concept: a sequence of 0 or more characters, then clearly there is no need to intentionally use the null pointer value. Any value of String, including zero-sized string, can be represented by null-terminated byte sequence that the pointer needs to point to. Plus, it is a well established idiom in C and C++ Standard Library that passing null pointer in such case is illegal, and therefore is an indication of the porgrammer bug. When such bug is diagnosed the code is changed so that a non-null pointer is passed to function `f()` or function `f()` is not called at all. So, at least when dealing with the Standard Library functions, passing null pointer that is supposed to indicate a string happens only temporarily, and inadvertantly, and is ideally corrected as soon as possible.
 
 But this is only the C-string interface. In custom libraries developers can associate other semantics with a single `const char *` parameters intended to represent strings. They will typically be similar to the C-string interface except that null pointer value is treated in a different manner, which can be one of:
 
 1. Null pointer represents the zero-length string.
 2. Null pointer represents a yet another value distinct from any sequence of characters. This is equivalent to `optional<string>` not containing a value, which is different even from a zero-sized string.
-3. Null pointer value is unwelcome and indicates a bug, but we want functions to accept it and deal with the bug internally at run-time, trough defensive if statements or exceptions or something similar.
-4. Null pointer value is unwelcome and indicates a bug, but we expect the function to accept it and not cause language-level UB, but we fave no further expectations of what happens.
+3. Null pointer value is unwelcome and indicates a bug, but we want functions to accept it and deal with the bug internally at run-time, through defensive if statements or exceptions or something similar.
+4. Null pointer value is unwelcome and indicates a bug, but we expect the function to accept it and not cause language-level UB, but we have no further expectations of what happens.
 
-In a third party library with lots of functions taking single `const char *` to indicate a string with semantics different than the C-string interface, different functions may have different answers to the above question. This means that one cannot automatically refactor all these functions to take `some_string_view` in place of `const char *`, Instead, for each of these functions the semantics need to be determined and only then an appropriate refactoring action can be taken.
+In a third-party library with lots of functions taking single `const char *` to indicate a string with semantics different than the C-string interface, different functions may have different answers to the above question. This means that one cannot automatically refactor all these functions to take `some_string_view` in place of `const char *`, Instead, for each of these functions the semantics need to be determined and only then an appropriate refactoring action can be taken.
 
 During the discussion we have witnessed people saying, "I have passed null pointer as `const char*` and it was always obvious that it indicates a zero-sized string", other said that in their code base null pointer always indicates a not-a-string. Other replies are that such string is empty (different opinions whether it means zero-sized or not-a-string, or if it matters at all), or is "null" (whatever that means for strings). Whatever answer you chose, you will serve one group, and surprise others, causing bugs.
 
@@ -224,11 +224,12 @@ display2({vec.data(), vec.size()}); // supposedly allowed
 
 Technically, to fix it one can add a precondition on `display2()`: "`message.data()` should point to a null-terminated sequence", but this is probably nobody's intention.
 
-This illustrates that a top-bottom approach to migrating C-string interfaces to `std::string_view` is impossible in general, although in practice any interface that isn't calling into a C-string interface has no problem. Bottom-up conversion is more generally possible and preferable.
+This illustrates that a top-bottom approach to migrating C-string interfaces to `std::string_view` is impossible in general,
+unless you know that the argument is not passed down to another C-string interface. Bottom-up conversion is more generally possible and preferable.
 
-This also illustrates that it is not possible to migrate even C-string interfaces to `std::string_view`. At least not all of them. Regardless if we accept P0903R1 or not.
+This also illustrates that it is not possible to mechanically migrate even C-string interfaces to `std::string_view`. At least not all of them. Regardless if we accept P0903R1 or not.
 
-Also, when changing the interfaces from `const char *` to `std::string_view` one needs to have a clear purpose: why was `const char*` bad? What is better after such change? One answer for this question is, "we do not want `const char*` because it allows the null pointer value and it causes muddles the design: we want to avoid answering the question what to do on null pointer for every function." If this should be the intent, changing `std::string_view` modified by P0903R1 only moves the ambiguity to `std::string_view`. You have a type now with no clear semantics which becomes an ambiguity on its own. And you have deprived yourself of the old narrow-contract `std::string_view` that was able to introduce clear semantics (string and nothing else) to the parts of your program that got rid of nunclear semantics.
+Also, when changing the interfaces from `const char *` to `std::string_view` one needs to have a clear purpose: why was `const char*` bad? What is better after such change? One answer for this question is, "we do not want `const char*` because it allows the null pointer value and it  muddles the design: we want to avoid answering the question what to do on null pointer for every function." If this should be the intent, changing `std::string_view` modified by P0903R1 only moves the ambiguity to `std::string_view`. You have a type now with no clear semantics which becomes an ambiguity on its own. And you have deprived yourself of the old narrow-contract `std::string_view` that was able to introduce clear semantics (string and nothing else) to the parts of your program that got rid of unclear semantics.
 
 
 ## 4. Holding not-a-string value in `std::string_view`
@@ -255,7 +256,7 @@ This means that if P0903R1 is adopted, inside functions taking `string_view` it 
 
 Worse still, because on different implementations `std::vector` may return a non-null-pointer upon default construction, program written in one implementation (where `vec.data()` returns null pointer) that uses P0903R1-like `string_view`s may be thoroughly unit-testsed, but when compiled and run with a different implementation of the Standard Library will expose a different behavior.
 
-One could say that having UB in `std::string_view{nullptr}` has the same problem. It does not: the problem is similar but different in one important aspect. In UB-friendly `string_view` when someone (like a tester or an end user) observes a bug, it is consistent with the developer's perception; a developer will say, "yes, this code caused an UB, there is something wrong with it, we need to fix it". Therefore programmers are compelled to track and fix the same things that testers and end users consider a bug. In contrast, in P0903R1-like `string_view`s, when a tester or an end user observes a bug, the programmer at a corresponding place sees a well defined behavior and an if-statement, especially put for this condition, and he says, "no, I am &laquo;handling&raquo; this case; there must be something wrong with the user's expectations or a platform or something else". In this attitude, detecting and removing bugs is impeded. This is discussed in more detail in section 6.
+One could say that having UB in `std::string_view{nullptr}` has the same problem (may pass tests on one implementation, but fail on another). But it does not: the problem is similar but different in one important aspect. In UB-friendly `string_view` when someone (like a tester or an end user) observes a bug, it is consistent with the developer's perception; a developer will say, "yes, this code caused an UB, there is something wrong with it, we need to fix it". Therefore programmers are compelled to track and fix the same things that testers and end users consider a bug. In contrast, in P0903R1-like `string_view`s, when a tester or an end user observes a bug, the programmer at a corresponding place sees a well defined behavior and an if-statement, especially put for this condition, and he says, "no, I am &laquo;handling&raquo; this case; there must be something wrong with the user's expectations or a platform or something else". In this attitude, detecting and removing bugs is impeded. This is discussed in more detail in section 6.
 
 Also, one could ask if the same problem does not already occur in the current `std::string_view` when it is default-constructed. The answer is *no*. In the current model, `std::string_view`'s default constructor simply refers to a zero-sized string. No not-a-string value exists. No one should have any need to observe the numeric value of address `sv.data()` alone. This makes `string_view` compatible with `std::string` which also represents a zero-sized string when default-constructed.
 
@@ -278,9 +279,9 @@ But it is not clear if anyone wants this.
 
 ### 4.3. A non-regular interface
 
-Also, even the implementation in section 4.2 has its problems. `operator==`, which traditionaly defines the value of an object, compares the contents of the strings: number of and values of the characters. It is not able to distinguish not-a-string value from zero-sized string value. `std::hash<std::string_view>` does not distinguish not-a-string value from zero-sized string value. This will make any function that tries to test for special not-a -string value not regular: functions that attempt to distinguish the special not-a-string state and trigger a different control path will give different results for equal inputs (as defined by `hash`, `operator<`, `operator==`). Putting results of such functions to maps, sets, doing memoization, all these will break.
+Also, even the implementation in section 4.2 has its problems. `operator==`, which traditionaly defines the value of an object, compares the contents of the strings: number of and values of the characters. It is not able to distinguish not-a-string value from zero-sized string value. `std::hash<std::string_view>` does not distinguish not-a-string value from zero-sized string value. This will make any function that tries to test for special not-a -string value not regular: functions that attempt to distinguish the special not-a-string state and trigger a different control path will give different results for equal inputs (as defined by `hash`, `operator<`, `operator==`). Putting results of such functions to maps, sets, doing memoization, marshalling-unmarshalling, all these will break.
 
-Of course, this is all acceptable if the requirement is, "anything else than immediate language-level UB". But we will not pursue that path in tis document.
+Of course, this is all acceptable if the requirement is, "anything else than immediate language-level UB". But we will not pursue that path in this document.
 
 This above discussion implies that, unless more extensive changes are made to `string_view`, there is only one self-consistent conceptual model for `string_view` that accepts null pointer as `const char *`.
 
@@ -310,7 +311,7 @@ X* bar(const char* p) // nullptr is fine
 
 In this case conflating not-a-string with a zero-sized string is acceptable.
 
-There is another model, which is self-consistent provided that no attempt at memoization is made. This includes the attempts of storing the results of functions discriminationg `sv.data() == nullptr` in maps.
+There is another model, which is self-consistent provided that no attempt at memoization is made. (This includes the attempts of storing the results of functions discriminating `sv.data() == nullptr` in maps.)
 
 The not-a-string state is never expected to occur, but if it occurs it is treated as a bug in the program and functions that obtain it should immediately stop execution, e.g. by calling `std::terminate()`, throwing an exception, or performing a comparable avasive action. In such case departing from regular/value semantics does not matter, as the program or a part thereof will be shut down anyway.
 
@@ -333,9 +334,9 @@ This second model can still break memoization: a function that discriminates `sv
 
 Given that `std::string_view` is intended to be a faster replacement for `const std::string&` a quesion need to be answered whether we can change the interface of one without changing the interface of the other.
 
-P0903R1 proposes to widen the contract of `std::string_view`'s converting constructor. According to the theory of *design by contract*, in a correct (i.e., bug-free) program, a function with a narrower precondition `f1()` can be replaced by a function with a wider precondition `f2()` and it does not affect program correctness (measured by functions inuts satisfying their preconditions). But you cannot replace `f2()` back with `f1()`, because then the contract gets narrower. The only case when you can change from `f1()` to `f2()` and back is when both functions have identical contract.
+P0903R1 proposes to widen the contract of `std::string_view`'s converting constructor. According to the theory of *design by contract*, in a correct (i.e., bug-free) program, a function with a narrower precondition `f1()` can be replaced by a function with a wider precondition `f2()` and it does not affect program correctness (measured by function inputs satisfying their preconditions). But you cannot replace `f2()` back with `f1()`, because then the contract gets narrower. The only case when you can change from `f1()` to `f2()` and back is when both functions have identical contract.
 
-This is relevant in preactice when dealing with functions with `std::string` as parameters. There are situations where you need to change the signature from `void f(std::string)` to `void f(const std::string&)` for performance reasosns; and sometimes you have to change the signature from `void f(const std::string&)` to `void f(std::string)`: also for performance reasons, depending on the situation (in case you need to make a copy of the argument inside the function). Contract-wise both these changes are correct: both signatures have the same contract.
+This is relevant in practice when dealing with functions with `std::string` as parameters. There are situations where you need to change the signature from `void f(std::string)` to `void f(const std::string&)` for performance reasosns; and sometimes you have to change the signature from `void f(const std::string&)` to `void f(std::string)`: also for performance reasons, depending on the situation (in case you need to make a copy of the argument inside the function). Contract-wise both these changes are correct: both signatures have the same contract.
 
 Similarly, now that we have `std::string_view`, one may need to change the signature from `void f(const std::string&)` to `void f(std::string_view)`, and sometimes from `void f(std::string_view)` to `void f(std::string)`. Now, if both `std::string` and `std::string_view` have the same narrow contract in constructors (null pointer disallowed in both), the change in either direction is correct contract-wise. (Technically, `std::string` and `std::string_view` have different set of member functions, so mechanically replacing one type with the other may result in a program that does not compile. But in most of the cases we are only interested in the sequence as a whole and the only members that are used are `.begin()` and `.end()`.) But if `std::string_view` had a wider contract in constructor (null pointer is a valid input), migrating from `void f(std::string_view)` to `void f(std::string)` might introduce bugs if someone has started passing null pointers to function `f()`.
 
@@ -373,7 +374,7 @@ bool indicator::is_in_range(int lo, int hi) const
 
 Whetever you do, you are not dealing with a range now, but with two objects of type `int`. There is no notion of being *in range* for two arbitrary `int` values, and the value in the additional return statement is probably wrong, because there is no good answer. The logic of this function has descended from dealing with abstract ranges to performing operations on C++ type-system objects. Reasoning at this level is harder and more bug prone. Intuition fails, and code reviews are less effective.
 
-One could say, given that we have to accept `lo > hi` let's make it useful. Say, in such case change the check form "in range" ot "outside range":
+One could say, given that we have to accept `lo > hi` let's make it useful. Say, in such case change the check form "in range" to "outside range":
 
 ```c++
 bool indicator::is_in_range(int lo, int hi) const
@@ -384,9 +385,9 @@ bool indicator::is_in_range(int lo, int hi) const
 }
 ```
 
-This is similar to what C functions like `setenv()` do. Now every combination of values triggers a useful combination. But now we have completely departed form the notion of a range. We have conflated two concepts into one interface. We have created an unintuitive abstraction. Thinking about it is hard, and bugs very likely to occur.  
+This is similar to what C functions like `setenv()` do. Now every combination of values triggers a useful output. But now we have completely departed form the notion of a range. We have conflated two concepts into one interface. We have created an unintuitive abstraction. Thinking about it is hard, and bugs very likely to occur.  
 
-Similarly, a null pointer value does not represent a string, not even a zero-sized string. Once it is accepted as valid input to `string_view` something has to be done with it: maybe call it a zero-sized string, maybe call it a distinct value from any string value. In either case the abstraction is weakened. We cannot safely think interms of strings, character sequences, but one level down: about the numeric value of address `sv.data()`.
+Similarly, a null pointer value does not represent a string, not even a zero-sized string. Once it is accepted as valid input to `string_view` something has to be done with it: maybe call it a zero-sized string, maybe call it a distinct value from any string value. In either case the abstraction is weakened. We cannot safely think in terms of strings, character sequences, but one level down: about the numeric value of address `sv.data()`.
 
 
 ### 6.2. Better bug detection with tools
@@ -421,7 +422,7 @@ Sometimes people worry more about hitting language-level UB than about bugs in t
 #### 6.2.2. Null pointer as a symptom of a bug
 
 Many commercial programs and online services will give you a "null pointer dereference" error message and fail to process your
-task. This problem is quite popular even nowadays, not limited to C++. The ability to detect this problem and remove it on time 
+task. This problem is quite popular even nowadays, not limited to C++. The ability to detect this problem and remove it in time 
 is important. In such cases dereferencing a null pointer is not the source of the problem, it is just a symptom of one. The source of the problem is that we are passing a null pointer value where we are not supposed to. This happens due to omission of the programmer, for instance:
 
 ```c++
@@ -429,7 +430,7 @@ void Display::output(std::string_view s);
 
 class Controller
 {
-  const char * _name;
+  const char * _name = nullptr;
   
 public:
   void display() { Display::output(_name); }
@@ -438,7 +439,7 @@ public:
 ```
 
 Function `display()` was called before function `setNumber()` was able to overwite the null pointer value. In the current version
-of `std::string_view` this causes a null pointer dereference, and null pointer dereference can be easily detected by various tools today. But this can only be detected if passing null pointer value to `std::string_view`s constarctor is UB.
+of `std::string_view` this causes a null pointer dereference, and null pointer dereference can be easily detected by various tools today. But this can only be detected if passing null pointer value to `std::string_view`s constructor is UB.
 
 
 #### 6.2.3. Improved static analysis
@@ -455,12 +456,12 @@ UB is close in nature to a [checksum](https://en.wikipedia.org/wiki/Checksum): c
 When the standard says that the behavior of some operation is undefined, especially in the case of UB as easily diganosable as dereferencing a null pointer or precondition violation, vendors are allowed to define their guaranteed behavior. Vendors and programmers may use this opportunity to settle on an error reporting scheme for invalid inputs that is best suited for a given program. Ideally, bugs should be removed from the code rather than being responded to at run-time. There is no good universal way to respond to them. A solution good for one project would be detrimental in another. Therefore the best the Standard can do is to leave the decision to engineers that assemble the program from the components, that know the environment that the program will be executed in, and that are best equipped to make the right decision. Such decision might be:
 
 1. Compile the program with UB sanitizer. If null pointer dereference is encountered a message will be logged and the program halted.
-2. When the function is evaluaed in the `constexpr` context,a compiler error is reported.
+2. When the function is evaluaed in the `constexpr` context, a compiler error is reported.
 3. The vendor's implementation of the library component may throw an exception upon invalid (null pointer) argument to the constructor. In fact, libstdc++ implementation of `std::string` throws an exception wnen you construct it from null pointer.
 4. The vendor's implementation of the library component may use a replacement value which is valid when an original value is invalid. This is what the libstdc++ implementation of `std::string_view` does when you pass null pointer to the constructor: it initializes to `{nullptr, 0}`.
 5. You can switch between any of the above based on compiler switches and macro definitions. Vendors can offer different modes in which their implementation of the Standard library operates. In particular for unit-test builds you can configure the `std::string_view`'s constructor to report unit-test as failed, and then proceed with the zero-sized string value.
 
-These all options are possible only because the Standard leaves undefined what happens. They may not sound like an option if one thinks, "the Standard is my ally, the compiler vendor is my enemy", but if you trust your platform and tools the picture is completely different. In particular this, flexibility means that if Abseil Authors want to implement "go with default-constructed `string_view` upon null pointer" in their implementation of `std::string_view`, that is also a standard-conformant implementation. 
+These all options are possible only because the Standard leaves undefined what happens. They may not sound like an option if one thinks, "the Standard is my ally, the compiler vendor is my enemy", but if you trust your platform and tools the picture is completely different. In particular, this flexibility means that if Abseil Authors want to implement "go with default-constructed `string_view` upon null pointer" in their implementation of `std::string_view`, that is also a standard-conformant implementation. 
 
 But all these options will suddenly be gone if the Standard suddenly defines the behavior to only one right solution. Such one solution cannot serve the entire community.
 
