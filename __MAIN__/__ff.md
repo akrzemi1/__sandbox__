@@ -90,6 +90,40 @@ If used only for `release()` (no logic completion (mention fclose)), we can see 
 you do not want to start cancellation cascade: function did its job.
 
 
+RAII (beter than `finally`)
+---------------------------
+Because of scoping rules
+
+
+Sending arbitrary data
+----------------------
+Is it useful?
+
+What information should be carried with error?
+
+* if errors are handled locally: not much -- every required data is in scope
+* If you catch at distant places, you cannot even imagine all the types and datas. You need a common interface for extracting data
+  * Use `boost::exception`: one type but store arbitrary data...
+Usually I use two types: they differ on where to catch them.
+
+
+
+Is it an error yet?
+-------------------
+
+`convert()`?
+`find()`?
+Typical guidance: do not throw if the exception is expected to be handled locally.
+* would this guidance hold if exception handling was cheap?
+
+
+
+
+
+
+
+
+
 
 ----------------------
 
