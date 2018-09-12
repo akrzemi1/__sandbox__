@@ -113,10 +113,18 @@ Is it an error yet?
 
 `convert()`?
 `find()`?
-Typical guidance: do not throw if the exception is expected to be handled locally.
+Typical guidance: 
+* do not throw if the exception is expected to be handled locally.
+* be prepared that your exception might unwind the app up to the entry point, and stop it.
 * would this guidance hold if exception handling was cheap?
 
 
+bad example: boost::lexical_cast
+---------------------------------
+1. Not being able to convert to T is not necessarily an error: often I call it to check if conversion is possible. -- it is the context that determines whether this is a failure or not.
+2. Sometimes I just want to go with default value if I cannot produce a T.
+3. If I want to throw, I want to throw a different type than the hard-coded bad_lexical_cast
+4. I know I want to recover locally from the failure.
 
 
 
