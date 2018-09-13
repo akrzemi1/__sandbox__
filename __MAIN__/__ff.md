@@ -127,7 +127,21 @@ bad example: boost::lexical_cast
 4. I know I want to recover locally from the failure.
 
 
+lets use try_convert instead:
+-----------------------------
 
+what if you forget to handle an error? --> `[[nodiscard]]`
+with `[[nodiscard]]` the trade-off changes: you cannot forget to handle: the compiler will remind you: you decide if you want the avalanche or to stop locally.
+You may still consider throwing a better solution, but you have to rethink the trade-off
+dont want to spoil your function declarations with `[[nodiscard]]`?
+-- annotate the type:
+
+```c++
+struct Failure [[nodiscard]]
+{
+  // ...
+};
+```
 
 
 
