@@ -160,4 +160,5 @@ overhead of exceptions:
 * exception stacks and thread local storage
 * no worse-case predictable guarantees
 
+Most bugs (resource leaks, UB, crashes) manifests ater incorrect error handling: it occurs seldom and is least tested. 
 
