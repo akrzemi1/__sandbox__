@@ -162,3 +162,6 @@ overhead of exceptions:
 
 Most bugs (resource leaks, UB, crashes) manifests ater incorrect error handling: it occurs seldom and is least tested. 
 
+study copy_file -- when exceptions
+example with parse config (sometimes error sometimes throw
+
