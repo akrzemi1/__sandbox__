@@ -170,3 +170,4 @@ example with parse config (sometimes error sometimes throw
 clang implementation does not use exceptions
 
 "difficult to test all control paths"? -- is it easier with error codes?
+monad, but C++ style (imperative)
