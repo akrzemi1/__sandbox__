@@ -166,3 +166,5 @@ study copy_file -- when exceptions
 example with parse config (sometimes error sometimes throw
 
 "exception safety issues" -> "failure safety issues"
+
+clang implementation does not use exceptions
