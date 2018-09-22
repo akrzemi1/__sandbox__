@@ -165,3 +165,4 @@ Most bugs (resource leaks, UB, crashes) manifests ater incorrect error handling:
 study copy_file -- when exceptions
 example with parse config (sometimes error sometimes throw
 
+"exception safety issues" -> "failure safety issues"
