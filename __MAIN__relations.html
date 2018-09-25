@@ -17,7 +17,12 @@
    and <code>string_view</code> the abstract domain <var>D</var> consists of sequences of characters; in type <code>Employee</code>
    this sequence is obtained from member <code>name</code>. For another instance, in the context of comparing types <code>wide_int</code>
    (capable of storing arbitrarily big integer values using heap) and <code>double</code> the abstract domain <var>D</var> is the subset of
-   rational numbers that both these types map to; <code>wide_int</code> and <code>double</code> represent different subsets of <var>D</var>. 
+   rational numbers that both these types map to; <code>wide_int</code> and <code>double</code> represent different subsets of <var>D</var>.
+   For a yet another instance, in the context of function object <code>LessByCoordinateX</code> operating on types <code>Point</code>
+   and <code>double</code> the abstract domain <var>D</var> is a subset of rational numbers representable in type <code>double</code>,
+   the number is obtained from a <code>Point</code> through member <code>x</code>; and analogously for function object <code>LessByCoordinateY</code>,
+   which shows that the abstract domain <var>D</var> depends not only on the types of the operands, but also on the function object itself 
+   (so requirement <code>common_reference&lt;T, U&gt;</code> that ignores the comparator is incorrect). 
    </p>
    
 <p>The point of controversy is whether we should require that <var>D</var> be expressed directly by the programmer in the code, and if the
