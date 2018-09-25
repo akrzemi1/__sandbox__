@@ -1,0 +1,19 @@
+<html><head></head>
+<body>
+
+<h2>3.2. Mathematical soundness</h2>
+
+<p>When describing STL order-based algorithms we are referring to the mathematical notion of <em>strict weak order</em>
+   in order to precisely state the contract: the algorithm will return correct results only if these formal criteria are met.
+   But, as is the case with contracts, while they need to be precisely defined, communicated and obeyed, they need not be 
+   directly expressible within the programming language. E.g., this is the case for the requirement, "iterators <code>begin</code>
+   and <code>end</code> must represent a valid range." 
+   </p>
+   
+<p>Everyone will agree that when dealing with order-based algorithms on different <code>T</code>s and <code>U</code>s
+   they both need to represent abstract values (not related to machine representation) from the same domain <var>D</var>.
+   It is through this domain and its elements (abstract values) that we can express the constraints formally.
+   </p>
+   
+</body>
+</html>
