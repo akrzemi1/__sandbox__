@@ -56,7 +56,7 @@
 
 <pre>
 template &lt;typename Dx, typename Dy, typename Dz&gt;
-void test_irreflexivity(const Dx&amp; x, const Dy&amp; y, const Dz&amp; z)
+void transitiity_of_equivalence(const Dx&amp; x, const Dy&amp; y, const Dz&amp; z)
 {
   if (!comp(x, y) && !comp(y, x))
     if (!comp(y, z) && !comp(z, y))
