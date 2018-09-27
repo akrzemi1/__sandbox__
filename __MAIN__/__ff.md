@@ -174,3 +174,5 @@ monad, but C++ style (imperative)
 
 
 http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2289.pdf
+
+exceptions can cause a security concern: someone might be deliberately hitting exceptional path and slowing down the server by orders of magnitude.
