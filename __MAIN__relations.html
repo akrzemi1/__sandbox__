@@ -7,21 +7,24 @@
    to make concept <code>StrictWeakOrdering</code> "mathematically sound".
    </p>
    
-<p>The notion of being "mathematically sound" has no formal definition and is subject to personal judgement or aesthetic preference.
-   In order to facilitate the discussion we would need to define it. One possible attempt is the following. 
-   Because in mathematics, the concept of <em>strict weak ordering</em> is described for elements <em>a</em>, <em>b</em>, <em>c</em> from one domain <em>D</em>,
-   express the corresponding requirements in C++ for objects <code>a</code>, <code>b</code>, <code>c</code> of the same type <code>D</code> (which is far from
-   obvious a step: in mathematics a domain can be composed of values represented by C++ object from two different types). In order to do this,
-   one has to oblidge the user to provide a number of additional definitions (however difficult,
-   impractical or error prone) to create a single type <code>D</code>
+<p>The notion of being "mathematically sound" has no formal definition and is subject to personal judgement or aesthetic
+   preference. In order to facilitate the discussion we would need to define it. One possible attempt is the following. 
+   Because in mathematics, the concept of <em>strict weak ordering</em> is described for elements <em>a</em>, <em>b</em>,
+   <em>c</em> from one domain <em>D</em>, one could express the corresponding requirements in C++ for objects <code>a</code>,
+   <code>b</code>, <code>c</code> of the same type <code>D</code>. This choice is far from obvious. A domain in the mathematical
+   sense can comprise values represented by C++ objects of two or more different types. A mathematical domain is not constrained
+   by the C++ type-system. But if this path is nonetheless chosen, one has to oblidge the user to provide a number of additional
+   definitions (however difficult, impractical or error prone) to create a single type <code>D</code>
    and express the axioms token-by-token as they are spelled out in mathematics for objects of type <code>D</code>.
-   We do not propose this,
-   and instead offer the following alternative. Provide a formal system based on the mathematical concept of <em>strict weak ordering</em>
-   that preserves its essential properties and gives us the benefits of the mathematical concept, but works for two types
-   <code>T</code> and <code>U</code> without requiring a common type and corresponding conversions.
    </p>
    
-<p>What do we require of the syntactic and semantic constraints on concepts:
+<p>We do not propose this, and instead offer the following alternative. Provide a formal system based on the mathematical
+   concept of <em>strict weak ordering</em> that preserves its essential properties and gives us the benefits of the
+   mathematical concept, but works for two types <code>T</code> and <code>U</code> without requiring a common type and
+   corresponding conversions.
+   </p>
+   
+<p>What we require of the syntactic and semantic constraints on concepts:
    </p>
    
    <ul><li>That they are sufficient to describe preconditions and postconditions on functions dealing with order.
