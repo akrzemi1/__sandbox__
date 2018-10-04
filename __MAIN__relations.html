@@ -3,76 +3,71 @@
 
 <h2>3.2. Mathematical soundness</h2>
 
-<p>When describing STL order-based algorithms we are referring to the mathematical notion of <em>strict weak order</em>
-   in order to precisely state the contract: the algorithm will return correct results only if these formal criteria are met.
-   But, as is the case with contracts, while they need to be precisely defined, communicated and obeyed, they need not be 
-   directly expressible within the programming language. E.g., this is the case for the requirement, "iterators <code>begin</code>
-   and <code>end</code> must represent a valid range." 
+<p>In this section we respond to the claim that the requirement on <code>CommonReference</code> is <em>required</em>
+   to make concept <code>StrictWeakOrdering</code> "mathematically sound".
    </p>
    
-<p>There is a universal consensus that when dealing with order-based algorithms on different <code>T</code>s and <code>U</code>s
-   they both need to represent abstract values (not related to machine representation) from the same domain <var>D</var>.
-   It is through this domain and its elements (abstract values) that we can express the constraints formally. For instance,
-   in the context of function object <code>LessByName</code> that operates on types <code>Employee</code>,
-   and <code>string_view</code> the abstract domain <var>D</var> consists of sequences of characters; in type <code>Employee</code>
-   this sequence is obtained from member <code>name</code>. For another instance, in the context of comparing types <code>wide_int</code>
-   (capable of storing arbitrarily big integer values using heap) and <code>double</code> the abstract domain <var>D</var> is the subset of
-   rational numbers that both these types map to; <code>wide_int</code> and <code>double</code> represent different subsets of <var>D</var>.
-   For a yet another instance, in the context of function object <code>LessByCoordinateX</code> operating on types <code>Point</code>
-   and <code>double</code> the abstract domain <var>D</var> is a subset of rational numbers representable in type <code>double</code>,
-   the number is obtained from a <code>Point</code> through member <code>x</code>; and analogously for function object <code>LessByCoordinateY</code>,
-   which shows that the abstract domain <var>D</var> depends not only on the types of the operands, but also on the function object itself 
-   (so requirement <code>common_reference&lt;T, U&gt;</code> that ignores the comparator is incorrect). 
+<p>The notion of being "mathematically sound" has no formal definition and is subject to personal judgement or aesthetic preference.
+   In order to facilitate the discussion we would need to define it. One possible attempt would be, based on the observation that in 
+   mathematics the concept of <em>strict weak ordering</em> is described for elements from one domain <em>C</em>,
+   would be to apply sufficient transformations (however difficult, impractical or error prone) to create a single type <code>C</code>
+   and express the axioms token-by-token as they are spelled out in mathematics for objects of type <code>C</code>. We do not propose this,
+   and instead offer the following alternative. Provide a formal system based on the mathematical concept of <em>strict weak ordering</em>
+   that preserves its essential properties and gives us the benefits of the mathematical concept, but works for two types
+   <code>T</code> and <code>U</code> without requiring a common type and corresponding conversions.
    </p>
    
-<p>The point of controversy is whether we should require that <var>D</var> be expressed directly by the programmer in the code, and if the
-   existence of this type and corresponding conversions add to the soundness of the concept expressed otherwise in mathematical terms. Defining
-   a type that is abble to represent an union of values representable by <code>T</code> and <code>U</code> is sometimes time-consuming, sometimes
-   impossible, so there must exist a benefit to outweigh the costs. "Just because we can" is insufficient an answer.
+<p>What do we require of the syntactic and semantic constraints on concepts:
    </p>
    
-<p>One such apparent benefit from having <var>D</var> represented in the language and axioms expressed in its terms is for tools like
-   static analyzers or or a compiler/library in debug mode to evaluate (sympolically or in run-time) the expressions in the axioms in 
-   order to assert the correctness of the user-provided operation. For instance a library that is gien a function object <code>comp</code> 
-   may choose in debug mode not to use it directly, but instead to use the following funciton object:
-   </p>
+   <ol><li>That they are sufficient to describe preconditions and postconditions on functions dealing with order.
+           </li>
+       <li>That they are sufficient for the run-time injected diagnostic code (such as inside <code>assert()</code>) to be able
+           to test if all the semantic constraints were met.
+           </li>
+      </ol>
    
-<pre>[comp](const auto&amp; x, const auto&amp; y)
+<p>We believe the semantic constraints expressed with the following functions meet the above requirements:
+   </p> 
+   
+<pre>template &lt;typename A&gt;
+bool irreflexivity(const A&amp; a)
 {
-  bool result = comp(x, y);
-  assert (!(result && comp(y, x)); <em>// cannot be both less and greater</em>
-  return result;
+  return !comp(a, a);
 }
-</pre>
 
-<p>But it turns out that this useful addition does not require a common type between <code>T</code> and <code>U</code> to exist. It only invokes
-   <code>comp</code> on objects of type <code>T</code> and <code>U</code>. In fact, all these safety-related injections in the code the author 
-   is aware of can be implemented without the common type. For instance, the check for irreflexivity:
-   </p>
+template &lt;typename A, typename B&gt;
+bool asymmetry(const A&amp; a, const B&amp; b)
+{
+  if (comp(a, b))
+    return !comp(b, a);
+  return true;     
+}
+
+template &lt;typename A, typename B, typename C&gt;
+bool transitivity(const A&amp; a, const B&amp; b, const C&amp; c)
+{
+  if (comp(a, b))
+    if (comp(b, c))
+      return comp(a, c);
+  return true;     
+}
+
+template &lt;typename A, typename B, typename C&gt;
+bool transitivity_of_equivalence(const A&amp; a, const B&amp; b, const C&amp; c)
+{
+  if (!comp(a, b) &amp;&amp; !comp(b, a))
+    if (!comp(b, c) &amp;&amp; !comp(c, b))
+      return !comp(a, c) &amp;&amp; !comp(c, a);
+  return true;     
+}
+</pre>   
    
-<pre>void test_irreflexivity(const T&amp; t, const U&amp; u)
-{
-  assert (!comp(t, t));
-  assert (!comp(u, u));
-}
-</pre>
-
-<p>or <em>transitivity of equialence</em>:</p> 
-
-<pre>
-template &lt;typename Dx, typename Dy, typename Dz&gt;
-void transitiity_of_equivalence(const Dx&amp; x, const Dy&amp; y, const Dz&amp; z)
-{
-  if (!comp(x, y) && !comp(y, x))
-    if (!comp(y, z) && !comp(z, y))
-      assert (!comp(x, z) && !comp(z, x));
-}
-</pre>
-
-<p>To recap, the removal of <code>common_reference</code> requirement does not remove the mathematical requirements of <em>strict weak order</em>
-   from the concept <code>StrictWeakOrder</code> (which is more than just syntactic or semantic requirements that we can express in C++ code). It
-   just makes it impossible to write down these axioms in C++ with identical set of letters and symbols as these used in mathematics.
-   </p>
+<p>Where each <code>A</code>, <code>B</code>, <code>C</code> can be either <code>T</code> or <code>U</code>.
+   These require that the predicate apart from working for <code>comp(t, u)</code> and <code>comp(u, t)</code>
+   also needs to work for <code>comp(t, t)</code> and <code>comp(u, u)</code>, but require no existence of
+   a common type or conversions to this common type.   
+   </p>   
    
 </body>
 </html>
