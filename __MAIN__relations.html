@@ -33,8 +33,27 @@
            to test if all the semantic constraints were met.
            </li>
       </ul>
+
+<p>The essential axioms of <em>weak ordering</em> over a given domain <var>D</var> are:
+   </p>
+
+   <ul>
+     <li><em>irreflexivity</em>: for all <var>a</var> in <var>D</var>: <var>!r(a, a)</var>,</li>
+     <li><em>asymmetry</em>: for all <var>a</var>, <var>b</var> in <var>D</var>: <var>r(a, b)</var> &Implies; <var>&not;r(b, a)</var>,</li>
+     <li><em>transitivity</em>: for all <var>a</var>, <var>b</var>, <var>c</var> in <var>D</var>: <var>r(a, b) &and; r(b, c)</var> &Implies; <var>r(a, c)</var>,</li>
+     <li><em>transitivity of equivalence</em>: for all <var>a</var>, <var>b</var>, <var>c</var> in <var>D</var>: 
+         <var>(&not;r(a, b) &and; &not;r(b, a)) &and; (&not;r(b, c) &and; &not;r(c, b))</var> &Implies; <var>(&not;r(a, c) &and; &not;r(c, a))</var>.</li>
+   </ul>
+
+<p>Or the equivalent formulation presented in section "4.2 Total and Weak Orderings" of "Elements of Programming" by Alexander Stepanov and Paul McJones:
+   </p>
    
-<p>We believe the semantic constraints expressed with the following functions meet the above requirements:
+   <ul>
+     <li>for all <var>a</var>, <var>b</var>, <var>c</var> in <var>D</var>: <var>r(a, b) &and; r(b, c)</var> &Implies; <var>r(a, c)</var>,</li>
+     <li>for all <var>a</var>, <var>b</var> in <var>D</var> exactly one of the three expressions is true: <var>r(a, b)</var>, <var>r(b, a)</var>, (<var>&not;r(a, b) &and; &not;r(b, a)</var>).</li>
+   </ul>
+      
+<p>We believe the following functions are sufficient to express the above requirements:
    </p> 
    
 <pre>template &lt;typename A&gt;
@@ -70,7 +89,9 @@ bool transitivity_of_equivalence(const A&amp; a, const B&amp; b, const C&amp; c)
 }
 </pre>   
    
-<p>Where each <code>A</code>, <code>B</code>, <code>C</code> can be either <code>T</code> or <code>U</code>.
+<p>Where each <code>A</code>, <code>B</code>, <code>C</code> can be either <code>T</code> or <code>U</code>,
+   and <code>a</code>, <code>b</code>, <code>c</code> represent all elements encountered
+   while evaluating the STL order-related function.
    These require that the predicate apart from working for <code>comp(t, u)</code> and <code>comp(u, t)</code>
    also needs to work for <code>comp(t, t)</code> and <code>comp(u, u)</code>, but require no existence of
    a common type or conversions to this common type.   
