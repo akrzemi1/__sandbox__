@@ -49,8 +49,8 @@
    </p>
    
    <ul>
-     <li>for all <var>a</var>, <var>b</var>, <var>c</var> in <var>D</var>: <var>r(a, b) &and; r(b, c)</var> &Implies; <var>r(a, c)</var>,</li>
-     <li>for all <var>a</var>, <var>b</var> in <var>D</var> exactly one of the three expressions is true: <var>r(a, b)</var>, <var>r(b, a)</var>, (<var>&not;r(a, b) &and; &not;r(b, a)</var>).</li>
+     <li><em>transitivity</em>: for all <var>a</var>, <var>b</var>, <var>c</var> in <var>D</var>: <var>r(a, b) &and; r(b, c)</var> &Implies; <var>r(a, c)</var>,</li>
+     <li><em>weak trichotomy</em>: for all <var>a</var>, <var>b</var> in <var>D</var> exactly one of the three expressions is true: <var>r(a, b)</var>, <var>r(b, a)</var>, (<var>&not;r(a, b) &and; &not;r(b, a)</var>).</li>
    </ul>
       
 <p>We believe the following functions are sufficient to express the above requirements:
@@ -86,6 +86,13 @@ bool transitivity_of_equivalence(const A&amp; a, const B&amp; b, const C&amp; c)
     if (!comp(b, c) &amp;&amp; !comp(c, b))
       return !comp(a, c) &amp;&amp; !comp(c, a);
   return true;     
+}
+
+template &lt;typename A, typename B&gt;
+bool weak_trichotomy(const A&amp; a, const B&amp; b)
+{
+  int truths = int(comp(a, b)) + int(comp(b, a)) + int(!comp(a, b) &amp;&amp; !comp(b, a));
+  return truths == 1;
 }
 </pre>   
    
