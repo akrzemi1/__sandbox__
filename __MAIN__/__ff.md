@@ -1,3 +1,13 @@
+Mention RAII even in `return` example.
+
+Mention `std::error_code` earlier, along Boost.Exception.
+
+Mention Herb's definition, "cannot meet what is advertised" -> but what should we advertise?
+
+Should File have strong or weak invariant? -> low-level library author will only want to write one function.
+
+-------------
+
 
 Error codes (die)
 -----------------
