@@ -10,12 +10,9 @@ Should File have strong or weak invariant? -> low-level library author will only
 template <Invocable F>
 auto catch_(F f) noexcept -> result<invoke_result_t<F>>
 {
-  try {
-    return f();
-  }
-  catch(std::error e) {
-    return std::move(e);
-  }
+  static_assert(throws(f()) == noexcept_t::static_except);
+  try                 { return f();          }
+  catch(std::error e) { return std::move(e); }
 }
 
 // ...
