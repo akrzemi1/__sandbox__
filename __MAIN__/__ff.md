@@ -7,7 +7,8 @@ Mention Herb's definition, "cannot meet what is advertised" -> but what should w
 Should File have strong or weak invariant? -> low-level library author will only want to write one function. 
 
 ```c++
-auto catch_(F f) noexcept -> result<invoke_result<F>>
+template <RegularInvocable F>
+auto catch_(F f) noexcept -> result<invoke_result_t<F>>
 {
   try {
     return f();
