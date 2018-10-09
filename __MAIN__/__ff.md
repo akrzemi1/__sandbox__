@@ -7,7 +7,7 @@ Mention Herb's definition, "cannot meet what is advertised" -> but what should w
 Should File have strong or weak invariant? -> low-level library author will only want to write one function. 
 
 ```c++
-result<mutex> cature_in_result(F f)
+auto catch_(F f) -> result<invoke_result<F>>
 {
   try {
     return f();
@@ -19,7 +19,7 @@ result<mutex> cature_in_result(F f)
 
 // ...
 
-result<mutex> m = cature_in_result([&]{
+result<mutex> m = catch_([&]{
   return make_mutex();
 });
 ```
