@@ -19,9 +19,7 @@ auto catch_(F f) noexcept -> result<invoke_result<F>>
 
 // ...
 
-result<mutex> m = catch_([&]{
-  return make_mutex();
-});
+result<mutex> m = catch_([&]{ return make_mutex(); });
 ```
 
 + can throw through C functions. -- But what about exception safety in C functions?
