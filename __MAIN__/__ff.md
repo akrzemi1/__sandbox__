@@ -4,7 +4,21 @@ Mention `std::error_code` earlier, along Boost.Exception.
 
 Mention Herb's definition, "cannot meet what is advertised" -> but what should we advertise?
 
-Should File have strong or weak invariant? -> low-level library author will only want to write one function.
+Should File have strong or weak invariant? -> low-level library author will only want to write one function. 
+
+```c++
+result<mutex> map(F f)
+{
+  try {
+    return f();
+  }
+  catch(std::error e) {
+    return std::move(e);
+  }
+}
+```
+
++ can throw through C functions. -- But what about exception safety in C functions?
 
 -------------
 
