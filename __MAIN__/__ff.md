@@ -7,7 +7,7 @@ Mention Herb's definition, "cannot meet what is advertised" -> but what should w
 Should File have strong or weak invariant? -> low-level library author will only want to write one function. 
 
 ```c++
-result<mutex> map(F f)
+result<mutex> cature_in_result(F f)
 {
   try {
     return f();
@@ -16,6 +16,12 @@ result<mutex> map(F f)
     return std::move(e);
   }
 }
+
+// ...
+
+result<mutex> m = cature_in_result([&]{
+  return make_mutex();
+});
 ```
 
 + can throw through C functions. -- But what about exception safety in C functions?
