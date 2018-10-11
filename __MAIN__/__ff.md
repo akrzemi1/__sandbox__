@@ -1,3 +1,8 @@
+Begin: if you handle anyhow it is good already.
+ignore by try-catch(...)
+
+error hadling callbacks, coroutines
+
 Mention RAII even in `return` example.
 
 Mention `std::error_code` earlier, along Boost.Exception.
