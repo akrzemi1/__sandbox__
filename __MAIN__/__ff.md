@@ -1,3 +1,5 @@
+show how you signal failure in constructor w/o exceptions (special state).
+
 Begin: if you handle anyhow it is good already.
 ignore by try-catch(...)
 
