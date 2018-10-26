@@ -1,3 +1,10 @@
+Remove ASIO example
+Divide: errors you have to be aware of, and those you dont
+END: (xml responses) design error reporting from the outset
+
+
+---------
+
 show how you signal failure in constructor w/o exceptions (special state).
 
 Begin: if you handle anyhow it is good already.
