@@ -1,7 +1,7 @@
-Remove ASIO example
-Divide: errors you have to be aware of, and those you dont
-END: (xml responses) design error reporting from the outset
-
+* Remove ASIO example
+* Divide: errors you have to be aware of, and those you dont
+* END: (xml responses) design error reporting from the outset
+* `save()` example: ealborate: what good is reporting failure to the user if we failed to save his data in a Word processor?
 
 ---------
 
