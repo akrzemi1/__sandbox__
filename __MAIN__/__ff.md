@@ -1,3 +1,11 @@
+* Strzałki mają pojawiać się pojedynczo
+* `convert()` który bierze output by reference: what failure safety?
+* failure safety: not exception safety (return safety)
+* guaranteed copy elision: nie mieszaj z `File::create()`, później mutex pookaź
+* JSON z bad request, powinien mieć jeszcze numerek
+
+-------------
+
 * Remove ASIO example
 * Divide: errors you have to be aware of, and those you dont
 * END: (xml responses) design error reporting from the outset
