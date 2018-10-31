@@ -1,3 +1,12 @@
+* pokaż, że `std::error_code` i `int` można konwertować do `result<int>`.
+* Zmień tytuł na "Handling Function Failures"
+* "rozwiń akronim RAII.
+* "light-weight throw" - może być zmylające.
+* Więcej o Boost.Exception. po co ten tag, co to path. Może dwa chunki: from_path i to_path.
+* co to znaczy, że Outcome jest w Boost, skoro go nie ma?
+
+---------
+
 * Strzałki mają pojawiać się pojedynczo
 * `convert()` który bierze output by reference: what failure safety?
 * failure safety: not exception safety (return safety)
