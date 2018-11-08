@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Concept Calculator</title>
+<style>
+body {background-color: black; color: gray; font-family: "PT Sans", sans-serif;}
+h1, h2 {color: #9c9c9c; font-family: "Caladea", sans-serif;}
+p    {color: gray;}
+code {color: #44aacc;}
+table {border-collapse: collapse;}
+th, td {padding-right: 10pt}
+</style>
+</head>
+<body>
+
+<h1>Concept <code>Calculator</code></h1>
+
+<p>A Calculator is something that can be set a limit and then can be used to obtain a result of a computation. </p>
+
+<h2>Notation</h2>
+<table>
+<tr><td><code>T</code></td><td>A type that is a model of <code>Calculator</code></td></tr>
+<tr><td><code>x</code></td><td>An lvalue of type <code>T</code></td></tr>
+<tr><td><code>i</code></td><td>An rvalue of type <code>int</code></td></tr>
+</table>
+<p></p>
+
+
+<h2>Valid expressions and types</h2>
+
+<table>
+<tr><td><code>T::result_type</code></td><td>a type</td></tr>
+<tr><td><code>T::set_limit(i)</code></td><td>return type unimportant</td></tr>
+<tr><td><code>x.get_result()</code></td><td>returns <code>const result_type&amp;</code>, throws nothing</td></tr>
+</table>
+
+
+</body>
+</html>
