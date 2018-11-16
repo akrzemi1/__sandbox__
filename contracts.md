@@ -45,6 +45,8 @@ No: they are two behaviors of the same thing: like `const`:
 
 -------------------------
 
+tags, or maybe command-line provided tags
+
 notes
 ------
 
