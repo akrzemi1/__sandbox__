@@ -28,3 +28,16 @@ But sometimes when debugging we may want to turn them on at the expense of slowi
 ### Optimizations (CSS 0.1/6)
 
 
+
+Responses to some ideas
+-----------------------
+
+### Evaluate contract and if false skip subsequent operations as if by an `if` expression. 
+
+It is like throw and premature catch-and-conceal. It doesn't address the `review` goal of assertions.
+
+### `assume()` and `check()` are two different things
+
+No: they are two behaviors of the same thing: like `const`:
+* what I can assume
+* what the caller is prevented from doing
