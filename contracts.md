@@ -61,3 +61,5 @@ void f(int *p)
 Any competent optimizer will remove #1, because *p in #2
 subsumes #1.  This was pointed out as early as Albuquerque:
 
+
+http://wiki.edg.com/bin/view/Wg21albuquerque/CoreWorkingGroup?twiki_redirect_cache=5baafa4e9cd32a2890412e82817b01f5
