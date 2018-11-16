@@ -62,6 +62,8 @@ No: they are two behaviors of the same thing: like `const`:
 
 -------------------------
 
+do we aim at never changing the contract declarations after added (not even the roles)?
+
 what is someone is using "default" level for too expensive checks?
 
 tags, or maybe command-line provided tags
