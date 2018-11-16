@@ -46,6 +46,10 @@ No: they are two behaviors of the same thing: like `const`:
 -------------------------
 
 notes
+------
+
+http://cantrip.org/p1343-contracts-update.html
+
 
 villes example but when we replace 2 with 42: we get self contradictory assumptions
 
