@@ -63,3 +63,17 @@ subsumes #1.  This was pointed out as early as Albuquerque:
 
 
 http://wiki.edg.com/bin/view/Wg21albuquerque/CoreWorkingGroup?twiki_redirect_cache=5baafa4e9cd32a2890412e82817b01f5
+
+Lakos:
+```
+This is a bug!  It must never be the case that any contract checking within a given TU eclipses a runtime check in that TU.  If necessary to satisfy this requirement, we will need to insist that *all* optimizations derived from any contract specifications in a TU be disabled whenever *any* runtime checks in that TU are active.
+
+Repeating what I said before here (for quick reference):
+
+JOHN LAKOS WROTE:
+I trust that it is clear that we will need to be able to control the extent of runtime checking separately from the extent to which we allow inactive runtime checks to be input to the optimizer.
+
+My original idea was the we could give full control whereby we had two "slide switches": the left slide switch would control runtime checking, and the right one would control compile-time optimizations.  You could turn both off by placing them at their respective ends.  You could dial runtime checking all the way up by sliding that switch to the right, Or you could dial up compile-time optimization by sliding that switch all the way to the left.  The two slide switches, however, must never cross (or even meet).  
+
+The axis for these two slide switches contains 'none', 'default', 'audit', 'axiom', and 'off'. One could imaging setting runtime checking all the way (up) right to 'audit', or compile-time optimization all the way (up) left to 'default'.  One could even imaging having all 'default'-level checks active at runime and all 'audit'-level checks assumed and forwarded to the optimizer (along with 'axiom' level assertions, of course).  I think this level of control, however, might be too much for a first pass, and so I would be happy to start with allowing at most one slide switch to be active at one time, and see how that goes.
+```
