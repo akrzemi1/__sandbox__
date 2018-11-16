@@ -27,6 +27,23 @@ But sometimes when debugging we may want to turn them on at the expense of slowi
 
 ### Optimizations (CSS 0.1/6)
 
+### Switch all checks from optimization to run-time validation without changing the control paths (CSS 0.2)
+
+Should static analysis still detect them?
+
+### Add a bit more checks in review mode without compromizing the previous ones (CCS 0.3)
+
+Should static analysis still detect them?
+
+### Only syntax-check contracts but do nothing. Maybe later will promote them (CCS 0.4)
+
+### Add debug checks that are never optimized (CCS 0.5)
+
+### Assign different semantics to contracts in two different libraries (CCS 0.6)
+
+What if header only libraries?
+
+What if GodVendor and BadVendor use the same roles? Or BadVendor uses default role?
 
 
 Responses to some ideas
@@ -45,7 +62,11 @@ No: they are two behaviors of the same thing: like `const`:
 
 -------------------------
 
+what is someone is using "default" level for too expensive checks?
+
 tags, or maybe command-line provided tags
+
+what is the purpose of `[[assert axiom %review : e]]`?
 
 notes
 ------
