@@ -62,6 +62,16 @@ No: they are two behaviors of the same thing: like `const`:
 
 -------------------------
 
+Different mode: different control paths: different programs. You have to accept this
+
+We can still use `std::unreachable()` or `__builtin_unreachable()`. Contracts are different only in that they have more than one mode.
+
+"Reliable software" this is when preconditions are obeyed, not when they are checked and kill applicaitons or cancel operations.
+
+Preconditions do not add more UB/bugs -> they make it more explicit, managable
+
+Control checking-vs-ignoring separately and assuming-vs-ignoring separately.
+
 Infinite recursion upon contract violation when executing a contract violation handler.
 
 do we aim at never changing the contract declarations after added (not even the roles)?
@@ -72,6 +82,22 @@ tags, or maybe command-line provided tags
 
 what is the purpose of `[[assert axiom %review : e]]`?
 
+ Alisdair: Contracts are not designed to be an optimization feature. Any optimization is incidental. Axioms are not there necessarily to be an optimization. 
+ 
+ Herb: I agree with what you said Alisdair… Assertions are not assumptions. I believe that is the distinctions between axioms and any other contracts. We can argue about spelling, but fundamentally, the things we assume and the things we assert are different categories of things. 
+ 
+ -- `[[assert]]` and `[[expect]]` may be different here 
+ 
+ Relation between UB and optimization: compiler can assume that UB never happens
+ 
+  The Lakosian notion of UB which mean Library UB, 
+  
+  Ville: But the flip side is that if I would like to keep that wide contract in my code when I add a narrow one  -- what?
+ 
+ Herb: I thought I said that some contract designers thought that way, and the rest of the answer is that assertions and assumptions are really fundamentally different. 
+ 
+ Why are you affraid of UB but not bugs?
+ 
 notes
 ------
 
