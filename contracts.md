@@ -75,6 +75,8 @@ what is the purpose of `[[assert axiom %review : e]]`?
 notes
 ------
 
+http://open-std.org/JTC1/SC22/WG21/docs/papers/2018/p1321r0.html
+
 http://cantrip.org/p1343-contracts-update.html
 
 ```c++
