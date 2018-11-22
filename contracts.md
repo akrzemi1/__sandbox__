@@ -108,6 +108,10 @@ what is the purpose of `[[assert axiom %review : e]]`?
  
  Why are you affraid of UB but not bugs?
  
+ Daniel: I would like to show a proposal to solve 1321 
+ 
+ Daniel: During constant expression evaluation, only predicates of checked contracts are evaluated. That’s all I suggest 
+ 
  -------
  
  Herb: 
