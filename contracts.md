@@ -98,6 +98,23 @@ what is the purpose of `[[assert axiom %review : e]]`?
  
  Why are you affraid of UB but not bugs?
  
+ -------
+ 
+ Herb: 
+
+> Hal:
+> To add the necessary caveat: This is true except in cases where the library
+> precondition is translated directly, because of the structure of the code, into UB
+> directly associated with the core language. A classic example is something like
+> this: "Requires: i is a valid dereferenceable iterator of x." (21.3.10.5p7) - if the
+> code implementing splice unconditionally dereferences i, then a
+> dereferenceability/nonnull assumption might certainly be propagated by the
+> optimizer to other necessarily-executed parts of the code.
+
+Thanks, that's true for simple preconditions that the function directly exercises and are language UB when violated.
+
+FWIW I agree with the rest of the thread that it would be nice to have distinct terms for 'language UB' and 'library UB' since they aren't isomorphic, and have a clear definition for each to point to.
+
 notes
 ------
 
