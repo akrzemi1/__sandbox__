@@ -68,6 +68,8 @@ Goal: that runtime-check proponents are not threatened by UB proponents and vice
 
 show example with `for_each`. Show example with `string` and `string_view` ?
 
+Do we need a a "library-level UB" definition? How it interacts with axioms? Axioms are different syntactically.
+
 -------------------------
 
 Different mode: different control paths: different programs. You have to accept this
