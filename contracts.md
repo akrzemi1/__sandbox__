@@ -60,6 +60,14 @@ No: they are two behaviors of the same thing: like `const`:
 * what the caller is prevented from doing
 
 
+-----------
+
+Goal: that runtime-check proponents are not threatened by UB proponents and vice versa. (Show exampples how one disturbs the other).
+
+---------
+
+show example with `for_each`. Show example with `string` and `string_view` ?
+
 -------------------------
 
 Different mode: different control paths: different programs. You have to accept this
