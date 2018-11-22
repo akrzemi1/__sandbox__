@@ -132,6 +132,8 @@ http://wiki.edg.com/bin/view/Wg21sandiego2018/P1321R0-San18
 
 http://open-std.org/JTC1/SC22/WG21/docs/papers/2018/p1321r0.html
 
+http://wiki.edg.com/pub/Wg21sandiego2018/EvolutionWorkingGroup/p1343-contracts-update.html?twiki_redirect_cache=39c88ee2a375665982a3c7748490bafe
+
 http://cantrip.org/p1343-contracts-update.html
 
 ```c++
