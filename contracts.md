@@ -112,6 +112,8 @@ what is the purpose of `[[assert axiom %review : e]]`?
  
  Daniel: During constant expression evaluation, only predicates of checked contracts are evaluated. That’s all I suggest 
  
+ Herb suggests: you can assume if /if not the control reaches the call to a violation handler much like you can assume control never reaches `__builtin_unreachable()`.
+ 
  -------
  
  Herb: 
