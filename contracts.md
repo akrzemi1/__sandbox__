@@ -114,6 +114,10 @@ what is the purpose of `[[assert axiom %review : e]]`?
  
  Herb suggests: you can assume if /if not the control reaches the call to a violation handler much like you can assume control never reaches `__builtin_unreachable()`.
  
+ ---------
+ 
+ Making only axioms work for optimizations will not work: I want compilers to assume `operator[i]` for vectors.
+ 
  -------
  
  Herb: 
