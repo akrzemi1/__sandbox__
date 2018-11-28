@@ -72,6 +72,8 @@ show example with `for_each`. Show example with `string` and `string_view` ?
 
 Do we need a a "library-level UB" definition? How it interacts with axioms? Axioms are different syntactically.
 
+Is axiom contract potentially evaluated?
+
 -------------------------
 
 Different mode: different control paths: different programs. You have to accept this
@@ -119,6 +121,8 @@ what is the purpose of `[[assert axiom %review : e]]`?
  ---------
  
  Making only axioms work for optimizations will not work: I want compilers to assume `operator[i]` for vectors.
+ 
+ Explain that throwing from violation handler works in continuation mode off. 
  
  -------
  
