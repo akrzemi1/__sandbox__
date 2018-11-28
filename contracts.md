@@ -62,6 +62,8 @@ No: they are two behaviors of the same thing: like `const`:
 
 -----------
 
+do we want to address the use case where `[[assert review]]` is used to log before a suspected UB?
+
 Goal: that runtime-check proponents are not threatened by UB proponents and vice versa. (Show exampples how one disturbs the other).
 
 ---------
