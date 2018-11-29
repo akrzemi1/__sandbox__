@@ -135,6 +135,8 @@ do not work for me.
  
  Explain that throwing from violation handler works in continuation mode off. 
  
+ My concern: what if vendor V thinks it Ok to put expensive checks as `default`. This prevents me to enable my `default` checks as well as checks from other vendors.
+ 
  ---------
  
  Peter:
