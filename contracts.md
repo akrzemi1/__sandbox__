@@ -137,6 +137,8 @@ do not work for me.
  
  My concern: what if vendor V thinks it Ok to put expensive checks as `default`. This prevents me to enable my `default` checks as well as checks from other vendors.
  
+ Concern: do you really want to assume every contract in every library? Who knows what they put into preconditions? If they just experiment? Review?
+ 
  ---------
  
  Peter:
