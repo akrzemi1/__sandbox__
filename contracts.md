@@ -120,6 +120,17 @@ what is the purpose of `[[assert axiom %review : e]]`?
  
  ---------
  
+Ville : I want to be able to mix, in the same translation
+unit, code that is safe under assumed contracts, and code that is not
+safe under assumed contracts.
+Therefore I need to be able to syntactically say when a contract can
+be assumed and when it can't. TU-global flags and program-global flags
+that control the assumedness
+do not work for me.
+
+ 
+ ----
+ 
  Making only axioms work for optimizations will not work: I want compilers to assume `operator[i]` for vectors.
  
  Explain that throwing from violation handler works in continuation mode off. 
