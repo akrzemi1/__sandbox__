@@ -135,6 +135,29 @@ do not work for me.
  
  Explain that throwing from violation handler works in continuation mode off. 
  
+ ---------
+ 
+ Peter:
+ JOSE DANIEL GARCIA SANCHEZ wrote:
+> > > void f(int * p)
+> > >   [[expects: p!=nullptr]]
+> > >   [[expects audit: *p>0]];
+
+...
+
+> It is pre-broken only if current WD. This is fixed by P1290R0. We propose 
+> that you cannot assume a default or audit contract without checking it.
+
+You are correct, I hadn't read the paper yet when I replied to the above.
+
+Making it not possible to assume a contract without checking it is not a
+solution to the issue above however. With continuation on, if the compiler
+proves that the handler returns, you have the same problem of it eliminating
+the p != nullptr check. And conversely, assuming contracts without checking
+them can be completely safe. For instance, if default contracts are assumed
+without being checked, nothing unexpected happens.
+ 
+ 
  -------
  
  Herb: 
