@@ -30,3 +30,5 @@ template<typename T, bool B = some_trait<T>::value> struct something_else {};
 ```
 
 ... where treating the conversion from an int with value 0 or 1 to bool as narrowing results in an error.
+
+Example with enum?
