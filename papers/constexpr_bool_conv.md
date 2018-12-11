@@ -1,3 +1,31 @@
+Motivation
+----------
+
+Clang currently fails to compile the following program, and it is Standard-compliant:
+
+```c++
+enum Flags { Write = 1, Read = 2, Exec = 4 };
+
+template <Flags flags>
+int f() {
+  if constexpr (flags & Flags::Exec) // fails to compile due to narrowing
+    return 0;
+  else
+    return 1;
+}
+
+int main() {
+  return f<Flags::Exec>(); // when instantiated like this
+}
+```
+
+```
+int main() {
+  static_assert(2); // ill-formed, gcc accepts
+  if constexpr (2); // ill-formed, gcc accepts
+}
+```
+
 [1407. Integral to `bool` conversion in converted constant expressions](http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_closed.html#1407)
 
 [2039. Constant conversions to `bool`](http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#2039)
