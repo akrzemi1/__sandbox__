@@ -85,6 +85,25 @@ int main() {
 
 If narrowing conversions can detect that, we would like to use this opportunity.
 
+
+### Implicit conversions to `bool` in constant expressions
+
+Another situation brought up while discussing this problem was if the following code should be correct:
+
+```c++
+// a C++03 type trait
+template <typename T>
+struct is_small {
+  enum { value = (sizeof(T) == 1) };
+};
+
+template <bool small> struct S {};
+S<is_small<char>::value> s;
+```
+
+In constant expressions the situation is different, because whether a conversion is narrowing or not depends not only on the types but also on the velaues, which are known at compile-time.
+
+
 Acknowledgements
 ---------------
 
