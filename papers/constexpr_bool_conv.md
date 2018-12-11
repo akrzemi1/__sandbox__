@@ -74,7 +74,7 @@ We do not want to go there. Even this seemingly correct reasoning can lead to bu
 ```c++
 struct Container {
   explicit Container(bool zeroSize, bool zeroCapacity) {}
-  explicit Container(size_t size zeroSize, int* begin) {}
+  explicit Container(size_t size, int* begin) {}
 };
 
 int main() {
