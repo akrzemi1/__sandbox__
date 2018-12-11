@@ -33,6 +33,16 @@ class Array
 Array<16> a; // fails to compile 
 ```
 
+All these situations can be fixed by aplying an explicit conversion to `bool` or comparing the result to 0, 
+but the fact remains that this behavior is surprising. For instance, changing `if constexpr` in the first example into 
+a normal `if` makes the code compile.
+
+Acknowledgements
+---------------
+
+Jason Merrill originally reported this issue in CWG reflector.
+
+
 ------------
 
 ```
