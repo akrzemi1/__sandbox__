@@ -19,6 +19,22 @@ int main() {
 }
 ```
 
+This is because, as currently specified, narrowing is not allowed in contextual conversion to `bool` in
+core constant expressions. If compilers were standard-compliant, even the following code would be ill-formed.
+
+```c++
+template <std::size_t N> 
+class Array
+{
+  static_assert(N, "no 0-size Arrays");
+  // ...
+};
+
+Array<16> a; // fails to compile 
+```
+
+------------
+
 ```
 int main() {
   static_assert(2); // ill-formed, gcc accepts
