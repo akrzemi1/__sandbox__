@@ -65,8 +65,7 @@ The no-narrowing requirement helps minimize these bugs, so it has merit. But oth
 Analysis
 --------
 
-Implicit conversions to `bool`
-------------------------------
+### Implicit conversions to `bool`
 
 Some have suggested that a conversion to `bool` in general should not be considered narrowing, that `bool` should not be treated as a small integral type, and that the conversion to `bool` should be treated as a request to classify the states of the object as one of the two categories.
 
