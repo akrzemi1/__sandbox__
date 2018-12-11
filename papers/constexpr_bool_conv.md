@@ -103,6 +103,15 @@ S<is_small<char>::value> s;
 
 In constant expressions the situation is different, because whether a conversion is narrowing or not depends not only on the types but also on the velaues, which are known at compile-time.
 
+We believe that tis is already a valid construct. As per [[expr.const] p7](http://eel.is/c++draft/expr.const#7) it is an integral conversion that is not narrowing.
+
+
+How to fix this
+---------------
+
+
+
+
 
 Acknowledgements
 ---------------
