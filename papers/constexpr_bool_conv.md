@@ -1,3 +1,5 @@
+This paper proposes to allow narrowing conversions in *contextually converted constant expressiosn of type `bool`*. 
+
 Motivation
 ----------
 
@@ -36,6 +38,29 @@ Array<16> a; // fails to compile
 All these situations can be fixed by aplying an explicit conversion to `bool` or comparing the result to 0, 
 but the fact remains that this behavior is surprising. For instance, changing `if constexpr` in the first example into 
 a normal `if` makes the code compile.
+
+Note that the proposal only affects the contextual conversions to `bool`: it does not affect implicit conversions to `bool` in other contexts. 
+
+Background
+----------
+
+The no-narrowing requirement was added in [CWG 2039](http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#2039), which indicates it was intentional. However, the issue documentation does not state the reason.
+
+The no-narrowing requirement looks justified in the context of `noexcept` specifications, where the "double `noexcept`" syntax
+is so strange that it can be easily misused. For instance, if I want to say that my function `f()` has the same `noexcept` specification as function `g()`, it doesn't seem impossible that I could mistakenly type this as:
+
+```c++
+void f() noexcept(g);
+```
+
+To the uninitiated this looks reasonable; and it compiles. Also, it `g()` is a `constexpr` function, the following works as well:
+
+```c++
+void f() noexcept(g());
+```
+
+The no-narrowing requirement helps minimize these bugs, so it has merit. But other contexts, like `static_assert`, are only victims thereof. 
+
 
 Acknowledgements
 ---------------
