@@ -62,6 +62,30 @@ void f() noexcept(g());
 The no-narrowing requirement helps minimize these bugs, so it has merit. But other contexts, like `static_assert`, are only victims thereof. 
 
 
+Analysis
+--------
+
+Implicit conversions to `bool`
+------------------------------
+
+Some have suggested that a conversion to `bool` in general should not be considered narrowing, that `bool` should not be treated as a small integral type, and that the conversion to `bool` should be treated as a request to classify the states of the object as one of the two categories.
+
+We do not want to go there. Even this seemingly correct reasoning can lead to bugs like this one:
+
+```c++
+struct Container {
+  explicit Container(bool zeroSize, bool zeroCapacity) {}
+  explicit Container(size_t size zeroSize, int* begin) {}
+};
+
+int main() {
+  std::vector<int> v;
+  X x (v.data(), v.size()); // bad order!
+}
+```
+
+If narrowing conversions can detect that, we would like to use this opportunity.
+
 Acknowledgements
 ---------------
 
