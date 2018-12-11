@@ -76,3 +76,39 @@ template<typename T, bool B = some_trait<T>::value> struct something_else {};
 ... where treating the conversion from an int with value 0 or 1 to bool as narrowing results in an error.
 
 Example with enum?
+
+```
+ Recent bug reports against clang and GCC noted that we weren't
+diagnosing narrowing conversions to bool. These bug reports have been
+fixed, but do we really mean to consider conversion to bool to be a
+problematic narrowing conversion? Conversion to bool is intended to
+reduce all the possible values of the original expression to a truth
+value; it is deliberately narrowing. It seems qualitatively different
+from conversion to another arithmetic type which is intended to
+represent a number. It seems to me that classifying boolean
+conversion as narrowing is an accidental consequence of bool being "an
+integer type", rather than intentional.
+
+If conversion to bool is narrowing, that means that
+
+  static_assert (42);
+
+ill-formed, though nobody currently diagnoses it.
+
+"In a static_assert-declaration, the constant-expression shall be a
+contextually converted constant expression of type bool (8.6)."
+
+"A contextually converted constant expression of type bool is an
+expression, contextually converted to bool (Clause 7), where the
+converted expression is a constant expression and the conversion
+sequence contains only the conversions
+above."
+
+"-- integral conversions (7.8) other than narrowing conversions (11.6.4),"
+
+I think it should be clarified that when 11.6.4 says "integer type",
+it means the signed and unsigned integer types, not the category that
+includes bool.
+
+Jason 
+```
