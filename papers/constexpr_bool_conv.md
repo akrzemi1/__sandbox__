@@ -135,6 +135,8 @@ Jason Merrill originally reported this issue in CWG reflector.
 
 ------------
 
+*static condition*
+
 ```
 int main() {
   static_assert(2); // ill-formed, gcc accepts
