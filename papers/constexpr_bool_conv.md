@@ -103,13 +103,27 @@ S<is_small<char>::value> s;
 
 In constant expressions the situation is different, because whether a conversion is narrowing or not depends not only on the types but also on the velaues, which are known at compile-time.
 
-We believe that tis is already a valid construct. As per [[expr.const] p7](http://eel.is/c++draft/expr.const#7) it is an integral conversion that is not narrowing.
+We believe that this problem boils down to whether type `bool` can be thought of as
+an itegral type with the range of values {0, 1}, so that conversion from `1` to `true` is non-narrowing
+and conversion from `2` to `true` is narrowing. We do not want to address this problem in this paper.
+Instead, we propose only to fix the *contextual* conversion to `bool`, where it is uncontroversial that  `2` should be
+represented as `true`.
 
 
 How to fix this
 ---------------
 
+There are two ways to address this:
 
+1. Redefine *contextually converted constant expressiosn of type `bool`* so that narrowng is allowed. This will change all the places that use it:
+   * `static_assert`
+   * `if constexpr`
+   * `explicit(bool)`
+   * `noexcept(bool)`
+
+2. Apply different rules to the first three contexts listed above and retain the stricter rule for the `noexcept(bool)` case.
+
+We request for guidance from EWG in which approach to adopt.
 
 
 
