@@ -1,3 +1,6 @@
+Narrowing contextual conversions to `bool`
+==========================================
+
 This paper proposes to allow narrowing conversions in *contextually converted constant expressiosn of type `bool`*. 
 
 Motivation
