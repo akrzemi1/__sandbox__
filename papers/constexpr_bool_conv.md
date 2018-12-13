@@ -1,3 +1,7 @@
+Author: Andrzej Krzemieński <br>
+Audience: EWG
+
+
 Narrowing contextual conversions to `bool`
 ==========================================
 
