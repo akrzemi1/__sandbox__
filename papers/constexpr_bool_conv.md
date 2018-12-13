@@ -119,7 +119,12 @@ There are two ways to address this:
 
 We request for guidance from EWG in which approach to adopt.
 
+Wording
+-------
 
+The proposed wording for option 1 is to change the definition of *contextually converted constant expression of type `bool`* \[expr.const] &para; 7 as follows:
+
+>  A *contextually converted constant expression of type `bool`* is an expression, contextually converted to `bool`, where the converted expression is a constant expression and the conversion sequence contains only the conversions above<ins> and narrowing integral conversions</ins>.
 
 Acknowledgements
 ---------------
