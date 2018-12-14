@@ -31,7 +31,7 @@ try {
   std::vector<char> v (1024 * 1024 * 1024); // huge allocation
   std::cout << "OK" << std::endl;
 }
-catch(std::bad_alloc const& e)
+catch(std::exception const& e) // bad_alloc handled as any other exception
 {
   std::vector<char> s {'E', 'R', 'R', 'O', 'R', ':', ' '}; // reasonable allocation
   std::cout << std::string(s.begin(), s.end()) << e.what() << std::endl;
