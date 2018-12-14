@@ -10,7 +10,7 @@ It happens that while processing some customer requests huge amount of data is g
 
 This situation is reproducible fairly easily even in 64-bit application. I have the following short program which tries to allocate a huge chunk of memory:
 
-```
+```c++
 #include <iostream>
 #include <vector>
 #include <string>
@@ -39,3 +39,8 @@ The solution to this tension that I can see is to provide a way to tell apart he
 But even in this case memory allocating functions would have to be marked as potentially throwing, and the goal of "STL funcitons almost never throw" is still compromised.
 
 I guess, my recommendation would be to drop the direction that any function annotated with `throws` requires an explicit `try` upon any potentially throwing path. At least drop it from P0709. If such explicit try-expressions are needed they would have to be explicitly requested for with additional syntax: programmers would do it only locally and would probably be only calling functions that never allocate memory.
+
+--------
+
+* [[0709R2] Zero-overhead deterministic exceptions: Throwing values ](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0709r2.pdf)
+* [[P0132R1] Non-throwing container operations](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0132r1.html)
