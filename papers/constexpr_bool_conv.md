@@ -145,5 +145,5 @@ The proposed wording for option 1 is to change the definition of *contextually c
 Acknowledgements
 ---------------
 
-Jason Merrill originally reported this issue in CWG reflector. tomasz Kamiński reviewed the paper and suggested improvements.
+Jason Merrill originally reported this issue in CWG reflector. Tomasz Kamiński reviewed the paper and suggested improvements.
 
