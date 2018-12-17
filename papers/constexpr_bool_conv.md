@@ -7,6 +7,15 @@ Narrowing contextual conversions to `bool`
 
 This paper proposes to allow narrowing conversions in *contextually converted constant expressiosn of type `bool`*. 
 
+### Tony tables
+
+| Today | If accepted |
+|-------|-------------|
+| `if constexpr(bool(flags & Flags::Exec))` | `if constexpr(flags & Flags::Exec)` |
+| `if constexpr(flags & Flags::Exec != 0)` | `if constexpr(flags & Flags::Exec)` |
+| `static_assert(bool(N));` | `static_assert(N);` |
+| `static_assert(bool(N % 4));` | `static_assert(N % 4);` |
+
 Motivation
 ----------
 
@@ -136,5 +145,5 @@ The proposed wording for option 1 is to change the definition of *contextually c
 Acknowledgements
 ---------------
 
-Jason Merrill originally reported this issue in CWG reflector.
+Jason Merrill originally reported this issue in CWG reflector. tomasz Kamiński reviewed the paper and suggested improvements.
 
