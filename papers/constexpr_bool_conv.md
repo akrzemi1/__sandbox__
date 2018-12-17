@@ -14,7 +14,7 @@ This paper proposes to allow narrowing conversions in *contextually converted co
 | `if constexpr(bool(flags & Flags::Exec))` | `if constexpr(flags & Flags::Exec)` |
 | `if constexpr(flags & Flags::Exec != 0)` | `if constexpr(flags & Flags::Exec)` |
 | `static_assert(bool(N));` | `static_assert(N);` |
-| `static_assert(bool(N % 4));` | `static_assert(N % 4);` |
+| `static_assert(N % 4 != 0);` | `static_assert(N % 4);` |
 
 Motivation
 ----------
@@ -52,8 +52,17 @@ Array<16> a; // fails to compile
 ```
 
 All these situations can be fixed by aplying an explicit conversion to `bool` or comparing the result to 0, 
-but the fact remains that this behavior is surprising. For instance, changing `if constexpr` in the first example into 
-a normal `if` makes the code compile.
+but the fact remains that this behavior is surprising. For instance, using run-time equivalents of the above constructs 
+compiles and executes fine:
+
+```c++
+if (flags & Flags::Exec) // ok
+  {}
+```
+
+```c++
+assert(N); // ok
+```
 
 Note that the proposal only affects the contextual conversions to `bool`: it does not affect implicit conversions to `bool` in other contexts. 
 
