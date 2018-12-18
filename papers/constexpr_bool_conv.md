@@ -69,7 +69,7 @@ Note that the proposal only affects the contextual conversions to `bool`: it doe
 Background
 ----------
 
-The no-narrowing requirement was added in [CWG 2039](http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#2039), which indicates it was intentional. However, the issue documentation does not state the reason.
+The no-narrowing requirement was added in [[CWG 2039]](http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#2039), which indicates it was intentional. However, the issue documentation does not state the reason.
 
 The no-narrowing requirement looks justified in the context of `noexcept` specifications, where the "double `noexcept`" syntax
 is so strange that it can be easily misused. For instance, if I want to say that my function `f()` has the same `noexcept` specification as function `g()`, it doesn't seem impossible that I could mistakenly type this as:
@@ -126,7 +126,24 @@ template <bool small> struct S {};
 S<is_small<char>::value> s;
 ```
 
-In constant expressions the situation is different, because whether a conversion is narrowing or not depends not only on the types but also on the velaues, which are known at compile-time. We think that after [P0907r4](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0907r4.html) was adopted, and `bool` has a well defined representation, conversion from `1` to `true` is now defined as non-narrowing.
+In constant expressions the situation is different, because whether a conversion is narrowing or not depends not only on the types but also on the velaues, which are known at compile-time. We think that after [[P0907r4]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0907r4.html) was adopted, and `bool` has a well defined representation, conversion from `1` to `true` is now defined as non-narrowing.
+
+
+### Compatibility with C `assert()` macro
+
+As described in [[LWG 3011]](https://cplusplus.github.io/LWG/issue3011), currently macro `assert()` from the C Standard Library
+only allows expressions of scalar types, and does not support the concept of expressions "contextually converted to `bool`". We believe that this issue does not interact with our proposal. For instance, the following example works even under the C definition of macro `assert()`: 
+
+```c++
+template <std::size_t N> 
+auto makeArray()
+{
+  assert(N);
+  // ...
+}
+```
+
+But it stops working if we change `assert(N)` to `static_assert(N)`.
 
 
 How to fix this
@@ -155,4 +172,18 @@ Acknowledgements
 ---------------
 
 Jason Merrill originally reported this issue in CWG reflector. Tomasz Kamiński reviewed the paper and suggested improvements.
+
+
+References
+----------
+
+[[CWG 2039]](http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_defects.html#2039) Richard Smith, "Constant conversions to `bool`".
+
+[[LWG 3011]](https://cplusplus.github.io/LWG/issue3011) Jonathan Wakely, "Requirements for `assert(E)` inconsistent with C".
+
+[[WG14 N2207]](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2207.htm) Martin Sebor, Jonathan Wakely, Florian Weimer, "Assert Expression Problematic For C++".
+
+[[P0907r4]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0907r4.html) JF Bastien, "Signed Integers are Two’s Complement".
+
+
 
