@@ -1,3 +1,7 @@
+Why can't allocating functions be marked `throws`? You are introducing hybrid exception handling.
+
+How do yo recover from condition_variable throw?
+
 
 ------------
 
