@@ -1,5 +1,5 @@
 Author: Andrzej Krzemie&#x144;ski <br>
-Reply-to: akrzemi1 (at) gmail (dot) com
+Reply-to: akrzemi1 (at) gmail (dot) com <br>
 Audience: EWG
 
 
@@ -20,7 +20,7 @@ This paper proposes to allow narrowing conversions in *contextually converted co
 Motivation
 ----------
 
-Clang currently fails to compile the following program, and it is Standard-compliant:
+Clang currently fails to compile the following program, and this behavior is Standard-compliant:
 
 ```c++
 enum Flags { Write = 1, Read = 2, Exec = 4 };
@@ -52,7 +52,7 @@ class Array
 Array<16> a; // fails to compile 
 ```
 
-All these situations can be fixed by aplying an explicit conversion to `bool` or comparing the result to 0, 
+All these situations can be fixed by typing a `static_cast` to type `bool` or comparing the result to 0, 
 but the fact remains that this behavior is surprising. For instance, using run-time equivalents of the above constructs 
 compiles and executes fine:
 
@@ -79,7 +79,7 @@ is so strange that it can be easily misused. For instance, if I want to say that
 void f() noexcept(g);
 ```
 
-To the uninitiated this looks reasonable; and it compiles. Also, it `g()` is a `constexpr` function, the following works as well:
+To the uninitiated this looks reasonable; and it compiles. Also, if `g()` is a `constexpr` function, the following works as well:
 
 ```c++
 void f() noexcept(g());
@@ -124,7 +124,7 @@ struct is_small {
 };
 
 template <bool small> struct S {};
-S<is_small<char>::value> s;
+S<is_small<char>::value> s; // int 1 converted to bool
 ```
 
 In constant expressions the situation is different, because whether a conversion is narrowing or not depends not only on the types but also on the velaues, which are known at compile-time. We think that after [[P0907r4]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0907r4.html) was adopted, and `bool` has a well defined representation, conversion from `1` to `true` is now defined as non-narrowing.
