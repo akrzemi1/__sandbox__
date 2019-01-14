@@ -1,4 +1,5 @@
-Author: Andrzej Krzemieński <br>
+Author: Andrzej Krzemie&#x144;ski <br>
+Reply-to: akrzemi1 (at) gmail (dot) com
 Audience: EWG
 
 
@@ -171,7 +172,7 @@ The proposed wording for option 1 is to change the definition of *contextually c
 Acknowledgements
 ---------------
 
-Jason Merrill originally reported this issue in CWG reflector. Tomasz Kamiński reviewed the paper and suggested improvements.
+Jason Merrill originally reported this issue in CWG reflector. Tomasz Kami&#x144;ski reviewed the paper and suggested improvements.
 
 
 References
@@ -183,7 +184,7 @@ References
 
 [[WG14 N2207]](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n2207.htm) Martin Sebor, Jonathan Wakely, Florian Weimer, "Assert Expression Problematic For C++".
 
-[[P0907r4]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0907r4.html) JF Bastien, "Signed Integers are Two’s Complement".
+[[P0907r4]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0907r4.html) JF Bastien, "Signed Integers are Two's Complement".
 
 
 
