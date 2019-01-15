@@ -1,4 +1,5 @@
 Authors: Andrzej Krzemieński, Tomasz Kamiński <br>
+Reply-to: akrzemi1 (at) gmail (dot) com
 Audience: EWG, LEWG
 
 
@@ -80,7 +81,7 @@ Recomendation
 
 [[P0709]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0709r2.pdf) proposes two significant features:
 1. being able to throw cheaply (by value),
-2. being required to annotate every potentially trowing function with `try` operator and therewith being able
+2. being required to annotate every potentially throwing function with `try`-operator and therewith being able
    to see in the code any exceptional path.
 
 Our recomendation is to proceed with the first goal and abandon the second. At least drop it from the scope of [[P0709]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0709r2.pdf). Such explicit `try` operators can be added separately at a later stage. In such alternative future proposal, annotating a potentially throwing function with `try`-operator would be optional, but not putting it on a potentially throwing function could be a compiler warning: compilers do not need the Standard to detect that.
