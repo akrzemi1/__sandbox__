@@ -38,7 +38,8 @@ catch(std::exception const& e) // bad_alloc handled as any other exception
   std::cout << std::string(s.begin(), s.end()) << e.what() << std::endl;
 }
 ```
-Now, in Linux, I set a limit on virtual memory allocation with `ulimit -S -v 204800`, and I run the program. It throws, catches and reports `bad_alloc` elegantly. It even allocates memory while handling the exception. This is all fine because the heap has not really been exhausted. This example disproves the claim that allocation failure cases are difficult to test.
+Now, in Linux, we set a limit on virtual memory allocation with `ulimit -S -v 204800`, and we run the program. It throws, 
+catches and reports `bad_alloc` elegantly. It even allocates memory while handling the exception. This is all fine because the heap has not really been exhausted. This example disproves the claim that allocation failure cases are difficult to test.
 
 
 No room for a new big block
@@ -46,7 +47,7 @@ No room for a new big block
 
 Sometimes, there is a lot of fragmented RAM available, but no single room to accomodate a particularly big chunk.
 
-Here is the situation with one of the programs in our company. We need to efficiently store huge data structures in RAM, with lots of pointers, and we have, say, 64 GB of RAM on the machines. In order to address this 64GB we require 32 + 4 bits in a pointer, the remaining 28 bits would be a waste. So, in order to avoid waste, we build the apps in 32-bit mode: this way we are able to address 4GB memory with 32-bit pointers and if we run 16 instances on one box, we are able to address the required 64GB of RAM. Of course, I got the numbers oversimplified, but everyone should get the picture. Because we are using 32-bit applications we may get allocation failures not because we run out of virtual memory, but because we run out of addressable space. And this is reported cleanly by throwing `std::bad_alloc` on Linux systems: the situation where out-of-memory is signaled upon using memory rather than upon allocation does not apply here.
+Here is the situation with one of the programs in our company. We need to efficiently store huge data structures in RAM, with lots of pointers, and we have, say, 64 GB of RAM on the machines. In order to address this 64GB we require 32 + 4 bits in a pointer, the remaining 28 bits would be a waste. So, in order to avoid waste, we build the apps in 32-bit mode: this way we are able to address 4GB memory with 32-bit pointers and if we run 16 instances on one box, we are able to address the required 64GB of RAM. Of course, the numbers are oversimplified, but everyone should get the picture. Because we are using 32-bit applications we may get allocation failures not because we run out of virtual memory, but because we run out of addressable space. And this is reported cleanly by throwing `std::bad_alloc` on Linux systems: the situation where out-of-memory is signaled upon using memory rather than upon allocation does not apply here.
 
 It happens that while processing some customer requests huge amount of data is generated (which we cannot easily predict ahead of time from just reading the request), and a huge allocation is performed. There is still lots of heap memory available, but because memory is fragmented there is no single chunk to be found capable of storing the required amount of data. This is neatly reported by throwing `std::bad_alloc`. The stack is unwound and and the customer request is reported as failed, but the program still runs and is still able to allocate heap memory (even during the stack unwinding).
 
@@ -59,6 +60,10 @@ allocation failures via exceptions &mdash; difficult to test, often not tested a
 equally well to any other system resource-related failures. Do you use `std::condition_variable` in your codebase? It can throw `errc::resource_unavailable_try_again` from constructor (if some non-memory resource limitation prevents initialization). Is it easy to reproduce this situation? Are you testing this scenario? If not, your code handles it incorrectly. Does this mean a failure to allocate resources necessary to create a `std::condition_variable` should call `std::terminate()` instead of throwing an exception?
 
 What about running out of file descriptors? Is it easy to test? ...
+
+Of course, memory allocation failure is more special in the sense that one usually needs to use the same resource while
+handling exceptions. But this can be managed safely, as we have shown above. Also, once throwing by value is in place there
+will be no need to allocate anything while handling exceptions.
 
 
 Alternatives proposed are inacceptable
