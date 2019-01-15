@@ -18,7 +18,7 @@ and recoverable from.
 per-allocation limits
 ---------------------
 
-Throwing `std::bad_alloc` represents a failre to process a given allocation request for *any* reason. One such reason is
+Throwing `std::bad_alloc` represents a failure to process a given allocation request for *any* reason. One such reason is
 that the requested memory size exceeds a per-allocation limit specified in the system for a given program. Consider the following program that tries to allocate a huge chunk of memory:
 
 ```c++
@@ -61,8 +61,10 @@ to using `try_push_back()` (as proposed in [[P0132R1]](http://www.open-std.org/j
 2. We would not be able to report allocation failures from constructors. We allocate memory not only with explicit calls
    to `push_back()` but also through copying `std::vector`s and `std::string`s.
    
-These problems are the motivation for [[0709R]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers),
-yet what it will force us to do is to replace exception handling with manual error code propagation in our program.
+Ironically, these two above problems are also used as the motivation for
+[[0709R]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers), yet what
+[[0709R]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers) will force us to do is to replace exception handling with manual
+error code propagation in our program.
 
 
 Separating out-of-memory from other allocation errors
@@ -70,7 +72,7 @@ Separating out-of-memory from other allocation errors
 
 It should be possible to tell apart out-of-memory from other allocation failures reported through `std::bad_alloc`. One way is to provide a program-wide constant which represents the memory allocation threshold. A programmer can set it while building the program, or maybe even later, when the program is run. If memory allocation fails for whatever reason and the memory size requested is smaller than the threshold, it means "we cannot allocate even tiny amount of memory, we will likely not be able to even unwind the stack", this can be called heap exhaustion; otherwise (if the caller requested for more memory than the threshold), it may mean an unusually big allocation, which cannot be interpreted as heap exhaustion. Under such distinction, it would be acceptable for us to treat out-of-memory as a fatal error.
 
-But even in this case memory allocating functions would have to be marked as potentially throwing, and the goal of "STL funcitons almost never throw" is still compromised.
+But even in this case memory allocating functions would have to be marked as potentially throwing, and the goal indicated by the optional part of [[0709R]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers) of "STL funcitons almost never throw" is still compromised.
 
 
 Recomendation
@@ -81,7 +83,7 @@ Recomendation
 2. being required to annotate every potentially trowing function with `try` operator and therewith being able
    to see in the code any exceptional path.
 
-Our recomendation is to proceed with the first goal and abandon the second. At least drop it from the scope of [[P0709]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0709r2.pdf). Such explicit `try` operators can be added separately at a later stage. Annotating a potentially throwing function with `try` operator could be optional, but not putting it on a potentially throwing function could be a compiler warning: compilers do not need the Standard to detect that.
+Our recomendation is to proceed with the first goal and abandon the second. At least drop it from the scope of [[P0709]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0709r2.pdf). Such explicit `try` operators can be added separately at a later stage. In such alternative future proposal, annotating a potentially throwing function with `try`-operator would be optional, but not putting it on a potentially throwing function could be a compiler warning: compilers do not need the Standard to detect that.
 
 
 References
