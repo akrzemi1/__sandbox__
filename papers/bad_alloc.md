@@ -56,7 +56,7 @@ Memory allocation failures vs other resource-related failures
 --------------------------------------------
 
 The arguments brought in [[0709R2]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers) in favour of not handling memory
-allocation failures via exceptions &mdash; difficult to test, often not tested and therefores handled incorrectly &mdash; apply
+allocation failures via exceptions &mdash; difficult to test, often not tested and therefore handled incorrectly &mdash; apply
 equally well to any other system resource-related failures. Do you use `std::condition_variable` in your codebase? It can throw `errc::resource_unavailable_try_again` from constructor (if some non-memory resource limitation prevents initialization). Is it easy to reproduce this situation? Are you testing this scenario? If not, your code handles it incorrectly. Does this mean a failure to allocate resources necessary to create a `std::condition_variable` should call `std::terminate()` instead of throwing an exception?
 
 What about running out of file descriptors? Is it easy to test? ...
