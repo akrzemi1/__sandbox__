@@ -94,8 +94,10 @@ Same as *Review* but there are reasons to believe that the evaluation of the con
 Preconditions vs other CCS-es
 -----------------------------
 
-It is a common situation in contract checking frameworks to runtime check only preconditions but ignore assertions, postconditions and invariants. E.g, in Eiffel
-([[EIFFEL]](https://www.eiffel.org/doc/eiffel/ET-_Design_by_Contract_%28tm%29%2C_Assertions_and_Exceptions)) or in Boost.contract ([[BOOST.CNTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html)).
+It is a common situation in contract checking frameworks to runtime check only preconditions but ignore assertions, postconditions and invariants. E.g, this is possible in Eiffel
+([[EIFFEL]](https://www.eiffel.org/doc/eiffel/ET-_Design_by_Contract_%28tm%29%2C_Assertions_and_Exceptions)) and in Boost.Contract ([[BOOST.CONTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html)). The reason for this is that the likelyhood of detecting a bug while evaluating a precondition is much much higher than in other types of CCS-es. This is because preconditions are the only type of CCS-es where a different person declares the expectation and a different person is expected to fulfill it: the llikelihood of micommunication is higher. In contrast, for preconditions, the author of the function declares the precondition and implements the function body.
+
+Therefore it is likely that programmers will want only preconditions to be evaluated at run-time.
 
 References
 ----------
@@ -110,5 +112,5 @@ References
 
 [[EIFFEL]](https://www.eiffel.org/doc/eiffel/ET-_Design_by_Contract_%28tm%29%2C_Assertions_and_Exceptions) Eiffel Tutorial: "Design by Contract (tm), Assertions and Exceptions".
 
-([[BOOST.CNTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html)) Lorenzo Caminiti, Boost.Contract.
+[[BOOST.CONTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html) Lorenzo Caminiti, Boost.Contract.
 
