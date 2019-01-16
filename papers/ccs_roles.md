@@ -1,10 +1,20 @@
-CCS roles/modes
-===============
+CCS roles/modes/contexts
+========================
 
-This paper shares some thoughts about what things should control particular semantics of Contract Checking Statements (CCS). Our observation is that it is not only contract levels, continuation modes and *roles* as defined in [[P1332R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt).
+Motivation
+----------
 
-What should affect the semantics
---------------------------------
+This paper tries to list all 'circumstances' that can affect what semantics (ignore, run-time check, assume) we want to
+associate with different Contract Checking Statements (CCS) at different places in code. Our observation is that neither the current wording, nor the *roles*, as defined in [[P1332R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt),
+fully grasp the perceived needs of the users.
+
+Our conclusion is that while not all possible user needs can or should be reflected in the Standard, the Standard should make 
+it clear that users may expect from implementations more control over the semantics associated with their CSS-es than what the 
+Standard requires as minimum.
+
+
+What should affect the CCS semantics
+------------------------------------
 
 In the following description, when referring to concrete semantics rendered by CCS-es and 
 build configuration, we use terms defined in [[R1333R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1333r0.txt):
@@ -15,12 +25,14 @@ build configuration, we use terms defined in [[R1333R0]](http://www.open-std.org
 * "check (always continue)" -- perform run-time checks; compiler is allowed to assume that control always gets past the CSS, even if the condition is evaluated to false.
 * "check (maybe continue)" -- perform run-time checks; compiler can assume if control gets or not past the CSS in case cthe consition is evaluated to false.
 
-What particular semantics gets chosen can be controlled by a number of things:
-* Purpose of th binary: for testing, debug, or release
-* Assertion kind
-* Predicted cost of evaluating the check
-* Perceived probability of correctness of CSS-es
+What particular semantics gets chosen for different CCS-es can be controlled by a number of things:
+* Purpose of the binary: for testing, debuggig, or release.
+* CCS's intended 'puprpose' stated in the CSS, "evaluate to prevent UB", vs "evaluate to check what happens" vs "just indicate unimplementable condition".
+* Predicted cost of evaluating the check.
+* Perceived probability of a CSS-es condition evaluating to `false`.
 * Whether it is a precondition or a postcondition/assertion.
+
+Concepts in [[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html), CCS "level" or "continuation mode" are not able to model programmer expectations.
 
 
 Canonical modes
@@ -81,6 +93,8 @@ Same as *Review* but there are reasons to believe that the evaluation of the con
 
 References
 ----------
+
+[[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, "Support for contract based programming in C++".
 
 [[P1332R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) Joshua Berne, Nathan Burgers, Hyman Rosen, John Lakos, "Contract Checking in C++: A (long-term) Road Map".
 
