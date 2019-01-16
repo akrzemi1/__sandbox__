@@ -41,6 +41,8 @@ CCS guarantees that the condition holds. This is possible if the author is in co
 
 This role is most likely to be assigned the CCS-based optimization semantics.
 
+This 'modw' makes sense for asserts and postconditions, but not really for precondiitons: you usually are not in control of your callers.
+
 
 ### Review
 
