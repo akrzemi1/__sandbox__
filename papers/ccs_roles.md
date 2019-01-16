@@ -23,21 +23,23 @@ All five concrete semantics make sense for this "kind" of assertion.
 
 ### Audit
 
-Same as *default* but we have reasons to believe that checking it at runtime will noticeably affect program performance.
+Same as *Default* but we have reasons to believe that checking it at runtime will noticeably affect program performance.
 
-Semantics somewhat interact with semantics for *Default*. If we apply "assume" semantics to *audit* and "check" semantics to *default*, this checking may be compromized by the optimizations.
+Semantics somewhat interact with semantics for *Default*. If we apply "assume" semantics to *Audit* and "check" semantics to *Default*, this checking may be compromized by the optimizations.
 
-Technically, the interaction goes the other way around also: if we apply "assume" semantics to *default* and "check" semantics to *audit*, then *audit* checks may be compromized.
+Technically, the interaction goes the other way around also: if we apply "assume" semantics to *Default* and "check" semantics to *Audit*, then *Audit* checks may be compromized.
 
 
 ### Axiom
 
-Same as *default* except that only evaluating the condition at runtime would have correctness impact on the program 
+Same as *Default* except that only evaluating the condition at runtime would have correctness impact on the program 
 (broken preconditions, UB, etc.), or is impossible (program would not compile). 
 
 The range of semantics is reduced: we cannot evaluate the checks at run-time.
 
 The same interaction between *Axiom* and *Default* (and *Audit*) exists: If we apply "expect" semantics to *Axiom* and at the same time apply "check" semantics *Default* or/and *Audit*, this checking may be compromized by the optimizations.
+
+This is a more modest interpretation of what an *Axiom* CSS is. This is to separate two conflated meanings of *Axiom* CSS-es. The other meaning is represented by "kind" *Guarantee* below.
 
 
 Other possible roles
