@@ -2,33 +2,42 @@ CCS roles/modes
 ===============
 
 
+Canonical modes
+---------------
+
+In the following description, when referring to concrete semantics rendered by the Contract Checking Statements (CCS) and 
+build configuration, we use terms defined in [[R1333R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1333r0.txt):
+
+* "ignore" -- validate syntax correctness and otherwise ignore: no assumptions, no optimizations, no run-time checks
+* "assume" -- no run-time checks; eliminate branches in front of and behind the CSS that would be taken only if the condition in the CSS were to be violated. This is referred to as CCS-based optimization.
+* "check (never continue)" -- perform run-time checks; compiler is allowed to assume that control never gets past the CSS if the condition is evaluated to false.
+* "check (always continue)" -- perform run-time checks; compiler is allowed to assume that control always gets past the CSS, even if the condition is evaluated to false.
+* "check (maybe continue)" -- perform run-time checks; compiler can assume if control gets or not past the CSS in case cthe consition is evaluated to false.
+
 ### Default
 
 Code after the CCS *depends* on the condition to be true (potentially UB if control gets past the CCS with violated condition).
 
-This impies all ranges of possible semantics:
-* Check preconditions and stop execution of the reminder (either by throwing or aborting program).
-* Do not check anything and hope that the condition in CSS always holds.
-* Do not check anything and additionally eliminate branches even in front of the CCS if they are reached by violating the condition. This is referred to as CCS-based optimization.
+All five concrete semantics make sense for this "kind" of assertion.
 
 
 ### Audit
 
-Same as *Default* but we have reasons to believe that checking it at runtime will noticeably affect program performance.
+Same as *default* but we have reasons to believe that checking it at runtime will noticeably affect program performance.
 
-Semantics are somewhat interact with semantics for *Default*. If we do CCS-based optimization on *Audit* and at the same time runtime-check *Default*, this checking may be compromized by the optimizations.
+Semantics somewhat interact with semantics for *Default*. If we apply "assume" semantics to *audit* and "check" semantics to *default*, this checking may be compromized by the optimizations.
 
-Technically, the interaction goes the other way around also: if we optimize based on *Default* and check *Audit*, then *Audit* checks may be compromized.
+Technically, the interaction goes the other way around also: if we apply "assume" semantics to *default* and "check" semantics to *audit*, then *audit* checks may be compromized.
 
 
 ### Axiom
 
-Same as *Default* except that only evaluating the condition at runtime would have correctness impact on the program 
+Same as *default* except that only evaluating the condition at runtime would have correctness impact on the program 
 (broken preconditions, UB, etc.), or is impossible (program would not compile). 
 
 The range of semantics is reduced: we cannot evaluate the checks at run-time.
 
-The same interaction between *Axiom* and *Default* (and *Audit*) exists: If we do CCS-based optimization on *Axiom* and at the same time runtime-check *Default* or/and *Audit*, this checking may be compromized by the optimizations.
+The same interaction between *Axiom* and *Default* (and *Audit*) exists: If we apply "expect" semantics to *Axiom* and at the same time apply "check" semantics *Default* or/and *Audit*, this checking may be compromized by the optimizations.
 
 
 Other possible roles
@@ -52,3 +61,8 @@ The code after the CCS does *not* depend on the condition. The goal is to have a
 ### Review + audit
 
 Same as *Review* but there are reasons to believe that the evaluation of the condition will noticeably impact program performance.
+
+References
+----------
+[[R1333R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1333r0.txt) Joshua Berne, John Lakos, "Assigning Concrete Semantics to Contract-Checking Levels at Compile Time".
+
