@@ -91,12 +91,24 @@ The most likely semantics are "check" or "ignore". Of course, "assume" semantics
 Same as *Review* but there are reasons to believe that the evaluation of the condition will noticeably impact program performance.
 
 
+Preconditions vs other CCS-es
+-----------------------------
+
+It is a common situation in contract checking frameworks to runtime check only preconditions but ignore assertions, postconditions and invariants. E.g, in Eiffel
+([[EIFFEL]](https://www.eiffel.org/doc/eiffel/ET-_Design_by_Contract_%28tm%29%2C_Assertions_and_Exceptions)) or in Boost.contract ([[BOOST.CNTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html)).
+
 References
 ----------
 
 [[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, "Support for contract based programming in C++".
 
-[[P1332R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) Joshua Berne, Nathan Burgers, Hyman Rosen, John Lakos, "Contract Checking in C++: A (long-term) Road Map".
+[[P1290r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1290r0.pdf) J. Daniel Garcia, "Avoiding undefined behavior in contracts".
 
-[[R1333R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1333r0.txt) Joshua Berne, John Lakos, "Assigning Concrete Semantics to Contract-Checking Levels at Compile Time".
+[[P1332r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) Joshua Berne, Nathan Burgers, Hyman Rosen, John Lakos, "Contract Checking in C++: A (long-term) Road Map".
+
+[[R1333r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1333r0.txt) Joshua Berne, John Lakos, "Assigning Concrete Semantics to Contract-Checking Levels at Compile Time".
+
+[[EIFFEL]](https://www.eiffel.org/doc/eiffel/ET-_Design_by_Contract_%28tm%29%2C_Assertions_and_Exceptions) Eiffel Tutorial: "Design by Contract (tm), Assertions and Exceptions".
+
+([[BOOST.CNTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html)) Lorenzo Caminiti, Boost.Contract.
 
