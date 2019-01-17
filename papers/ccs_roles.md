@@ -1,5 +1,5 @@
-CCS roles/modes/contexts
-========================
+CCS roles/modes/contexts/intentions
+===================================
 
 Motivation
 ----------
@@ -35,8 +35,11 @@ What particular semantics gets chosen for different CCS-es can be controlled by 
 Concepts in [[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html), CCS "level" or "continuation mode" are not able to model programmer expectations.
 
 
-Canonical modes
----------------
+Canonical assertion levels (intentions)
+-----------------------------------
+
+[[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) lists three assertion levels: Default, Audit and Axiom. But declaring such one-dementional scale may be an oversimplification. Yes, Default and Audit indeed seem to differ only by "weight", but Axiom is different in quality than the former two. They are more like "intentions" of the author that can assume more than three types.
+
 
 ### Default
 
@@ -66,7 +69,7 @@ The same interaction between *Axiom* and *Default* (and *Audit*) exists: If we a
 This is a more modest interpretation of what an *Axiom* CSS is. This is to separate two conflated meanings of *Axiom* CSS-es. The other meaning is represented by "kind" *Guarantee* below.
 
 
-Other possible roles
+Other possible intentions
 --------------------
 
 
@@ -91,6 +94,20 @@ The most likely semantics are "check" or "ignore". Of course, "assume" semantics
 Same as *Review* but there are reasons to believe that the evaluation of the condition will noticeably impact program performance.
 
 
+### More...
+
+One can imagine more such "intentions". For instance assertion costs can be finer grained than just *Default* and *Audit*. One could imagine three cost categories:
+
+* Where assertion overhead is negligible compared to the containing function.
+* Where assertion overhead is simialr to the function overhead (program slowdown by factor 2).
+* Where assertion overhead has bigger complexity that the function.
+
+Also "relatively fast" (that would qualify fo *Default* "level") is subjective and authors of different libraries can set the thresholt differently. The programmer may disagree with the decision in some of the libraries. Therefore there may be a need to enable *Default* assertions per-library (per module, per namespace, per tag in the assert).
+
+The orthogonal division of CCS-es into levels and roles, as in 
+[[P1332r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) also does not quite cut it. While it makes sense to have an *Audit* version of a *Review* assert, an *Axiom* version does not seem to make sense.
+
+
 Preconditions vs other CCS-es
 -----------------------------
 
@@ -98,6 +115,24 @@ It is a common situation in contract checking frameworks to runtime check only p
 ([[EIFFEL]](https://www.eiffel.org/doc/eiffel/ET-_Design_by_Contract_%28tm%29%2C_Assertions_and_Exceptions)) and in Boost.Contract ([[BOOST.CONTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html)). The reason for this is that the likelyhood of detecting a bug while evaluating a precondition is much much higher than in other types of CCS-es. This is because preconditions are the only type of CCS-es where a different person declares the expectation and a different person is expected to fulfill it: the llikelihood of micommunication is higher. In contrast, for preconditions, the author of the function declares the precondition and implements the function body.
 
 Therefore it is likely that programmers will want only preconditions to be evaluated at run-time.
+
+
+Different handlers and different continuation modes within ne program
+---------------------------------------------------------------------
+
+There may be a need to use more than one continuation mode in the program: continue after some failed assertions but make sure to abort on others. Similarly different callbacks may be needed for different assertions. This could be implemented through one callback that obtains sufficient input to determine what level/mode/role/intention/kind of a CCS has failed.
+
+
+Recommendation
+--------------
+
+1. As per [[R1333r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1333r0.txt), define the five semantics of CSS-es in the Standard.
+
+2. As suggested in [[P1332r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) (section 5.4.2), provide a slightly different syntax for naming the returned object, e.g.: `[[ensures(r): r >= 0]]`.
+
+3. Apart from `default`, `audit` and `axiom` allow arbitrary identifier or namespace-qualified identifier in that position. Don't call them "levels" but something else, like "tags". These identifiers are passed to the violation handler if run-time checking is requested.
+
+4. Add a provision in the standard that, apart from these mandated in the Standard, there are implementation-defined ways to map CSS-es onto semantics that may include the tag, kind (precondition vs postcondition), enclosing namespace, translation unit.
 
 References
 ----------
