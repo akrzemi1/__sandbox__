@@ -1,11 +1,11 @@
-CCS levels/roles/modes/contexts/intentions
-==========================================
+Assigning semantics to different Contract Checking Statements
+=============================================================
 
 Motivation
 ----------
 
 This paper tries to list all 'circumstances' that can affect what semantics (ignore, run-time check, assume) we want to
-associate with different Contract Checking Statements (CCS) at different places in code. Our observation is that neither the current wording, nor the *roles*, as defined in [[P1332R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt),
+associate with different Contract Checking Statements (CCS) in different places in code. Our observation is that neither the current wording, nor the *roles*, as defined in [[P1332R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt),
 fully grasp the perceived needs of the users.
 
 Our conclusion is that while not all possible user needs can or should be reflected in the Standard, the Standard should make 
