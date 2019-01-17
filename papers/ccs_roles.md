@@ -29,7 +29,7 @@ What particular semantics gets chosen for different CCS-es can be controlled by 
 * Purpose of the binary: for testing, debuggig, or release.
 * CCS's intended 'puprpose' stated in the CSS, "evaluate to prevent UB", vs "evaluate to check what happens" vs "just indicate unimplementable condition".
 * Predicted cost of evaluating the check.
-* Perceived probability of a CSS-es condition evaluating to `false`.
+* Perceived probability of a CSS's condition evaluating to `false`.
 * Whether it is a precondition or a postcondition/assertion.
 
 Concepts in [[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html), CCS "level" or "continuation mode" are not able to model programmer expectations.
