@@ -132,7 +132,8 @@ Recommendation
 
 3. Apart from `default`, `audit` and `axiom` allow arbitrary identifier or namespace-qualified identifier in that position. Don't call them "levels" but something else, like "tags". These identifiers are passed to the violation handler if run-time checking is requested.
 
-4. Add a provision in the standard that, apart from these mandated in the Standard, there are implementation-defined ways to map CSS-es onto semantics that may include the tag, kind (precondition vs postcondition), enclosing namespace, translation unit.
+4. Add a provision in the standard that, apart from these mandated in the Standard, there are implementation-defined ways to map CSS-es onto semantics that may include the tag, kind (precondition vs postcondition), enclosing namespace, translation unit. If some CCS tag is not recognized by the implementation, it should apply "ignore" semantics. 
+
 
 References
 ----------
