@@ -38,19 +38,19 @@ Concepts in [[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/
 Canonical assertion levels (intentions)
 -----------------------------------
 
-[[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) lists three assertion levels: Default, Audit and Axiom. But declaring such one-dementional scale may be an oversimplification. Yes, Default and Audit indeed seem to differ only by "weight", but Axiom is different in quality than the former two. They are more like "intentions" of the author that can assume more than three types.
+[[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) lists three assertion levels: Default, Audit and Axiom. But declaring such one-dementional scale may be an oversimplification. Yes, Default and Audit indeed seem to differ only by "weight", but Axiom is different in quality than the former two. People have expressed requirements and expectations that do not fit into this division. Let's first have a closer look at these three levels.
 
 
 ### Default
 
 Code after the CCS *depends* on the condition to be true (potentially UB if control gets past the CCS with violated condition).
 
-All five concrete semantics make sense for this "kind" of assertion.
+This does not necessarily mean that something needs to be "protected against UB". In a correct program paths are executed only with values that do not violate the CSS conditions. All five concrete semantics make sense for this "kind" of assertion.
 
 
 ### Audit
 
-Same as *Default* but we have reasons to believe that checking it at runtime will noticeably affect program performance.
+Same as *Default* but we have reasons to believe that checking it at runtime will noticeably affect program performance. We give this additional "hint" as to our intentions: maybe do not execute them if you care about performance.
 
 Semantics somewhat interact with semantics for *Default*. If we apply "assume" semantics to *Audit* and "check" semantics to *Default*, this checking may be compromized by the optimizations.
 
@@ -106,6 +106,10 @@ Also "relatively fast" (that would qualify fo *Default* "level") is subjective a
 
 The orthogonal division of CCS-es into levels and roles, as in 
 [[P1332r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) also does not quite cut it. While it makes sense to have an *Audit* version of a *Review* assert, an *Axiom* version does not seem to make sense.
+
+### The passage of time
+
+Sometimes a different semantics can be assigned to a CSS only because some time has passed... 
 
 
 Preconditions vs other CCS-es
