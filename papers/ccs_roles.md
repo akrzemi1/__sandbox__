@@ -32,7 +32,7 @@ build configuration, we use terms defined in [[R1333R0]](http://www.open-std.org
 * "check (maybe continue)" -- perform run-time checks; compiler can assume if control gets or not past the CSS in case cthe consition is evaluated to false.
 
 What particular semantics gets chosen for different CCS-es can be controlled by a number of things:
-* Purpose of the binary: for testing, debuggig, or release.
+* Purpose of the binary: for testing, debugging, or release.
 * CCS's intended 'puprpose' stated in the CSS, "evaluate to prevent UB", vs "evaluate to check what happens" vs "just indicate unimplementable condition".
 * Predicted cost of evaluating the check.
 * Our confidence of CSS's condition being satisfied in the program.
