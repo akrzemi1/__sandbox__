@@ -1,3 +1,8 @@
+Author: Andrzej Krzemie&#x0144;ski <br>
+Reply-to: akrzemi1 (at) gnail (dot) com <br>
+Audience: EWG
+
+
 Assigning semantics to different Contract Checking Statements
 =============================================================
 
@@ -28,49 +33,56 @@ What particular semantics gets chosen for different CCS-es can be controlled by 
 * Purpose of the binary: for testing, debuggig, or release.
 * CCS's intended 'puprpose' stated in the CSS, "evaluate to prevent UB", vs "evaluate to check what happens" vs "just indicate unimplementable condition".
 * Predicted cost of evaluating the check.
-* Perceived probability of a CSS's condition evaluating to `false`.
+* Our confidence of CSS's condition being satisfied in the program.
 * Whether it is a precondition or a postcondition/assertion.
 
 Concepts in [[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html), CCS "level" or "continuation mode" are not able to model programmer expectations.
 
 
-Canonical assertion levels (intentions)
------------------------------------
+Canonical assertion levels
+--------------------------
 
-[[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) lists three assertion levels: Default, Audit and Axiom. But declaring such one-dementional scale may be an oversimplification. Yes, Default and Audit indeed seem to differ only by "weight", but Axiom is different in quality than the former two. People have expressed requirements and expectations that do not fit into this division. Let's first have a closer look at these three levels.
+[[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) lists three assertion levels: Default, Audit and Axiom. Along with the notion of "build level" this gives an impression that these three can be positioned on a one-dimensional scale. But they are not one dimensional. Yes, Default and Audit indeed seem to differ only by "weight", but Axiom is different in quality than the former two. People have expressed requirements and expectations that do not fit into this model. Let's first have a closer look at these three levels.
 
 
 ### Default
 
 Code after the CCS *depends* on the condition to be true (potentially UB if control gets past the CCS with violated condition).
 
-This does not necessarily mean that something needs to be "protected against UB". In a correct program paths are executed only with values that do not violate the CSS conditions. All five concrete semantics make sense for this "kind" of assertion.
+This does not necessarily mean that something needs to be "protected against UB". In a correct program paths are executed only with values that do not violate the CSS conditions. All five concrete semantics make sense for this "level" of assertion.
 
 
 ### Audit
 
 Same as *Default* but we have reasons to believe that checking it at runtime will noticeably affect program performance. We give this additional "hint" as to our intentions: maybe do not execute them if you care about performance.
 
-Semantics somewhat interact with semantics for *Default*. If we apply "assume" semantics to *Audit* and "check" semantics to *Default*, this checking may be compromized by the optimizations.
+Problem described in [[P1321r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1321r0.html) might imply that there are some interactions between semantics assigned to *Default* and *Audit* CCS-es: if we apply "assume" semantics to *Audit* and "check" semantics to *Default*, this checking may be compromized by the optimizations. But this only appears this way in the context of [[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) under which you can either "check" the the condition or "assume" it, but you cannot "ignore" it. [[P1290r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1290r0.pdf) tries to fix the problem by requiring that you can either "check" or "ignore" a condition, but you cannot "assume" it. While this is an improvement, it unnecessarily prevents CCS-based assumptions. 
 
-Technically, the interaction goes the other way around also: if we apply "assume" semantics to *Default* and "check" semantics to *Audit*, then *Audit* checks may be compromized.
+At some point I may want the compiler to make assumptions based on my CSS-es. [[P1290r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1290r0.pdf) cannot guarantee that because it is confined to this linear model. The fact that [[P1290r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1290r0.pdf) allows assumptions on *Axiom* checks does not help here, because I want the same CSS to be sometimes evaluated and sometimes assumed.
+
+And obviously: modifying the code by applying a CSS-based assumption affects the program and affects other CSS-es. That is the point of assumptions. Therefore programmers would only allow assumptions on the selected CSS-es. Not "every single one with *Audit* level". The problem in [[P1321r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1321r0.html) was that CCS cannot be just ignored. 
 
 
 ### Axiom
 
-Same as *Default* except that only evaluating the condition at runtime would have correctness impact on the program 
+Same as *Default* except that even evaluating the CSS condition at runtime would have correctness impact on the program 
 (broken preconditions, UB, etc.), or is impossible (program would not compile). 
 
 The range of semantics is reduced: we cannot evaluate the checks at run-time.
 
-The same interaction between *Axiom* and *Default* (and *Audit*) exists: If we apply "expect" semantics to *Axiom* and at the same time apply "check" semantics *Default* or/and *Audit*, this checking may be compromized by the optimizations.
+Note that the same interaction between *Axiom* and *Default* (and *Audit*) exists: If we apply "assume" semantics to *Axiom* and at the same time apply "check" semantics *Default* or/and *Audit*, this checking may be compromized by the optimizations. But as we indicated above, that is the point of assumptions.
 
-This is a more modest interpretation of what an *Axiom* CSS is. This is to separate two conflated meanings of *Axiom* CSS-es. The other meaning is represented by "kind" *Guarantee* below.
+The idea that Axiom* CSS-es are better suited for "assume" semantics than *Default* or *Audit* is wrong.
+Only because I have said that my algorithm expects iterators `f` and `l` to represent a valid range, it does not mean that 
+the compiler should use this as an assumption in other places. Such expectation is no more "reliable" than expectation in *Axiom* and *Default* CSS-es. It is just that we cannot evaluate the condition: nothing more.
+
+The ability to enable assumptions for all *Axiom* CSS-es, as offered in [[P1290r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1290r0.pdf) is not a satisfactory solution either. I will typically want to enable assumptions for some *Axioms*: no all of them. I know and trust my CSS-es. I cannot make that call for CSS-es in the libraries I include.
 
 
-Other possible intentions
---------------------
+Other possible non-linear classification of CSS-es 
+---------------------------------------------------
 
+If we depart from treating  *Default* and *Audit* and *Axiom* as levels on a one-dimensional scale, we can identidy more CCS "hints":
 
 ### Guarantee
 
@@ -95,7 +107,7 @@ Same as *Review* but there are reasons to believe that the evaluation of the con
 
 ### More...
 
-One can imagine more such "intentions". For instance assertion costs can be finer grained than just *Default* and *Audit*. One could imagine three cost categories:
+One can imagine more such "hints". For instance, assertion costs can be finer grained than just *Default* and *Audit*. One could imagine three cost categories:
 
 * Where assertion overhead is negligible compared to the containing function.
 * Where assertion overhead is simialr to the function overhead (program slowdown by factor 2).
@@ -108,14 +120,15 @@ The orthogonal division of CCS-es into levels and roles, as in
 
 ### The passage of time
 
-Sometimes a different semantics can be assigned to a CSS only because some time has passed... 
+Sometimes a different semantics can be assigned to a CSS only because some time has passed. For a group of CSS-es in my library, I want to treat them as *Review* for some time, i.e., just evaluate, log and continue. But later, when I get confidence that the CSS-es are called in-contract, I may want to evaluate and throw on failure. And do this not for all *Review* CSS-es but only fo a subset from one library. Therefore changing semantic for all *Review* CSS-es will not cut it either.
 
 
 Preconditions vs other CCS-es
 -----------------------------
 
 It is a common situation in contract checking frameworks to runtime check only preconditions but ignore assertions, postconditions and invariants. E.g, this is possible in Eiffel
-([[EIFFEL]](https://www.eiffel.org/doc/eiffel/ET-_Design_by_Contract_%28tm%29%2C_Assertions_and_Exceptions)) and in Boost.Contract ([[BOOST.CONTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html)). The reason for this is that the likelyhood of detecting a bug while evaluating a precondition is much much higher than in other types of CCS-es. This is because preconditions are the only type of CCS-es where a different person declares the expectation and a different person is expected to fulfill it: the llikelihood of micommunication is higher. In contrast, for preconditions, the author of the function declares the precondition and implements the function body.
+([[EIFFEL]](https://www.eiffel.org/doc/eiffel/ET-_Design_by_Contract_%28tm%29%2C_Assertions_and_Exceptions)) and in Boost.Contract ([[BOOST.CONTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html)).
+The reason for this is that the likelihood of detecting a bug while evaluating a precondition is much much higher than in other types of CCS-es. This is because preconditions are the only type of CCS-es where a different person declares the expectation and a different person is expected to fulfill it: the likelihood of micommunication is higher. In contrast, for postconditions, the author of the function declares the precondition and implements the function body.
 
 Therefore it is likely that programmers will want only preconditions to be evaluated at run-time.
 
@@ -131,7 +144,7 @@ Recommendation
 
 1. As per [[R1333r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1333r0.txt), define the five semantics of CSS-es in the Standard.
 
-2. As suggested in [[P1332r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) (section 5.4.2), provide a slightly different syntax for naming the returned object, e.g.: `[[ensures(r): r >= 0]]`.
+2. As suggested in [[P1332r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) (section 5.4.2), provide a slightly different syntax for naming the returned object, e.g.: `[[ensures(r): r >= 0]]`. This is in order to easily say if a given identifier represents the assertion level/hint or a variable in a postcondition.
 
 3. Apart from `default`, `audit` and `axiom` allow arbitrary identifier or namespace-qualified identifier in that position. Don't call them "levels" but something else, like "tags". These identifiers are passed to the violation handler if run-time checking is requested.
 
@@ -145,6 +158,8 @@ References
 
 [[P1290r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1290r0.pdf) J. Daniel Garcia, "Avoiding undefined behavior in contracts".
 
+[[P1321r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1321r0.html) Ville Voutilainen, "UB in contract violations".
+
 [[P1332r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) Joshua Berne, Nathan Burgers, Hyman Rosen, John Lakos, "Contract Checking in C++: A (long-term) Road Map".
 
 [[R1333r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1333r0.txt) Joshua Berne, John Lakos, "Assigning Concrete Semantics to Contract-Checking Levels at Compile Time".
@@ -152,4 +167,3 @@ References
 [[EIFFEL]](https://www.eiffel.org/doc/eiffel/ET-_Design_by_Contract_%28tm%29%2C_Assertions_and_Exceptions) Eiffel Tutorial: "Design by Contract (tm), Assertions and Exceptions".
 
 [[BOOST.CONTRACT]](https://www.boost.org/doc/libs/1_69_0/libs/contract/doc/html/index.html) Lorenzo Caminiti, Boost.Contract.
-
