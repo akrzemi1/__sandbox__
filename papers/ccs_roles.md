@@ -118,7 +118,8 @@ Also "relatively fast" (that would qualify fo *Default* "level") is subjective a
 The orthogonal division of CCS-es into levels and roles, as in 
 [[P1332r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) also does not quite cut it. While it makes sense to have an *Audit* version of a *Review* assert, an *Axiom* version does not seem to make sense.
 
-### The passage of time
+The passage of time
+-------------------
 
 Sometimes a different semantics can be assigned to a CSS only because some time has passed. For a group of CSS-es in my library, I want to treat them as *Review* for some time, i.e., just evaluate, log and continue. But later, when I get confidence that the CSS-es are called in-contract, I may want to evaluate and throw on failure. And do this not for all *Review* CSS-es but only fo a subset from one library. Therefore changing semantic for all *Review* CSS-es will not cut it either.
 
