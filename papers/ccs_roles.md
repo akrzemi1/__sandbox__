@@ -4,13 +4,12 @@ Assigning semantics to different Contract Checking Statements
 Motivation
 ----------
 
-This paper tries to list all 'circumstances' that can affect what semantics (ignore, run-time check, assume) we want to
-associate with different Contract Checking Statements (CCS) in different places in code. Our observation is that neither the current wording, nor the *roles*, as defined in [[P1332R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt),
-fully grasp the perceived needs of the users.
+This paper provides some perspective on the recent issues around Contract Programming support in C++. While the authors of
+[[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) work on the compromise solution, this paper
+tries to give some insigths into where the problems come from.
 
-Our conclusion is that while not all possible user needs can or should be reflected in the Standard, the Standard should make 
-it clear that users may expect from implementations more control over the semantics associated with their CSS-es than what the 
-Standard requires as minimum.
+The conclusion is that there are more 'circumstances' that can affect what semantics (ignore, run-time check, assume) we want to
+associate with different Contract Checking Statements (CCS) in different places in code than what [[p0542r5]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0542r5.html) proposes or even what the *roles* as defined in [[P1332R0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1332r0.txt) offer. While it might be impractical to put all these circumstances as requirements in the Standard, what the Standard could do is to allow provision for implementation-defined additional control over the semantics assigned to CSS-es in a program. 
 
 
 What should affect the CCS semantics
