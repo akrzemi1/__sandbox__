@@ -1,3 +1,5 @@
+Document no: P1404r0 <br>
+Date: 2018-01-15 <br>
 Authors: Andrzej Krzemieński, Tomasz Kamiński <br>
 Reply-to: akrzemi1 (at) gmail (dot) com <br>
 Audience: EWG, LEWG
