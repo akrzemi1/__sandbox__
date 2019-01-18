@@ -1,5 +1,5 @@
-Document No: DxxxxR0 <br>
-Date: 2019-01-dd <br>
+Document No: P1401r0 <br>
+Date: 2019-01-15 <br>
 Author: Andrzej Krzemie&#x144;ski <br>
 Reply-to: akrzemi1 (at) gmail (dot) com <br>
 Audience: EWG
