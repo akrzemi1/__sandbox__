@@ -29,7 +29,7 @@ build configuration, we use terms defined in [[R1333R0]](http://www.open-std.org
 * "assume" -- no run-time checks; eliminate branches in front of and behind the CSS that would be taken only if the condition in the CSS were to be violated. This is referred to as CCS-based optimization.
 * "check (never continue)" -- perform run-time checks; compiler is allowed to assume that control never gets past the CSS if the condition is evaluated to false.
 * "check (always continue)" -- perform run-time checks; compiler is allowed to assume that control always gets past the CSS, even if the condition is evaluated to false.
-* "check (maybe continue)" -- perform run-time checks; compiler can assume if control gets or not past the CSS in case cthe consition is evaluated to false.
+* "check (maybe continue)" -- perform run-time checks; compiler can assume if control gets or not past the CSS in case the condition is evaluated to false.
 
 What particular semantics gets chosen for different CCS-es can be controlled by a number of things:
 * Purpose of the binary: for testing, debugging, or release.
