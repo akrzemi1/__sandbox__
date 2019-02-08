@@ -62,9 +62,9 @@ Whichever is chosen, it may compromise the other's use cases. The design documen
 The design document, p0380r0, gave two use cases for continuation mode:
 
 > There are programs that need to resume computation after executing a violations handler. This seems counterintuitive (“continue after a precondition violation!!!?”), but there are two important use cases:
-
+>
 > * Gradual introduction of contracts:  Experience shows that once you start introducing contracts into a large old code base, violations are found in “correctly working code.” In other words, contracts are violated in ways that did not cause crashes for the actual use of the code for the actual data used. There are examples where the number of such “currently harmless violations” is massive. The way to cope is to install a violation handler that logs the problem and continues. This allows gradual adoption.
-
+>
 > * Test harnesses: Contracts are code, so they can contain bugs. To test contracts, we need to execute examples of violations. A convenient way of organizing such a test suite is to have a violation handler throw an exception and have the main testing loop catch exceptions and proceed running the next test
 
 
@@ -85,5 +85,3 @@ We are left with no use case for the continuation mode. Unless some new use case
 P1429R0 attempts to still handle the first use case (gradual introduction of contracts) by offering a per-CCS control whether the program should continue on failure or not. This is a design change (at the last minute), but admittedly one that addresses the design goal of p0380r0. If applied, it still renders global continuation mode useless.
 
 Regardless of whether this part of P1429R0 is adopted, it seems the right course of action to remove the continuation mode. Unless new use cases come up.
-
-
