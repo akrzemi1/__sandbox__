@@ -7,7 +7,7 @@ in the recent discussions in the EWG reflector. The goal is to make this informa
 
 
 
-1. Contract-based optimizations that cause concerns.
+1 Contract-based optimizations that cause concerns.
 ----------------------------------------------------
 
 The problem that P1290R1 intends to address is related to the following statement in the WD ([dcl.attr.contract.check]/p4):
@@ -27,7 +27,7 @@ This point of view is based on trust that compiler vendors work in the best inte
 Thus, to great extent the decision whether to mandate no-contract-based-optimization guarantee in the Standard boils down to the question whether we trust that compiler vendors will be responsible when doing their job.
 
 
-2. The goal of having axiom-level CCS-es.
+2 The goal of having axiom-level CCS-es.
 -----------------------------------------
 
 We have seen two positions here. One position is that an axiom-level CCS can be used to express a precondition to a function (something that we expect, but we are not sure if the callers will comply with) formally where the predicate must never be evaluated at run-time, because it is unimplementable, or would have side effects or has an unacceptable complexity even for test builds. A common example is `is_reachable()` for a pair of iterators that are expected to represent a range.
@@ -43,7 +43,7 @@ But the decision which position we adopt should be made prior to considering P12
 (BTW, this is not meant as a critique of P1290R1. I acknowledge that it reflects the polls from EWG.)
 
 
-3. Are conditions in axiom-level CCS-es odr-used?
+3\. Are conditions in axiom-level CCS-es odr-used?
 -------------------------------------------------
 
 The current WD says that conditions in axiom-level CCS-es are as any other conditions: they are ODR used. And function templates need to be instantiated. This has some applications: for some predicates we know how to express them, but we do not want them to be evaluated (too expensive, have side effects), but static analysis tools may wish to instantiate the bodies to observe the code and draw conclusions.
@@ -56,7 +56,7 @@ Whichever is chosen, it may compromise the other's use cases. The design documen
 
 
 
-4. Fewer use cases for continuation mode
+4\. Fewer use cases for continuation mode
 ----------------------------------------
 
 The design document, p0380r0, gave two use cases for continuation mode:
