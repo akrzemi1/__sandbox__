@@ -85,3 +85,9 @@ We are left with no use case for the continuation mode. Unless some new use case
 P1429R0 attempts to still handle the first use case (gradual introduction of contracts) by offering a per-CCS control whether the program should continue on failure or not. This is a design change (at the last minute), but admittedly one that addresses the design goal of p0380r0. If applied, it still renders global continuation mode useless.
 
 Regardless of whether this part of P1429R0 is adopted, it seems the right course of action to remove the continuation mode. Unless new use cases come up.
+
+
+References
+----------
+
+[[WD]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/n4800.pdf) -- Richard Smith, n4800, "Working Draft, Standard for Programming Language C++".
