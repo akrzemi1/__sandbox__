@@ -90,4 +90,11 @@ Regardless of whether this part of P1429R0 is adopted, it seems the right course
 References
 ----------
 
-[[WD]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/n4800.pdf) -- Richard Smith, n4800, "Working Draft, Standard for Programming Language C++".
+[[WD]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/n4800.pdf) -- Richard Smith, N4800, "Working Draft, Standard for Programming Language C++".
+
+[[P0380r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0380r0.pdf) -- G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, "A Contract Design".
+
+[[P1290r1]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1290r1.pdf) -- J. Daniel Garcia, Ville Voutilainen, "Avoiding undefined behavior in contracts".
+
+[[P1429r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1429r0.pdf) --  	Joshua Berne, John Lakos, "Contracts That Work".
+
