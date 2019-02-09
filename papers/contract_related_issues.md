@@ -10,7 +10,7 @@ in the recent discussions in the EWG reflector. The goal is to make this informa
 1\. Contract-based optimizations that cause concerns.
 ----------------------------------------------------
 
-The problem that P1290R1 intends to address is related to the following statement in the WD ([dcl.attr.contract.check]/p4):
+The problem that P1290R1 intends to address is related to the following statement in the [[WD]][1] ([dcl.attr.contract.check]/p4):
 
 > it is unspecified whether the predicate for a contract that is not checked under the current build level is evaluated;
   if the predicate of such a contract would evaluate to false, the behavior is undefined.
@@ -22,7 +22,7 @@ Some people read the above [dcl.attr.contract.check]/p4 as follows: compilers ar
 
 A different way of looking at this definition is that compiler vendors can communicate with programmers by other means than the International Standard. For instance, even though the International Standard does not demand that implementations give the programmers control to opt out of any optimizations, compilers nonetheless give them this option. Or, even though the International Standard allows optimizations based on strict type aliasing rules (UB-based optimizations) and does not mandate a "mode" where these optimizations (assumptions) would be disallowed, compilers like clang or gcc still allow the programmers to control this with flag -fstrict-aliasing .
 
-This point of view is based on trust that compiler vendors work in the best interests of the programmers, that they are aware of the issues related to assuming the CCS predicates, and that their natural course of action would be to either never implement such assumptions, or enable them under a compiler flag. Under this view there is no problem related to contract-based optimizations in the current WP: it gives the compiler vendors a provision for implementing contract-based optimizations in a responsible way.
+This point of view is based on trust that compiler vendors work in the best interests of the programmers, that they are aware of the issues related to assuming the CCS predicates, and that their natural course of action would be to either never implement such assumptions, or enable them under a compiler flag. Under this view there is no problem related to contract-based optimizations in the current [[WD]][1]: it gives the compiler vendors a provision for implementing contract-based optimizations in a responsible way.
 
 Thus, to great extent the decision whether to mandate no-contract-based-optimization guarantee in the Standard boils down to the question whether we trust that compiler vendors will be responsible when doing their job.
 
@@ -34,7 +34,7 @@ We have seen two positions here. One position is that an axiom-level CCS can be 
 
 The other position, is that axiom-level CCSes, unlike other CSS-es do not express expectations (something we need but cannot be sure about), but declare program-wide "absolute truths" that compiler is allowed to take for granted: they enable UB-based optimizations and are not allowed to be checked. This position is backed by the fact that preprocessing token `axiom` spells the same as the notion of an axiom in mathematics. This position precludes defining preconditions like `is_reachable()` described above.
 
-The current WD technically accommodates two positions but this is a superficial unification. Programmers and tool writers will need to be given instructions how to use axiom-level CCSes. And if they are given contradictory guidance this will create a fracture in the community even though the International Standard clearly defines what happens under each mode with axiom-level CCSes. This is because the use of CSS-es is beyond what the IS can describe (like static analysis tools).
+The current [[WD]][1] technically accommodates two positions but this is a superficial unification. Programmers and tool writers will need to be given instructions how to use axiom-level CCSes. And if they are given contradictory guidance this will create a fracture in the community even though the International Standard clearly defines what happens under each mode with axiom-level CCSes. This is because the use of CSS-es is beyond what the IS can describe (like static analysis tools).
 
 The consensus regarding the two positions needs to be reached even if it is not expressed directly in the IS. It can be used as a basis for applying fixes and future modifications to contracts. For instance, the solution in P1290R1 takes the direction of the second position. It adds a new semantic distinction between axiom-level CCSes and other CCSes: the former are allowed to be used for UB-based optimizations under one mode, whereas other levels of CSS-es are not allowed for UB-based optimizations under any defined mode. This distinction is illogical if we assume the first position (where axiom-level CCS-es differ only in the guarantee that they will never be run-time evaluated). But it makes perfect sense if we assume the second position.
 
@@ -90,6 +90,7 @@ Regardless of whether this part of P1429R0 is adopted, it seems the right course
 References
 ----------
 
+[1]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/n4800.pdf
 [[WD]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/n4800.pdf) -- Richard Smith, N4800, "Working Draft, Standard for Programming Language C++".
 
 [[P0380r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0380r0.pdf) -- G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, "A Contract Design".
