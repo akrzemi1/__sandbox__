@@ -42,9 +42,9 @@ The current [[WD]][1] technically accommodates two positions but this is a super
 
 The consensus regarding the two positions needs to be reached even if it is not expressed directly in the IS. It can be used as a basis for applying fixes and future modifications to contracts. For instance, the solution in [[P1290r1]][3] takes the direction of the second position. It adds a new semantic distinction between axiom-level CCSes and other CCSes: the former are allowed to be used for UB-based optimizations under one mode, whereas other levels of CSS-es are not allowed for UB-based optimizations under any defined mode. This distinction is illogical if we assume the first position (where axiom-level CCS-es differ only in the guarantee that they will never be run-time evaluated). But it makes perfect sense if we assume the second position.
 
-But the decision which position we adopt should be made prior to considering P1290R1.
+Therefore the decision which position we adopt should be made prior to considering [[P1290r1]][3]. This is in order for a high level design to control the details and not vice versa.
 
-(BTW, this is not meant as a critique of [[P1290r1]][3]. I acknowledge that it reflects the polls from EWG.)
+(BTW, this is not meant as a critique of [[P1290r1]][3]. We acknowledge that it reflects the polls from EWG.)
 
 
 3\. Are conditions in axiom-level CCS-es odr-used?
