@@ -82,7 +82,7 @@ Regarding the second use case, during the course of discussion and clarification
 
 We are left with no use case for the continuation mode. Unless some new use cases have came up.
 
-P1429R0 attempts to still handle the first use case (gradual introduction of contracts) by offering a per-CCS control whether the program should continue on failure or not. This is a design change (at the last minute), but admittedly one that addresses the design goal of [[P0380r0]][2]. If applied, it still renders global continuation mode useless.
+[[P1429r0]][4] attempts to still handle the first use case (gradual introduction of contracts) by offering a per-CCS control whether the program should continue on failure or not. This is a design change (at the last minute), but admittedly one that addresses the design goal of [[P0380r0]][2]. If applied, it still renders global continuation mode useless.
 
 Regardless of whether this part of [[P1429r0]][4] is adopted, it seems the right course of action to remove the continuation mode. Unless new use cases come up.
 
