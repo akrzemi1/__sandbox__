@@ -24,7 +24,7 @@ A different way of looking at this definition is that compiler vendors can commu
 
 This point of view is based on trust that compiler vendors work in the best interests of the programmers, that they are aware of the issues related to assuming the CCS predicates, and that their natural course of action would be to either never implement such assumptions, or enable them under a compiler flag. Under this view there is no problem related to contract-based optimizations in the current [[WD]][1]: it gives the compiler vendors a provision for implementing contract-based optimizations in a responsible way.
 
-Thus, to great extent the decision whether to mandate no-contract-based-optimization guarantee in the Standard boils down to the question whether we trust that compiler vendors will be responsible when doing their job.
+Thus, to certain extent the decision whether to mandate no-contract-based-optimization guarantee in the Standard boils down to the question whether we trust that compiler vendors will be responsible when doing their job.
 
 
 2\. The goal of having axiom-level CCS-es.
