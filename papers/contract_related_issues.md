@@ -12,7 +12,7 @@ in the recent discussions in the EWG reflector. The goal is to give the picture 
 
 The problem that [[P1290r1]][3] intends to address is related to the following statement in the [[WD]][1] ([dcl.attr.contract.check]/p4):
 
-> it is unspecified whether the predicate for a contract that is not checked under the current build level is evaluated;
+> [...] it is unspecified whether the predicate for a contract that is not checked under the current build level is evaluated;
   if the predicate of such a contract would evaluate to false, the behavior is undefined.
 
 
