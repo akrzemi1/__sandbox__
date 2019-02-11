@@ -3,14 +3,14 @@ Contract-related issues
 
 
 This paper attempts to summarize the issues with the current contract design that have came up
-in the recent discussions in the EWG reflector. The goal is to make this information available to all Committee members.
+in the recent discussions in the EWG reflector. The goal is to give the picture of the situation to all Committee members.
 
 
 
 1\. Contract-based optimizations that cause concerns.
 ----------------------------------------------------
 
-The problem that P1290R1 intends to address is related to the following statement in the [[WD]][1] ([dcl.attr.contract.check]/p4):
+The problem that [[P1290r1]][3] intends to address is related to the following statement in the [[WD]][1] ([dcl.attr.contract.check]/p4):
 
 > it is unspecified whether the predicate for a contract that is not checked under the current build level is evaluated;
   if the predicate of such a contract would evaluate to false, the behavior is undefined.
@@ -36,11 +36,11 @@ The other position, is that axiom-level CCSes, unlike other CSS-es do not expres
 
 The current [[WD]][1] technically accommodates two positions but this is a superficial unification. Programmers and tool writers will need to be given instructions how to use axiom-level CCSes. And if they are given contradictory guidance this will create a fracture in the community even though the International Standard clearly defines what happens under each mode with axiom-level CCSes. This is because the use of CSS-es is beyond what the IS can describe (like static analysis tools).
 
-The consensus regarding the two positions needs to be reached even if it is not expressed directly in the IS. It can be used as a basis for applying fixes and future modifications to contracts. For instance, the solution in P1290R1 takes the direction of the second position. It adds a new semantic distinction between axiom-level CCSes and other CCSes: the former are allowed to be used for UB-based optimizations under one mode, whereas other levels of CSS-es are not allowed for UB-based optimizations under any defined mode. This distinction is illogical if we assume the first position (where axiom-level CCS-es differ only in the guarantee that they will never be run-time evaluated). But it makes perfect sense if we assume the second position.
+The consensus regarding the two positions needs to be reached even if it is not expressed directly in the IS. It can be used as a basis for applying fixes and future modifications to contracts. For instance, the solution in [[P1290r1]][3] takes the direction of the second position. It adds a new semantic distinction between axiom-level CCSes and other CCSes: the former are allowed to be used for UB-based optimizations under one mode, whereas other levels of CSS-es are not allowed for UB-based optimizations under any defined mode. This distinction is illogical if we assume the first position (where axiom-level CCS-es differ only in the guarantee that they will never be run-time evaluated). But it makes perfect sense if we assume the second position.
 
 But the decision which position we adopt should be made prior to considering P1290R1.
 
-(BTW, this is not meant as a critique of P1290R1. I acknowledge that it reflects the polls from EWG.)
+(BTW, this is not meant as a critique of [[P1290r1]][3]. I acknowledge that it reflects the polls from EWG.)
 
 
 3\. Are conditions in axiom-level CCS-es odr-used?
@@ -50,7 +50,7 @@ The current WD says that conditions in axiom-level CCS-es are as any other condi
 
 On the other hand this disallows declaring (but not defining) predicates whose body just cannot be implemented, like `is_reachable()`.
 
-Whichever is chosen, it may compromise the other's use cases. The design document for contracts, p0380r0, seems to have intended the second (not ODR-used) approach:
+Whichever is chosen, it may compromise the other's use cases. The design document for contracts, [[P0380r0]][2], seems to have intended the second (not ODR-used) approach:
 
 > Note that the predicate of an axiom is not evaluated and may contain calls to undefined functions.
 
@@ -59,7 +59,7 @@ Whichever is chosen, it may compromise the other's use cases. The design documen
 4\. Fewer use cases for continuation mode
 ----------------------------------------
 
-The design document, p0380r0, gave two use cases for continuation mode:
+The design document, [[P0380r0]][2], gave two use cases for continuation mode:
 
 > There are programs that need to resume computation after executing a violations handler. This seems counterintuitive (“continue after a precondition violation!!!?”), but there are two important use cases:
 >
@@ -82,9 +82,9 @@ Regarding the second use case, during the course of discussion and clarification
 
 We are left with no use case for the continuation mode. Unless some new use cases have came up.
 
-P1429R0 attempts to still handle the first use case (gradual introduction of contracts) by offering a per-CCS control whether the program should continue on failure or not. This is a design change (at the last minute), but admittedly one that addresses the design goal of p0380r0. If applied, it still renders global continuation mode useless.
+P1429R0 attempts to still handle the first use case (gradual introduction of contracts) by offering a per-CCS control whether the program should continue on failure or not. This is a design change (at the last minute), but admittedly one that addresses the design goal of [[P0380r0]][2]. If applied, it still renders global continuation mode useless.
 
-Regardless of whether this part of P1429R0 is adopted, it seems the right course of action to remove the continuation mode. Unless new use cases come up.
+Regardless of whether this part of [[P1429r0]][4] is adopted, it seems the right course of action to remove the continuation mode. Unless new use cases come up.
 
 
 References
@@ -93,9 +93,12 @@ References
 [1]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/n4800.pdf
 [[WD]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/n4800.pdf) -- Richard Smith, N4800, "Working Draft, Standard for Programming Language C++".
 
+[2]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0380r0.pdf
 [[P0380r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0380r0.pdf) -- G. Dos Reis, J. D. Garcia, J. Lakos, A. Meredith, N. Myers, B. Stroustrup, "A Contract Design".
 
+[3]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1290r1.pdf
 [[P1290r1]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1290r1.pdf) -- J. Daniel Garcia, Ville Voutilainen, "Avoiding undefined behavior in contracts".
 
+[4]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1429r0.pdf
 [[P1429r0]](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1429r0.pdf) --  	Joshua Berne, John Lakos, "Contracts That Work".
 
