@@ -47,10 +47,12 @@ Therefore the decision which position we adopt should be made prior to consideri
 (BTW, this is not meant as a critique of [[P1290r1]][3]. We acknowledge that it reflects the polls from EWG.)
 
 
-3\. Are conditions in axiom-level CCS-es odr-used?
--------------------------------------------------
+3\. Can we put functions without definitions in axiom-level CCSes?
+------------------------------------------------------------------
 
-The current WD says that conditions in axiom-level CCS-es are as any other conditions: they are ODR used. And function templates need to be instantiated. This has some applications: for some predicates we know how to express them, but we do not want them to be evaluated (too expensive, have side effects), but static analysis tools may wish to instantiate the bodies to observe the code and draw conclusions.
+The current [[WD]][1] says that conditions in axiom-level CCS-es are as any other conditions: they are ODR used and, although
+they are guaranteed never to be invoked at run-time, it is not clear if not providing a definition is a linker error or not.  
+Requiring the function body to exist has some applications: for some predicates we know how to express them, but we do not want them to be evaluated (too expensive, have side effects), but static analysis tools may wish to instantiate the bodies to observe the code and draw conclusions.
 
 On the other hand this disallows declaring (but not defining) predicates whose body just cannot be implemented, like `is_reachable()`.
 
@@ -61,7 +63,7 @@ Whichever is chosen, it may compromise the other's use cases. The design documen
 
 
 4\. Fewer use cases for continuation mode
-----------------------------------------
+-----------------------------------------
 
 The design document, [[P0380r0]][2], gave two use cases for continuation mode:
 
