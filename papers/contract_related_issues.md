@@ -72,17 +72,41 @@ void caller(int * b, int * e)
 If `is_reachable(b, e)` is true then condition `std::greater<>{}(b, e)` surely cannot be true. In the "absolute truths" position,
 compiler can take the former for granted, therefore it can eliminate the sanity check altogether (efectuating a time-travel optimization).
 
-
 The current [[WD]][1] technically accommodates two positions but this is a superficial unification. Programmers and tool writers will need to be given instructions how to use axiom-level CCSs. And if they are given contradictory guidance this will create a fracture in the community even though the International Standard clearly defines what happens under each mode with axiom-level CCSs. This is because the use of CSS-es is beyond what the IS can describe (like static analysis tools).
 
 The consensus regarding the two positions needs to be reached even if it is not expressed directly in the IS. It can be used as a basis for applying fixes and future modifications to contracts. For instance, the solution in [[P1290r1]][3] takes the direction of the second position. It adds a new semantic distinction between axiom-level CCSs and other CCSs: the former are allowed to be used for UB-based optimizations under one mode, whereas other levels of CSS-es are not allowed for UB-based optimizations under any defined mode. This distinction is illogical if we assume the first position (where axiom-level CCSs differ only in the guarantee that they will never be run-time evaluated). But it makes perfect sense if we assume the second position.
 
 Therefore the decision which position we adopt should be made prior to considering [[P1290r1]][3]. This is in order for a high level design to control the details and not vice versa.
 
-(BTW, this is not meant as a critique of [[P1290r1]][3]. We acknowledge that it reflects the polls from EWG.)
+
+3\. What it means for an axiom-level CCS to be assumed?
+-------------------------------------------------------
+
+There is a smaller problem related to assumptions (optimizations) based on axiom-level CCSs. In the [[WD]][1] as well as in [[P1290r1]][3] it is defined as:
+
+> [...] it is unspecified whether the predicate for a contract that is not checked under the current build level is evaluated;
+  if the predicate of such a contract would evaluate to `false`, the behavior is undefined.
+  
+This means that an implementaiton is allowed at its discretion to evaluate a condiiton inside an axiom-level CCS. This means that if my condition has side effects, even though I used the `axiom` level, I can still get UB even if condition returns true.
+
+This definition works for `default` and `audit` levels, because here it is obvious that conditions should not have side effects. However, for level `axiom` one use case that was mentioned in the reflectors is when a predicate is "generally reasonable" but has side effects, such as:
+
+```c++
+template <InputIter It>
+void read_first_three(It b, It e)
+  [[std::distance(b, e) >= 3]];
+```
+
+We should agree whether such use case is intended and should be supported. If so, the definition of what it means for such axiom-level CCS condition to be assumed needs to be changed.
+
+[[P1429r0]][4] tries to address this by providing an alternative definition of an assumption:
+
+> A contract having the semantic *assume* is not checked and not evaluated. It is undefined behavior if the predicate of such a contract would evaluate to false.
+
+However, while intuitively correct, the construct "would evaluate to false" seems not to be well defined.
 
 
-3\. Can we put functions without definitions in axiom-level CCSs?
+4\. Can we put functions without definitions in axiom-level CCSs?
 ------------------------------------------------------------------
 
 The current [[WD]][1] says that conditions in axiom-level CCSs are as any other conditions: they are ODR used and, although
@@ -97,7 +121,7 @@ Whichever is chosen, it may compromise the other's use cases. The design documen
 
 
 
-4\. Fewer use cases for continuation mode
+5\. Fewer use cases for continuation mode
 -----------------------------------------
 
 The design document, [[P0380r0]][2], gave two use cases for continuation mode:
