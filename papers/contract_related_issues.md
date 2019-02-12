@@ -51,7 +51,7 @@ The other position, is that axiom-level CCSs, unlike other CSSs, do not express 
 
 The difference between the two position can be illustrated with the following example. We have a funciton with axiom-level CCS:
 
-```
+```c++
 template <InputIter It>
 void algo(It b, It e)
   [[expects axiom: is_reachable(b, e)]];
@@ -59,7 +59,7 @@ void algo(It b, It e)
 
 Now, the caller of this funciton has the following body:
 
-```
+```c++
 void caller(int * b, int * e)
 {
   if (std::greater<>{}(b, e)) // sanity check
@@ -175,6 +175,10 @@ Thus, the continuation mode handles its use case by introducing potential UB and
 CCS is a retrofit or a "baked" condition. Only after the "retrofit" CCS condition violation does the control continue. For the remaining CCSs the violation means `std::terminate()`. It also addresses the problems with optimizations based on retrofitted CCSs: they have fixed semantics: either "ignore" or "check and continue": there is no chance of enabling contract-based optimizations on such CSS even if contract-based optimizations are enabled for all CCS levels.
 
 This is a design change (at the last minute), but admittedly one that addresses the design goal of [[P0380r0]][2]: gradual introduction of contracts. It seems a superior solution to continuation mode.
+
+The questions to be answered here are:
+1. Do we want C++20 to address the use case of the gradual introduction of contracts, given that the solution with continuation mode causes problems of its own?
+2. If we want to address the use case, can we afford the last minute changes?
 
 
 Acknowledgements
