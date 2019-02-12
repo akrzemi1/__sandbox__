@@ -12,11 +12,15 @@ in the recent discussions in the EWG reflector. The goal is to give the picture 
 The problem that [[P1290r1]][3] intends to address is related to the following statement in the [[WD]][1] ([dcl.attr.contract.check]/p4):
 
 > [...] it is unspecified whether the predicate for a contract that is not checked under the current build level is evaluated;
-  if the predicate of such a contract would evaluate to false, the behavior is undefined.
+  if the predicate of such a contract would evaluate to `false`, the behavior is undefined.
 
 This unspecified behavior is referred to as "predicate can be assumed to be true". This works under the general mechanism of UB: compiler is allowed to assume that UB never happens in the program. This is the heart of UB-based optimizations. Because evaluating unchecked predicates is implementation-defined the implementation is allowed (but not required) to nonetheless perform a run-time check. Because in another place ([dcl.attr.contract.check]/p6) we require that any side effect while evaluating the precondition is UB, under the as-if rule, evaluating the precondition at run-time is equivalent to evaluating it symbolically (at compile-time), so the implementation is allowed to understand the condition. If it can convince itself (prove) that there is a path in the program that would cause the predicate to evaluate to false it would mean that this path leads directly to UB. Since compiler is allowed to assume that UB never happens, it can infer from this that this path is never taken, and from the latter it can infer that the predicate in the CCS is never false. then it can use this assumptions in other places, in particular, *before* the place where the predicate appears, which we often call "time travel" optimizations.
 
-Some people read the above [dcl.attr.contract.check]/p4 as follows: compilers are allowed to implement this line of reasoning, so there is a risk that they will do it *without* giving the programmers the chance to turn this optimization off. Therefore giving the compiler vendors the *possibility* to implement this optimization is perceived as a risk.
+(Note that "time travel" optimizations are already implemented in compilers and standard-compliant, even without any contracts. The question here is only if we want to add more opportunities for these optimizations.)
+
+Some people read the above [dcl.attr.contract.check]/p4 as follows: compilers are allowed to implement this line of reasoning,
+so there is a risk that they will do it *without* giving the programmers the chance to turn this optimization off,
+or enabling it by default. Therefore giving the compiler vendors the *possibility* to implement this optimization is perceived as a risk.
 
 A different way of looking at this definition is that compiler vendors can communicate with programmers by other means than the International Standard. For instance, even though the International Standard does not demand that implementations give the programmers control to opt out of any optimizations, compilers nonetheless give them this option. Or, even though the International Standard allows optimizations based on strict type aliasing rules (UB-based optimizations) and does not mandate a "mode" where these optimizations (assumptions) would be disallowed, compilers like clang or gcc still allow the programmers to control this with flag `-fstrict-aliasing`.
 
