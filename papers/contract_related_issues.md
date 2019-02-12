@@ -140,6 +140,12 @@ CCS is a retrofit or a "baked" condition. Only after the "retrofit" CCS conditio
 This is a design change (at the last minute), but admittedly one that addresses the design goal of [[P0380r0]][2]: gradual introduction of contracts. It seems a superior solution to continuation mode.
 
 
+Acknowledgements
+----------------
+
+The contents of the paper were based on the input from many discussion participants, including John Lakos, Joshua Berne, Ville Voutilainen, J. Daniel Garcia, Bjarne Stroustrup, Nathan Myers, Peter Dimov, Mathias Stearn, and many more.
+	
+
 References
 ----------
 
