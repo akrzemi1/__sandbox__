@@ -5,7 +5,7 @@ This paper attempts to summarize the issues with the current contract design tha
 in the recent discussions in the EWG reflector. The goal is to give the picture of the situation to all Committee members.
 
 
-### Conventions in this paper
+### Convention in this paper
 
 A Contract Checking Statement or a CCS is any attribute declaring a precondition, a postcondition, or an assertion, like `[[expects: cond]]`.
 
