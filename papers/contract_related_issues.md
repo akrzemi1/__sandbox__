@@ -1,3 +1,10 @@
+Paper number: D1490 <br>
+Date: 2018-02-13 <br>
+Author: Andrzej Krzemieński <br>
+Email: akrzemi1 (at) gmail (dot) com <br>
+Audience: EWG (Evolution)
+
+
 Contract-related issues
 =======================
 
