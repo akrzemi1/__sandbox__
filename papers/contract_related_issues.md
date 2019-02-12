@@ -1,9 +1,18 @@
 Contract-related issues
 =======================
 
-
 This paper attempts to summarize the issues with the current contract design that have came up
 in the recent discussions in the EWG reflector. The goal is to give the picture of the situation to all Committee members.
+
+
+### Conventions in this paper
+
+A Contract Checking Statement or a CCS is any attribute declaring a precondition, a postcondition, or an assertion, like `[[expects: cond]]`.
+
+An axiom-level CCS is a CCS with level `axiom`, like: `[[expects axiom: cond]]`.
+
+In the examples we only mention preconditions. This is because this is the preconditions where most of the 
+miscommunication between two different parties is observed, and where the biggest benefit of contracts support is expected.
 
 
 1\. Contract-based optimizations that cause concerns.
@@ -29,7 +38,7 @@ This point of view is based on trust that compiler vendors work in the best inte
 Thus, to certain extent the decision whether to mandate no-contract-based-optimization guarantee in the Standard depends on whether we trust that compiler vendors will be responsible when doing their job. 
 
 
-2\. The goal of having axiom-level CCS-es.
+2\. The goal of having axiom-level CCSs
 -----------------------------------------
 
 We have seen two positions here. One position is that an axiom-level CCS can be used to express a precondition to a function (something that we expect, but we are not sure if the callers will comply with) formally where the predicate must never be evaluated at run-time, because it is unimplementable, or would have side effects or has an unacceptable complexity even for test builds. A common example is `is_reachable()` for a pair of iterators that are expected to represent a range. This position is enforece by the name "level" we use in the standardese: a level of difficulty with evaluating the condition:
@@ -38,21 +47,45 @@ We have seen two positions here. One position is that an axiom-level CCS can be 
 * `audit` -- may noticeably impact program performance,
 * `axiom` -- just cannot be evaluated.
 
-The other position, is that axiom-level CCSes, unlike other CSS-es, do not express expectations (something we need but cannot be sure about), but declare program-wide "absolute truths" that compiler is allowed to take for granted: they enable UB-based optimizations and are not allowed to be checked. This position is backed by the fact that preprocessing token `axiom` spells the same as the notion of an axiom in mathematics. This position precludes defining preconditions like `is_reachable()` described above.
+The other position, is that axiom-level CCSs, unlike other CSSs, do not express expectations (something we need but cannot be sure about), but declare program-wide "absolute truths" that compiler is allowed to take for granted: they enable UB-based optimizations and are not allowed to be checked. This position is backed by the fact that preprocessing token `axiom` spells the same as the notion of an axiom in mathematics. This position precludes defining preconditions like `is_reachable()` described above.
 
-The current [[WD]][1] technically accommodates two positions but this is a superficial unification. Programmers and tool writers will need to be given instructions how to use axiom-level CCSes. And if they are given contradictory guidance this will create a fracture in the community even though the International Standard clearly defines what happens under each mode with axiom-level CCSes. This is because the use of CSS-es is beyond what the IS can describe (like static analysis tools).
+The difference between the two position can be illustrated with the following example. We have a funciton with axiom-level CCS:
 
-The consensus regarding the two positions needs to be reached even if it is not expressed directly in the IS. It can be used as a basis for applying fixes and future modifications to contracts. For instance, the solution in [[P1290r1]][3] takes the direction of the second position. It adds a new semantic distinction between axiom-level CCSes and other CCSes: the former are allowed to be used for UB-based optimizations under one mode, whereas other levels of CSS-es are not allowed for UB-based optimizations under any defined mode. This distinction is illogical if we assume the first position (where axiom-level CCS-es differ only in the guarantee that they will never be run-time evaluated). But it makes perfect sense if we assume the second position.
+```
+template <InputIter It>
+void algo(It b, It e)
+  [[expects axiom: is_reachable(b, e)]];
+```
+
+Now, the caller of this funciton has the following body:
+
+```
+void caller(int * b, int * e)
+{
+  if (std::greater<>{}(b, e)) // sanity check
+    std::cerr << "bad range provided" << std::endl;
+
+  algo(b, e);
+}
+```
+
+If `is_reachable(b, e)` is true then condition `std::greater<>{}(b, e)` surely cannot be true. In the "absolute truths" position,
+compiler can take the former for granted, therefore it can eliminate the sanity check altogether (efectuating a time-travel optimization).
+
+
+The current [[WD]][1] technically accommodates two positions but this is a superficial unification. Programmers and tool writers will need to be given instructions how to use axiom-level CCSs. And if they are given contradictory guidance this will create a fracture in the community even though the International Standard clearly defines what happens under each mode with axiom-level CCSs. This is because the use of CSS-es is beyond what the IS can describe (like static analysis tools).
+
+The consensus regarding the two positions needs to be reached even if it is not expressed directly in the IS. It can be used as a basis for applying fixes and future modifications to contracts. For instance, the solution in [[P1290r1]][3] takes the direction of the second position. It adds a new semantic distinction between axiom-level CCSs and other CCSs: the former are allowed to be used for UB-based optimizations under one mode, whereas other levels of CSS-es are not allowed for UB-based optimizations under any defined mode. This distinction is illogical if we assume the first position (where axiom-level CCSs differ only in the guarantee that they will never be run-time evaluated). But it makes perfect sense if we assume the second position.
 
 Therefore the decision which position we adopt should be made prior to considering [[P1290r1]][3]. This is in order for a high level design to control the details and not vice versa.
 
 (BTW, this is not meant as a critique of [[P1290r1]][3]. We acknowledge that it reflects the polls from EWG.)
 
 
-3\. Can we put functions without definitions in axiom-level CCSes?
+3\. Can we put functions without definitions in axiom-level CCSs?
 ------------------------------------------------------------------
 
-The current [[WD]][1] says that conditions in axiom-level CCS-es are as any other conditions: they are ODR used and, although
+The current [[WD]][1] says that conditions in axiom-level CCSs are as any other conditions: they are ODR used and, although
 they are guaranteed never to be invoked at run-time, it is not clear if not providing a definition is a linker error or not.  
 Requiring the function body to exist has some applications: for some predicates we know how to express them, but we do not want them to be evaluated (too expensive, have side effects), but static analysis tools may wish to instantiate the bodies to observe the code and draw conclusions.
 
