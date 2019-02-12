@@ -6,7 +6,6 @@ This paper attempts to summarize the issues with the current contract design tha
 in the recent discussions in the EWG reflector. The goal is to give the picture of the situation to all Committee members.
 
 
-
 1\. Contract-based optimizations that cause concerns.
 ----------------------------------------------------
 
@@ -15,10 +14,7 @@ The problem that [[P1290r1]][3] intends to address is related to the following s
 > [...] it is unspecified whether the predicate for a contract that is not checked under the current build level is evaluated;
   if the predicate of such a contract would evaluate to false, the behavior is undefined.
 
-
 This unspecified behavior is referred to as "predicate can be assumed to be true". This works under the general mechanism of UB: compiler is allowed to assume that UB never happens in the program. This is the heart of UB-based optimizations. Because evaluating unchecked predicates is implementation-defined the implementation is allowed (but not required) to nonetheless perform a run-time check. Because in another place ([dcl.attr.contract.check]/p6) we require that any side effect while evaluating the precondition is UB, under the as-if rule, evaluating the precondition at run-time is equivalent to evaluating it symbolically (at compile-time), so the implementation is allowed to understand the condition. If it can convince itself (prove) that there is a path in the program that would cause the predicate to evaluate to false it would mean that this path leads directly to UB. Since compiler is allowed to assume that UB never happens, it can infer from this that this path is never taken, and from the latter it can infer that the predicate in the CCS is never false. then it can use this assumptions in other places, in particular, *before* the place where the predicate appears, which we often call "time travel" optimizations.
-
-Adding a precondition to a function ... TBD.
 
 Some people read the above [dcl.attr.contract.check]/p4 as follows: compilers are allowed to implement this line of reasoning, so there is a risk that they will do it *without* giving the programmers the chance to turn this optimization off. Therefore giving the compiler vendors the *possibility* to implement this optimization is perceived as a risk.
 
@@ -26,7 +22,7 @@ A different way of looking at this definition is that compiler vendors can commu
 
 This point of view is based on trust that compiler vendors work in the best interests of the programmers, that they are aware of the issues related to assuming the CCS predicates, and that their natural course of action would be to either never implement such assumptions, or enable them under a compiler flag. Under this view there is no problem related to contract-based optimizations in the current [[WD]][1] (except maybe for replacing unspecified behavior with implementation-defined behavior): it gives the compiler vendors a provision for implementing contract-based optimizations in a responsible way.
 
-Thus, to certain extent the decision whether to mandate no-contract-based-optimization guarantee in the Standard boils down to the question whether we trust that compiler vendors will be responsible when doing their job.
+Thus, to certain extent the decision whether to mandate no-contract-based-optimization guarantee in the Standard depends on whether we trust that compiler vendors will be responsible when doing their job. 
 
 
 2\. The goal of having axiom-level CCS-es.
@@ -71,12 +67,47 @@ The design document, [[P0380r0]][2], gave two use cases for continuation mode:
 
 > There are programs that need to resume computation after executing a violations handler. This seems counterintuitive (“continue after a precondition violation!!!?”), but there are two important use cases:
 >
-> * Gradual introduction of contracts:  Experience shows that once you start introducing contracts into a large old code base, violations are found in “correctly working code.” In other words, contracts are violated in ways that did not cause crashes for the actual use of the code for the actual data used. There are examples where the number of such “currently harmless violations” is massive. The way to cope is to install a violation handler that logs the problem and continues. This allows gradual adoption.
+> * Gradual introduction of contracts:  Experience shows that once you start introducing contracts into a large old code base, violations are found in "correctly working code." In other words, contracts are violated in ways that did not cause crashes for the actual use of the code for the actual data used. There are examples where the number of such "currently harmless violations" is massive. The way to cope is to install a violation handler that logs the problem and continues. This allows gradual adoption.
 >
 > * Test harnesses: Contracts are code, so they can contain bugs. To test contracts, we need to execute examples of violations. A convenient way of organizing such a test suite is to have a violation handler throw an exception and have the main testing loop catch exceptions and proceed running the next test
 
+Regarding the second use case, during the course of discussion and clarifications, it has been made clear that one does not need the continuation mode to safely throw from a violation handler and continue the program execution. `std::terminate()` is only called when the violation handler returns normally.
 
-During the recent discussions it has been shown that a global (or even TU-local) continuation mode flag is not capable of facilitating the first use case. For instance:
+The first use case requires more elaboration.
+
+
+### Retrofitting preconditions
+
+Adding a precondition to an existing function is tricky. It could introduce UB in programs that previously did not have any.
+Compare the following function:
+
+```c++
+int f(int * p)
+// expects: p != nullptr
+{
+  if (p == nullptr) // safety check
+    throw std::logic_error{""};
+  return *p;
+}
+```
+
+The function has a narrow contract, but it was advertized informally, so "just in case" it makes an internal check. 
+It is possible that in the program this function is called out of contract, but the outcome is tolerable: some part of the operation is calncelled but the rest works fine. For instance, the operation works as the user expects but it is not logged as other operations. Users are told, "be careful with this button, but otherwise the application is fine." But if we add the formal precondition things may get changed to worse:
+
+1. If contract-based optimizations are enabled, compiler can assume that `p` is never null and can completely 
+   elide the safety check inside function body allowing the null pointer to be dereferenced which was not the case when 
+   the CSS was not there.
+2. If CCSs are runtime-checked and terminate the program on violation failure, we get a crash in place of a benign bug.
+
+[[P1290r1]][3] addresses the first problem by disallowing assumptions in CCSs altogether under any circumstances. (Except for axiom-level CCSs.)
+
+Continuation mode is supposed to address the second problem. If there is no `std::terminate()` called and the vilation handler only logs the violation event, the program can move on, as before.
+
+
+### Problems with continuation mode
+
+During the recent discussions it has been shown that a global (or even TU-local) continuation mode flag can itself cause UB.
+Compare the following example:
 
 ```c++
 int f(int * p)
@@ -84,15 +115,29 @@ int f(int * p)
   [[expects: *p >= 0]];
 ```
 
-If default CCS-es are runtime-checked and continuation mode is on, evaluating the second condition will be UB, which means that (due to UB-based optimizations that do not come from assuming CCS-es, but from evaluating regular code inside a CSS) the first runtime check may entirely be elided! Even if checking is on.
+If default CCSs are runtime-checked and the pointer happens to be null, the runtime check in the first CCS will cause the program to log the violation and terminate. But if continuation mode is on, after reporting the violation in the first CCS we will proceed to evaluating the second and dereference the null pointer. But the program will not crash! If we compile with optimizations enabled (which includes UB-based optimizations) the compiler can assume that UB never happens, therefore it can assume that `p` is never null, therefore it will elide the first CCS entirely. Even if runtime checking is on. This is not due to contract-based optimizations: this is due to normal UB-based optimizations.
 
-Regarding the second use case, during the course of discussion and clarifications, it has been made clear that one does not need the continuation mode to safely throw from a violation handler and continue the program execution.
+Another problem is that in one TU we might already have "secured" runtime-checked preconditions that are running in production, and `std::terminate()` on violation (and this is ok, because these violations occur rarely enough) and protect 
+the program from UB, e.g.:
 
-We are left with no use case for the continuation mode. Unless some new use cases have came up.
+```c++
+int f(int * p)
+  [[expects: p != nullptr]]
+{
+  return *p;
+}
+```
 
-[[P1429r0]][4] attempts to still handle the first use case (gradual introduction of contracts) by offering a per-CCS control whether the program should continue on failure or not. This is a design change (at the last minute), but admittedly one that addresses the design goal of [[P0380r0]][2]. If applied, it still renders global continuation mode useless.
+Now, we want to retrofit some preconditions in other functions, but in order not to `std::terminate()` on the new benign precondition violations we need to turn the continuation mode. The moment we do it, the precondition in function `f` no
+longer protects the function body against the null pointer dereference. Because of that the compiler is allowed to assume
+that `p` is never null and propagate this assumption even back in time, to the callers of function `f`. 
 
-Regardless of whether this part of [[P1429r0]][4] is adopted, it seems the right course of action to remove the continuation mode. Unless new use cases come up.
+Thus, the continuation mode handles its use case by introducing potential UB and surprising results.
+
+[[P1429r0]][4] addresses the problem of the "gradual introduction of contracts" by offering a per-CCS control whether the
+CCS is a retrofit or a "baked" condition. Only after the "retrofit" CCS condition violation does the control continue. For the remaining CCSs the violation means `std::terminate()`. It also addresses the problems with optimizations based on retrofitted CCSs: they have fixed semantics: either "ignore" or "check and continue": there is no chance of enabling contract-based optimizations on such CSS even if contract-based optimizations are enabled for all CCS levels.
+
+This is a design change (at the last minute), but admittedly one that addresses the design goal of [[P0380r0]][2]: gradual introduction of contracts. It seems a superior solution to continuation mode.
 
 
 References
