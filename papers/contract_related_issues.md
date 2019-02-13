@@ -103,7 +103,7 @@ There is a smaller problem related to assumptions (optimizations) based on axiom
 > [...] it is unspecified whether the predicate for a contract that is not checked under the current build level is evaluated;
   if the predicate of such a contract would evaluate to `false`, the behavior is undefined.
   
-This means that an implementaiton is allowed at its discretion to evaluate a condiiton inside an axiom-level CCS. This means that if my condition has side effects, even though I used the `axiom` level, I can still get UB even if condition returns true.
+This means that an implementaiton is allowed at its discretion to evaluate a condition inside an axiom-level CCS. This means that if my condition has side effects, even though I used the `axiom` level, I can still get UB even if condition returns true.
 
 This definition works for `default` and `audit` levels, because here it is obvious that conditions should not have side effects. However, for level `axiom` one use case that was mentioned in the reflectors is when a predicate is "generally reasonable" but has side effects, such as:
 
