@@ -54,7 +54,7 @@ We have seen two positions here. One position is that an axiom-level CCS can be 
 * `audit` -- may noticeably impact program performance,
 * `axiom` -- just cannot be evaluated.
 
-The other position, is that axiom-level CCSs, unlike other CSSs, do not express expectations (something we need but cannot be sure about), but declare program-wide "absolute truths" that compiler is allowed to take for granted: they enable UB-based optimizations and are not allowed to be checked. This position is backed by the fact that preprocessing token `axiom` spells the same as the notion of an axiom in mathematics. This position precludes defining preconditions like `is_reachable()` described above.
+The other position, is that axiom-level CCSs, unlike other CCSs, do not express expectations (something we need but cannot be sure about), but declare program-wide "absolute truths" that compiler is allowed to take for granted: they enable UB-based optimizations and are not allowed to be checked. This position is backed by the fact that preprocessing token `axiom` spells the same as the notion of an axiom in mathematics. This position precludes defining preconditions like `is_reachable()` described above.
 
 The difference between the two positions can be illustrated with the following example. We have a funciton with axiom-level CCS:
 
@@ -79,9 +79,9 @@ void caller(int * b, int * e)
 If `is_reachable(b, e)` is true then condition `std::greater<>{}(b, e)` surely cannot be true. In the "absolute truths" position,
 compiler can take the former for granted, therefore it can eliminate the sanity check altogether (efectuating a time-travel optimization).
 
-The current [[WD]][1] technically accommodates two positions but this is a superficial unification. Programmers and tool writers will need to be given instructions how to use axiom-level CCSs. And if they are given contradictory guidance this will create a fracture in the community even though the International Standard clearly defines what happens under each mode with axiom-level CCSs. This is because the use of CSS-es is beyond what the IS can describe (like static analysis tools).
+The current [[WD]][1] technically accommodates two positions but this is a superficial unification. Programmers and tool writers will need to be given instructions how to use axiom-level CCSs. And if they are given contradictory guidance this will create a fracture in the community even though the International Standard clearly defines what happens under each mode with axiom-level CCSs. This is because the use of CCSs is beyond what the IS can describe (like static analysis tools).
 
-The consensus regarding the two positions needs to be reached even if it is not expressed directly in the IS. It can be used as a basis for applying fixes and future modifications to contracts. For instance, the solution in [[P1290r1]][3] takes the direction of the second position. It adds a new semantic distinction between axiom-level CCSs and other CCSs: the former are allowed to be used for UB-based optimizations under one mode, whereas other levels of CSS-es are not allowed for UB-based optimizations under any defined mode. This distinction is illogical if we assume the first position (where axiom-level CCSs differ only in the guarantee that they will never be run-time evaluated). But it makes perfect sense if we assume the second position.
+The consensus regarding the two positions needs to be reached even if it is not expressed directly in the IS. It can be used as a basis for applying fixes and future modifications to contracts. For instance, the solution in [[P1290r1]][3] takes the direction of the second position. It adds a new semantic distinction between axiom-level CCSs and other CCSs: the former are allowed to be used for UB-based optimizations under one mode, whereas other levels of CCSs are not allowed for UB-based optimizations under any defined mode. This distinction is illogical if we assume the first position (where axiom-level CCSs differ only in the guarantee that they will never be run-time evaluated). But it makes perfect sense if we assume the second position.
 
 Therefore the decision which position we adopt should be made prior to considering [[P1290r1]][3]. This is in order for a high level design to control the details and not vice versa.
 
@@ -164,7 +164,7 @@ It is possible that in the program this function is called out of contract, but 
 
 1. If contract-based optimizations are enabled, compiler can assume that `p` is never null and can completely 
    elide the safety check inside function body allowing the null pointer to be dereferenced which was not the case when 
-   the CSS was not there.
+   the CCS was not there.
 2. If CCSs are runtime-checked and terminate the program on violation failure, we get a crash in place of a benign bug.
 
 [[P1290r1]][3] addresses the first problem by disallowing assumptions in CCSs altogether under any circumstances. (Except for axiom-level CCSs.)
@@ -203,7 +203,7 @@ that `p` is never null and propagate this assumption even back in time, to the c
 Thus, the continuation mode handles its use case by introducing potential UB and surprising results.
 
 [[P1429r0]][4] addresses the problem of the "gradual introduction of contracts" by offering a per-CCS control whether the
-CCS is a retrofit or a "baked" condition. Only after the "retrofit" CCS condition violation does the control continue. For the remaining CCSs the violation means `std::terminate()`. It also addresses the problems with optimizations based on retrofitted CCSs: they have fixed semantics: either "ignore" or "check and continue": there is no chance of enabling contract-based optimizations on such CSS even if contract-based optimizations are enabled for all CCS levels.
+CCS is a retrofit or a "baked" condition. Only after the "retrofit" CCS condition violation does the control continue. For the remaining CCSs the violation means `std::terminate()`. It also addresses the problems with optimizations based on retrofitted CCSs: they have fixed semantics: either "ignore" or "check and continue": there is no chance of enabling contract-based optimizations on such CCS even if contract-based optimizations are enabled for all CCS levels.
 
 This is a design change (at the last minute), but admittedly one that addresses the design goal of [[P0380r0]][2]: gradual introduction of contracts. It seems a superior solution to continuation mode.
 
