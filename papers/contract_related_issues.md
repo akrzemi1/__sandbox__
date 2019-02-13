@@ -67,7 +67,7 @@ void algo(It b, It e)
 Now, the caller of this funciton has the following body:
 
 ```c++
-void caller(int * b, int * e)
+void caller(int * b, int * e) // concrete pointer types
 {
   if (std::greater<int*>{}(b, e)) // sanity check
     std::cerr << "bad range provided" << std::endl;
