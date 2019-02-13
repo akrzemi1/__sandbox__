@@ -75,7 +75,7 @@ Now, the caller of this funciton has the following body:
 void caller(int * b, int * e) // concrete pointer types
 {
   if (std::greater<int*>{}(b, e)) // sanity check
-    std::cerr << "bad range provided" << std::endl;
+    std::cerr << "bad range provided \n";
 
   algo(b, e);
 }
