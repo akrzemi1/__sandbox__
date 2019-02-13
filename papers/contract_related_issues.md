@@ -101,7 +101,7 @@ This definition works for `default` and `audit` levels, because here it is obvio
 ```c++
 template <InputIter It>
 void read_first_three(It b, It e)
-  [[std::distance(b, e) >= 3]];
+  [[expects axiom: std::distance(b, e) >= 3]];
 ```
 
 We should agree whether such use case is intended and should be supported. If so, the definition of what it means for such axiom-level CCS condition to be assumed needs to be changed.
