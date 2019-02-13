@@ -53,7 +53,7 @@ Thus, one of the factors that drives the answer to the decision whether to manda
 2\. The goal of having axiom-level CCSs
 -----------------------------------------
 
-We have seen two positions here. One position is that an axiom-level CCS can be used to express a precondition to a function (something that we expect, but we are not sure if the callers will comply with) formally where the predicate must never be evaluated at run-time, because it is unimplementable, or would have side effects or has an unacceptable complexity even for test builds. A common example is `is_reachable()` for a pair of iterators that are expected to represent a range. This position is enforece by the name "level" we use in the standardese: a level of difficulty with evaluating the condition:
+We have seen two positions here. One position is that an axiom-level CCS can be used to express a precondition to a function (something that we expect, but we are not sure if the callers will comply with) formally where the predicate must never be evaluated at run-time, because it is unimplementable, or would have side effects or has an unacceptable complexity even for test builds. A common example is `is_reachable()` for a pair of iterators that are expected to represent a range. This position is justified by the name "level" we use in the standardese: a level of difficulty with evaluating the condition:
 
 * `default` -- no difficulty,
 * `audit` -- may noticeably impact program performance,
