@@ -125,7 +125,7 @@ However, while intuitively correct, the construct "would evaluate to false" seem
 4\. Can we put functions without definitions in axiom-level CCSs?
 ------------------------------------------------------------------
 
-The current [[WD]][1] says that conditions in axiom-level CCSs are as any other conditions: they are ODR used and, as per the provision
+The current [[WD]][1] says that conditions in axiom-level CCSs are as any other conditions: they are ODR-used and, as per the provision
 in [dcl.attr.contract.check]/p4, the implementaiton is allowed to invoke them at run-time. Therefore, it is not clear if not providing
 a definition is a linker error or not.  
 Requiring the function body to exist has some applications: for some predicates we know how to express them, but we do not want them to be evaluated (too expensive, have side effects), but static analysis tools may wish to instantiate the bodies to observe the code and draw conclusions.
