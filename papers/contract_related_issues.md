@@ -69,7 +69,7 @@ Now, the caller of this funciton has the following body:
 ```c++
 void caller(int * b, int * e)
 {
-  if (std::greater<>{}(b, e)) // sanity check
+  if (std::greater<int*>{}(b, e)) // sanity check
     std::cerr << "bad range provided" << std::endl;
 
   algo(b, e);
