@@ -34,15 +34,15 @@ This unspecified behavior is referred to as "predicate can be assumed to be true
 
 (Note that "time travel" optimizations are already implemented in compilers and standard-compliant, even without any contracts. The question here is only if we want to add more opportunities for these optimizations.)
 
-Some people read the above [dcl.attr.contract.check]/p4 as follows: compilers are allowed to implement this line of reasoning,
-so there is a risk that they will do it *without* giving the programmers the chance to turn this optimization off,
-or enabling it by default. Therefore giving the compiler vendors the *possibility* to implement this optimization is perceived as a risk.
+One interpretation of the above [dcl.attr.contract.check]/p4 is this: compilers are allowed to implement this line of reasoning,
+so there is a risk that there may be even one compiler that will do it *without* giving the programmers the chance to turn this optimization off, or with these optimizaitons enabed by default. Therefore giving the compiler vendors even the *possibility* to implement this optimization is perceived as a risk. The risk is especially visible to library authors that targets multiple compilers.
+Especially, if they retrofit CCSs to existing code as explained later in the paper.
 
 A different way of looking at this definition is that compiler vendors can communicate with programmers by other means than the International Standard. For instance, even though the International Standard does not demand that implementations give the programmers control to opt out of any optimizations, compilers nonetheless give them this option. Or, even though the International Standard allows optimizations based on strict type aliasing rules (UB-based optimizations) and does not mandate a "mode" where these optimizations (assumptions) would be disallowed, compilers like clang or gcc still allow the programmers to control this with flag `-fstrict-aliasing`.
 
 This point of view is based on trust that compiler vendors work in the best interests of the programmers, that they are aware of the issues related to assuming the CCS predicates, and that their natural course of action would be to either never implement such assumptions, or enable them under a compiler flag. Under this view there is no problem related to contract-based optimizations in the current [[WD]][1] (except maybe for replacing unspecified behavior with implementation-defined behavior): it gives the compiler vendors a provision for implementing contract-based optimizations in a responsible way.
 
-Thus, to certain extent the decision whether to mandate no-contract-based-optimization guarantee in the Standard depends on whether we trust that compiler vendors will be responsible when doing their job. 
+Thus, one of the factors that drives the answer to the decision whether to mandate no-contract-based-optimization guarantee in the Standard is whether we trust that compiler vendors will be responsible when doing their job. 
 
 
 2\. The goal of having axiom-level CCSs
