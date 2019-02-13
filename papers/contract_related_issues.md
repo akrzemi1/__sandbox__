@@ -216,7 +216,9 @@ Acknowledgements
 ----------------
 
 The contents of the paper were based on the input from many discussion participants, including John Lakos, Joshua Berne, Ville Voutilainen, J. Daniel Garcia, Bjarne Stroustrup, Nathan Myers, Peter Dimov, Mathias Stearn, and many more.
-	
+
+Tomasz Kamiński has reviewed the document and suggested numerous improvements.
+
 
 References
 ----------
