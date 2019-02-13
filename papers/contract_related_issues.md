@@ -21,6 +21,8 @@ An axiom-level CCS is a CCS with level `axiom`, like: `[[expects axiom: cond]]`.
 In the examples we only mention preconditions. This is because this is the preconditions where most of the 
 miscommunication between two different parties is observed, and where the biggest benefit of contracts support is expected.
 
+In this document we treat "contract-based assumptions" and "contract-based optimizations" as synonymous: if one can assume that a certain condition holds, one can use this assumption for optimization purposes (such as branch elimination).
+
 
 1\. Contract-based optimizations that cause concerns.
 ----------------------------------------------------
