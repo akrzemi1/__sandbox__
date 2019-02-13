@@ -56,7 +56,7 @@ We have seen two positions here. One position is that an axiom-level CCS can be 
 
 The other position, is that axiom-level CCSs, unlike other CSSs, do not express expectations (something we need but cannot be sure about), but declare program-wide "absolute truths" that compiler is allowed to take for granted: they enable UB-based optimizations and are not allowed to be checked. This position is backed by the fact that preprocessing token `axiom` spells the same as the notion of an axiom in mathematics. This position precludes defining preconditions like `is_reachable()` described above.
 
-The difference between the two position can be illustrated with the following example. We have a funciton with axiom-level CCS:
+The difference between the two positions can be illustrated with the following example. We have a funciton with axiom-level CCS:
 
 ```c++
 template <InputIter It>
