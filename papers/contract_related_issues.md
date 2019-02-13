@@ -175,24 +175,14 @@ It is possible that in the program this function is called out of contract, but 
 
 [[P1290r1]][3] addresses the first problem by disallowing assumptions in CCSs altogether under any circumstances. (Except for axiom-level CCSs.)
 
-Continuation mode is supposed to address the second problem. If there is no `std::terminate()` called and the vilation handler only logs the violation event, the program can move on, as before.
+Continuation mode is supposed to address the second problem. If there is no `std::terminate()` called, and the violation handler only logs the violation event, the program can move on, as before.
 
 
 ### Problems with continuation mode
 
-During the recent discussions it has been shown that a global (or even TU-local) continuation mode flag can itself cause UB.
-Compare the following example:
-
-```c++
-int f(int * p)
-  [[expects: p != nullptr]]
-  [[expects: *p >= 0]];
-```
-
-If default CCSs are runtime-checked and the pointer happens to be null, the runtime check in the first CCS will cause the program to log the violation and terminate. But if continuation mode is on, after reporting the violation in the first CCS we will proceed to evaluating the second and dereference the null pointer. But the program will not crash! If we compile with optimizations enabled (which includes UB-based optimizations) the compiler can assume that UB never happens, therefore it can assume that `p` is never null, therefore it will elide the first CCS entirely. Even if runtime checking is on. This is not due to contract-based optimizations: this is due to normal UB-based optimizations.
-
-Another problem is that in one TU we might already have "secured" runtime-checked preconditions that are running in production, and `std::terminate()` on violation (and this is ok, because these violations occur rarely enough) and protect 
-the program from UB, e.g.:
+However, global continuation mode creates new problems. One problem is that in one TU we might already have "secured" runtime-checked
+preconditions that are running in production, and `std::terminate()` on violation (and this is ok, because these violations occur
+rarely enough) and protect the program from UB, e.g.:
 
 ```c++
 int f(int * p)
@@ -204,7 +194,19 @@ int f(int * p)
 
 Now, we want to retrofit some preconditions in other functions, but in order not to `std::terminate()` on the new benign precondition violations we need to turn the continuation mode. The moment we do it, the precondition in function `f` no
 longer protects the function body against the null pointer dereference. Because of that the compiler is allowed to assume
-that `p` is never null and propagate this assumption even back in time, to the callers of function `f`. 
+that `p` is never null and propagate this assumption even back in time, to the callers of function `f`, also eliding other 
+runtime CCS checks that test for `p` being null. 
+
+Another example of an UB introduced by continuation mode. Imagine a function with two precondition CCSs, they are "secured": runtime-checked and call `std::terminate()`.
+
+```c++
+int f(int * p)
+  [[expects: p != nullptr]]
+  [[expects: *p >= 0]];
+```
+
+If default CCSs are runtime-checked and the pointer happens to be null, the runtime check in the first CCS will cause the program to log the violation and terminate. But now we turn the continuation mode on, in order to retrofit some new CCSs elsewhere in the TU. This
+affects our function `f` with secured preconditions. Now, after reporting the violation in the first CCS we will proceed to evaluating the second and dereference the null pointer. But the program will not crash! If we compile with optimizations enabled (which includes UB-based optimizations) the compiler can assume that UB never happens, therefore it can assume that `p` is never null, therefore it will elide the first CCS entirely. Even if runtime checking is on. This is not due to contract-based optimizations: this is due to normal UB-based optimizations.
 
 Thus, the continuation mode handles its use case by introducing potential UB and surprising results.
 
