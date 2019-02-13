@@ -14,9 +14,9 @@ in the recent discussions in the EWG reflector. The goal is to give the picture 
 
 ### Convention in this paper
 
-A Contract Checking Statement or a CCS is any attribute declaring a precondition, a postcondition, or an assertion, like `[[expects: cond]]`.
+A *Contract Checking Statement* or a *CCS* is any attribute declaring a precondition, a postcondition, or an assertion, like `[[expects: cond]]`.
 
-An axiom-level CCS is a CCS with level `axiom`, like: `[[expects axiom: cond]]`.
+An *axiom-level CCS* is a CCS with level `axiom`, like: `[[expects axiom: cond]]`.
 
 In the examples we only mention preconditions. This is because this is the preconditions where most of the 
 miscommunication between two different parties is observed, and where the biggest benefit of contracts support is expected.
