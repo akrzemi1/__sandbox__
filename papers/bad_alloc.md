@@ -1,4 +1,4 @@
-Document no: P1404r0 <br>
+Document no: D1404r1 <br>
 Date: 2019-01-15 <br>
 Authors: Andrzej Krzemie&#x0144;ski, Tomasz Kami&#x0144;ski <br>
 Reply-to: akrzemi1 (at) gmail (dot) com <br>
@@ -16,6 +16,13 @@ virtual memory; then it builds the optional parts of the proposal based on this 
 In this paper we show that there are conditions in the program reported through `std::bad_alloc` that do not represent
 out-of-memory. We also show that there are cases of throwing `std::bad_alloc` that are easily reproducible and testable,
 and recoverable from.
+
+History
+-------
+
+### R0 -> R1
+
+Added more examples.
 
 
 per-allocation limits
