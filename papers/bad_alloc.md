@@ -22,7 +22,7 @@ History
 
 ### R0 -> R1
 
-Added more examples.
+Added more examples. (local allocator doesn't have memory, but global one has plenty. A way to configure in linux no overallocation. -- THanks to Adam)
 
 
 per-allocation limits
