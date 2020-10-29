@@ -44,9 +44,9 @@ Tools can do these things only because the programmer gave them this additional 
 Tools are resource-limited. In order for them to make an effective use of contract annotations, the programmer or someone else needs
 to be able to instruct them to treat different contract annotations diffeently. 
 
-In case of static analyzer, a programmer may want to say, "just take for granted that contract declarations flagged with `good` are always satisfied, and only check for potential vioations in the remaining ones."
+In case of static analyzer, a programmer may want to say, "just take for granted that contract declarations flagged with `checked` are always satisfied, and only check for potential vioations in the remaining ones."
 
-In case of comiler injecting runtime checks, a programmer might want to say, "inject checks only for contract annotations flagged as `critical`."
+In case of compiler injecting runtime checks, a programmer might want to say, "inject checks only for contract annotations flagged as `critical`."
 
 
 ### Other applications of the model
@@ -54,7 +54,9 @@ In case of comiler injecting runtime checks, a programmer might want to say, "in
 Technically, it is possible to use contract annotations for purposes different than bug detection. 
 One such notable purpose is code transformations that guarantee to leave the bug-free programs unchanged 
 and possibly optimized, while at the same time arbitrarily changing the semantics of programs that have 
-bugs diagnosable through contract annotations. This is sometimes (imprecisely) referred to as contract-based optimizations. Contract-based optimizations are compatible with our programming model (users declare what they consider a bug, 
+bugs diagnosable through contract annotations. This is sometimes (imprecisely) referred to as contract-based optimizations. 
+
+Contract-based optimizations are compatible with our programming model (users declare what they consider a bug, 
 and tools make us of these declarations); but concerns have been expressed about the potential interference with our primary goal: 
 improving safety. Every useful program in practice does contain bugs, and often programs can behave reasonably 
 well even in the face of these bugs. Allowing contract-based optimizations may turn programs that behave reasonably
