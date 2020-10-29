@@ -14,7 +14,7 @@ T& Container::get(int i)
 }
 ```
 
-Here, the two preconditions specify that whenever function `Container::get` is invoked, just before its execution, if either of expressions `i >= 0` or `i < size()` were to evaluate to `false`, it would indicate a bug in the program. Class author can make that declaration because she understands the human-to-human class/function contract: that the `int` value passed to this function represents anabstract notion of an *index* in a container.
+Here, the two preconditions specify that whenever function `Container::get` is invoked, just before its execution, if either of expressions `i >= 0` or `i < size()` were to evaluate to `false`, it would indicate a bug in the program. Class author can make that declaration because she understands the human-to-human class/function contract: that the `int` value passed to this function represents an abstract notion of an *index* in a container.
 
 The assertion inside the function body indicates that when control reaches this statement, if expression `buffer_ != nullptr` were to evaluate to `false` it would indicate a bug in the program. Class author can make that declaration, because she knows the purpose for which she put pointer `buffer_` as a class member, and she knows the rules based on which it will change value. 
 
