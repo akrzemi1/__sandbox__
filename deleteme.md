@@ -1,0 +1,1 @@
+I learned the hard way how to add a rule parser for the purpose of adjusting the type and value of the parser attribute. I have a number of recommendations for making this experience easier for the newcommers.
