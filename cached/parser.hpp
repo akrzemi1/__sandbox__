@@ -1,10 +1,45 @@
-#line 14 "boost/parser/detail/debug_assert.hpp"
-#include <cassert>
+#line 7 "boost/parser/parser.hpp"
+#define BOOST_PARSER_PARSER_HPP
+#undef BOOST_PARSER_DOXYGEN
+#line 7 "boost/parser/parser_fwd.hpp"
+#define BOOST_PARSER_PARSER_FWD_HPP
+#line 7 "boost/parser/config.hpp"
+#define BOOST_PARSER_CONFIG_HPP
+#line 7 "boost/parser/detail/debug_assert.hpp"
+#define BOOST_PARSER_DETAIL_DEBUG_ASSERT_HPP
+
+#include <boost/assert.hpp>
+#define BOOST_PARSER_DEBUG_ASSERT(condition) BOOST_ASSERT(condition)
+#define BOOST_PARSER_HAVE_BOOST_ASSERT
 #line 12 "boost/parser/config.hpp"
 #include <iterator>
+#line 58 "boost/parser/config.hpp"
+#        define BOOST_PARSER_ASSERT(condition) BOOST_ASSERT(condition)
+#line 68 "boost/parser/config.hpp"
+#    define BOOST_PARSER_ALGO_CONSTEXPR
+
+
+
+
+
+#    define BOOST_PARSER_USE_CONCEPTS 0
+#line 7 "boost/parser/subrange.hpp"
+#define BOOST_PARSER_SUBRANGE_HPP
+#line 7 "boost/parser/detail/text/config.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_CONFIG_HPP
 #line 12 "boost/parser/detail/text/config.hpp"
 #include <iterator>
-#line 9 "boost/parser/detail/detection.hpp"
+
+
+
+#    define BOOST_PARSER_DETAIL_TEXT_USE_CONCEPTS 0
+#line 27 "boost/parser/detail/text/config.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_USE_ALIAS_CTAD 0
+#line 7 "boost/parser/detail/text/detail/begin_end.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_BEGIN_END_HPP
+#line 7 "boost/parser/detail/detection.hpp"
+#define BOOST_PARSER_DETAIL_DETECTION_HPP
+
 #include <type_traits>
 
 
@@ -216,7 +251,10 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
 }}}
-#line 46 "boost/parser/detail/text/config.hpp"
+#line 43 "boost/parser/detail/text/config.hpp"
+#    define BOOST_PARSER_DETAIL_TEXT_SUBRANGE boost::parser::subrange
+
+
 namespace boost::parser::detail { namespace text {
 
 
@@ -224,7 +262,18 @@ namespace boost::parser::detail { namespace text {
     using char8_type = char;
 
 }}
-#line 11 "boost/parser/detail/text/utf.hpp"
+#line 63 "boost/parser/detail/text/config.hpp"
+#    define BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V1 inline namespace v1
+#    define BOOST_PARSER_DETAIL_TEXT_NAMESPACE_V2 namespace v2
+#line 7 "boost/parser/detail/text/detail/algorithm.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_DETAIL_ALGORITHM_HPP
+#line 7 "boost/parser/detail/text/concepts.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_CONCEPTS_HPP
+#line 7 "boost/parser/detail/text/utf.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_UTF_HPP
+
+
+
 #include <cstdint>
 #include <type_traits>
 #include <cstdint>
@@ -289,6 +338,24 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
 }}}
+#line 7 "boost/parser/detail/text/detail/iterator.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_DETAIL_ITERATOR_HPP
+#line 7 "boost/parser/detail/stl_interfaces/reverse_iterator.hpp"
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_REVERSE_ITERATOR_HPP
+#line 7 "boost/parser/detail/stl_interfaces/iterator_interface.hpp"
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_ITERATOR_INTERFACE_HPP
+#line 7 "boost/parser/detail/stl_interfaces/fwd.hpp"
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_FWD_HPP
+#line 7 "boost/parser/detail/stl_interfaces/config.hpp"
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_CONFIG_HPP
+#line 13 "boost/parser/detail/stl_interfaces/config.hpp"
+#    define BOOST_PARSER_DETAIL_STL_INTERFACES_USE_CONCEPTS 0
+#line 25 "boost/parser/detail/stl_interfaces/config.hpp"
+#define BOOST_PARSER_USE_DEDUCED_THIS 0
+#line 35 "boost/parser/detail/stl_interfaces/config.hpp"
+#    define BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V1 inline namespace v1
+#    define BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V2 namespace v2
+#    define BOOST_PARSER_DETAIL_STL_INTERFACES_NAMESPACE_V3 namespace v3
 #line 19 "boost/parser/detail/stl_interfaces/fwd.hpp"
 namespace boost::parser::detail { namespace stl_interfaces {
 
@@ -1947,7 +2014,12 @@ namespace boost::parser::detail { namespace text { namespace detail {
         detected_or_t<std::false_type, cp_value_expr, Iter>::value;
 
 }}}
-#line 12 "boost/parser/detail/stl_interfaces/view_interface.hpp"
+#line 7 "boost/parser/detail/stl_interfaces/view_interface.hpp"
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_VIEW_INTERFACE_HPP
+
+
+
+
 namespace boost::parser::detail { namespace stl_interfaces { inline namespace v1 {
 #line 24 "boost/parser/detail/stl_interfaces/view_interface.hpp"
     template<
@@ -2190,7 +2262,35 @@ namespace boost::parser {
     }
 
 }
-#line 12 "boost/parser/detail/text/in_out_result.hpp"
+#line 81 "boost/parser/config.hpp"
+#    define BOOST_PARSER_SUBRANGE boost::parser::subrange
+
+
+
+
+
+#    define BOOST_PARSER_USE_STD_TUPLE 0
+
+
+
+#define BOOST_PARSER_MAX_AGGREGATE_SIZE 25
+
+
+
+
+#define BOOST_PARSER_CONSTEXPR constexpr
+#line 2 "boost/parser/error_handling_fwd.hpp"
+#define BOOST_PARSER_ERROR_HANDLING_FWD_HPP
+#line 7 "boost/parser/detail/text/transcode_view.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_VIEW_HPP
+#line 8 "boost/parser/detail/text/transcode_algorithm.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_ALGORITHM_HPP
+#line 7 "boost/parser/detail/text/in_out_result.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_IN_OUT_RESULT_HPP
+
+
+
+
 namespace boost::parser::detail { namespace text {
 
 
@@ -2203,7 +2303,14 @@ namespace boost::parser::detail { namespace text {
     };
 
 }}
-#line 12 "boost/parser/detail/text/transcode_iterator_fwd.hpp"
+#line 7 "boost/parser/detail/text/transcode_iterator.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_ITERATOR_HPP
+#line 7 "boost/parser/detail/text/transcode_iterator_fwd.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_TRANSCODE_ITERATOR_FWD_HPP
+
+
+
+
 namespace boost::parser::detail { namespace text {
 
     struct use_replacement_character;
@@ -2447,12 +2554,12 @@ namespace boost::parser::detail { namespace text {
             constexpr operator bool() const { return valid_; }
             constexpr Iter operator*() const
             {
-                assert(valid_);
+                BOOST_ASSERT(valid_);
                 return it_;
             }
             Iter & operator*()
             {
-                assert(valid_);
+                BOOST_ASSERT(valid_);
                 return it_;
             }
 
@@ -2477,7 +2584,7 @@ namespace boost::parser::detail { namespace text {
         template<typename Iter>
         constexpr optional_iter<Iter> end_of_invalid_utf8(Iter it)
         {
-            assert(!boost::parser::detail::text::continuation(*it));
+            BOOST_ASSERT(!boost::parser::detail::text::continuation(*it));
 
             if (detail::in(0, *it, 0x7f))
                 return optional_iter<Iter>{};
@@ -3791,7 +3898,11 @@ namespace boost::parser::detail { namespace text {
     };
 
 }}
-#line 11 "boost/parser/detail/text/unpack.hpp"
+#line 7 "boost/parser/detail/text/unpack.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_UNPACK_HPP
+
+
+
 #include <type_traits>
 #include <optional>
 
@@ -4632,13 +4743,13 @@ namespace boost::parser::detail { namespace text {
 
         constexpr value_type operator*() const
         {
-            assert(buf_index_ < buf_last_);
+            BOOST_ASSERT(buf_index_ < buf_last_);
             return buf_[buf_index_];
         }
 
         constexpr utf_iterator & operator++()
         {
-            assert(buf_index_ != buf_last_ || curr() != last_);
+            BOOST_ASSERT(buf_index_ != buf_last_ || curr() != last_);
             if (buf_index_ + 1 == buf_last_ && curr() != last_) {
                 if constexpr (
 
@@ -4669,7 +4780,7 @@ namespace boost::parser::detail { namespace text {
 
 
         {
-            assert(buf_index_ || curr() != first());
+            BOOST_ASSERT(buf_index_ || curr() != first());
             if (!buf_index_ && curr() != first())
                 read_reverse();
             else if (buf_index_)
@@ -5886,7 +5997,13 @@ namespace boost::parser::detail { namespace text { inline namespace v1 {
     }
 
 }}}
-#line 13 "boost/parser/detail/text/detail/all_t.hpp"
+#line 7 "boost/parser/detail/text/detail/all_t.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_DETAIL_ALL_T_HPP
+
+
+
+
+
 #include <array>
 
 
@@ -6017,7 +6134,15 @@ namespace boost::parser::detail::text::detail {
 
 
 }
-#line 11 "boost/parser/detail/stl_interfaces/detail/pipeable_view.hpp"
+#line 7 "boost/parser/detail/stl_interfaces/view_adaptor.hpp"
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_VIEW_ADAPTOR_HPP
+#line 7 "boost/parser/detail/stl_interfaces/detail/view_closure.hpp"
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_DETAIL_VIEW_CLOSURE_HPP
+#line 7 "boost/parser/detail/stl_interfaces/detail/pipeable_view.hpp"
+#define BOOST_PARSER_DETAIL_STL_INTERFACES_DETAIL_PIPEABLE_VIEW_HPP
+
+
+
 #include <type_traits>
 
 
@@ -6218,6 +6343,28 @@ namespace boost::parser::detail { namespace stl_interfaces { namespace detail {
 #line 14 "boost/parser/detail/stl_interfaces/view_adaptor.hpp"
 #include <tuple>
 #include <type_traits>
+#line 23 "boost/parser/detail/stl_interfaces/view_adaptor.hpp"
+#define BOOST_PARSER_USE_CPP23_STD_RANGE_ADAPTOR_CLOSURE 0
+
+
+
+
+
+
+#define BOOST_PARSER_USE_LIBSTDCPP_GCC12_RANGE_ADAPTOR_CLOSURE 0
+
+
+
+
+
+
+#define BOOST_PARSER_NEED_VS_COMPATIBLE_RANGE_ADAPTOR_CLOSURE 0
+
+
+
+
+
+#define BOOST_PARSER_DEFINE_CUSTOM_RANGE_ADAPTOR_CLOSURE 1
 #line 51 "boost/parser/detail/stl_interfaces/view_adaptor.hpp"
 namespace boost::parser::detail { namespace stl_interfaces {
     namespace detail {
@@ -7313,8 +7460,8 @@ namespace boost { namespace parser {
             template<typename T>
             T & cast() const
             {
-                assert(impl_);
-                assert(dynamic_cast<holder<T> *>(impl_.get()));
+                BOOST_ASSERT(impl_);
+                BOOST_ASSERT(dynamic_cast<holder<T> *>(impl_.get()));
                 return static_cast<holder<T> *>(impl_.get())->value_;
             }
 
@@ -7693,6 +7840,14 @@ namespace boost { namespace parser {
     void _report_warning(Context const & context, std::string_view message);
 
 }}
+#line 7 "boost/parser/concepts.hpp"
+#define BOOST_PARSER_CONCEPTS_HPP
+#line 2 "boost/parser/error_handling.hpp"
+#define BOOST_PARSER_ERROR_HANDLING_HPP
+#line 2 "boost/parser/detail/printing.hpp"
+#define BOOST_PARSER_DETAIL_PRINTING_HPP
+#line 8 "boost/parser/tuple.hpp"
+#define BOOST_PARSER_TUPLE_HPP
 #line 26 "boost/parser/tuple.hpp"
 #include <boost/hana.hpp>
 #line 34 "boost/parser/tuple.hpp"
@@ -10911,7 +11066,13 @@ return parser::tuple<
 
 
 }
-#line 13 "boost/parser/detail/hl.hpp"
+#line 7 "boost/parser/detail/hl.hpp"
+#define BOOST_PARSER_DETAIL_HL_HPP
+
+
+
+
+
 #include <type_traits>
 #include <utility>
 
@@ -11912,7 +12073,14 @@ namespace boost { namespace parser { namespace detail {
     }
 
 }}}
-#line 12 "boost/parser/detail/text/detail/sentinel_tag.hpp"
+#line 7 "boost/parser/detail/text/algorithm.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_ALGORITHM_HPP
+#line 7 "boost/parser/detail/text/detail/sentinel_tag.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_DETAIL_SENTINEL_TAG_HPP
+
+
+
+
 namespace boost::parser::detail { namespace text { namespace detail {
     struct sentinel_tag
     {};
@@ -12573,7 +12741,9 @@ namespace boost { namespace parser {
     }
 
 }}
-#line 15 "boost/parser/detail/numeric.hpp"
+#line 13 "boost/parser/detail/numeric.hpp"
+#define BOOST_PARSER_DETAIL_NUMERIC_HPP
+
 #include <cmath>
 
 
@@ -13001,7 +13171,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
     inline bool extract_sign(Iterator & first, Sentinel last)
     {
         (void)last;
-        assert(first != last);
+        BOOST_ASSERT(first != last);
 
 
         bool neg = *first == '-';
@@ -13250,7 +13420,7 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
                     if (!std::is_same_v<T, unused_type>)
                         frac_digits =
                             static_cast<int>(std::distance(savef, first));
-                    assert(frac_digits >= 0);
+                    BOOST_ASSERT(frac_digits >= 0);
                 }
                 else if (!got_a_number || !p.allow_trailing_dot)
                 {
@@ -13482,6 +13652,8 @@ namespace boost { namespace parser { namespace detail_spirit_x3 {
     };
 
 }}}
+#line 2 "boost/parser/detail/case_fold.hpp"
+#define BOOST_PARSER_DETAIL_CASE_FOLD_HPP
 #line 9 "boost/parser/detail/case_fold_data_generated.hpp"
 namespace boost::parser::detail {
 
@@ -14112,7 +14284,12 @@ namespace boost::parser::detail {
     }
 
 }
-#line 12 "boost/parser/detail/unicode_char_sets.hpp"
+#line 7 "boost/parser/detail/unicode_char_sets.hpp"
+#define BOOST_PARSER_UNICODE_CHAR_SETS_HPP
+
+
+
+
 namespace boost::parser::detail {
 #line 18 "boost/parser/detail/unicode_char_sets.hpp"
     template<>
@@ -14796,7 +14973,124 @@ namespace boost::parser::detail {
             0x1E91E, 0x1E91F, 0x1E920, 0x1E921};
     };
 }
-#line 10 "boost/parser/detail/text/trie_fwd.hpp"
+#line 2 "boost/parser/detail/pp_for_each.hpp"
+#define BOOST_PARSER_DETAIL_PP_FOR_EACH_HPP_INCLUDED
+#line 2 "boost/parser/detail/pp_utilities.hpp"
+#define BOOST_PARSER_DETAIL_PP_UTILITIES_HPP_INCLUDED
+#line 9 "boost/parser/detail/pp_utilities.hpp"
+#define BOOST_PARSER_PP_EXPAND(x) x
+
+#define BOOST_PARSER_PP_CAT(x, y) BOOST_PARSER_PP_CAT_I(x, y)
+#define BOOST_PARSER_PP_CAT_I(x, ...) x ## __VA_ARGS__
+#line 22 "boost/parser/detail/pp_utilities.hpp"
+#define BOOST_PARSER_PP_FIRST(x) BOOST_PARSER_PP_FIRST_I(x)
+#define BOOST_PARSER_PP_FIRST_I(x, ...) x
+
+
+
+#define BOOST_PARSER_PP_IS_PAREN_I(x) BOOST_PARSER_PP_CAT(BOOST_PARSER_PP_IS_PAREN_I_, BOOST_PARSER_PP_IS_PAREN_II x)
+#define BOOST_PARSER_PP_IS_PAREN_II(...) 0
+#define BOOST_PARSER_PP_IS_PAREN_I_0 1,
+#define BOOST_PARSER_PP_IS_PAREN_I_BOOST_PARSER_PP_IS_PAREN_II 0,
+
+#define BOOST_PARSER_PP_IS_PAREN(x) BOOST_PARSER_PP_FIRST(BOOST_PARSER_PP_IS_PAREN_I(x))
+
+#define BOOST_PARSER_PP_EMPTY
+
+#define BOOST_PARSER_PP_IS_EMPTY(x) BOOST_PARSER_PP_IS_EMPTY_I(BOOST_PARSER_PP_IS_PAREN(x), BOOST_PARSER_PP_IS_PAREN(x BOOST_PARSER_PP_EMPTY ()))
+#define BOOST_PARSER_PP_IS_EMPTY_I(x, y) BOOST_PARSER_PP_IS_EMPTY_II(x, y)
+#define BOOST_PARSER_PP_IS_EMPTY_II(x, y) BOOST_PARSER_PP_IS_EMPTY_III(x, y)
+#define BOOST_PARSER_PP_IS_EMPTY_III(x, y) BOOST_PARSER_PP_IS_EMPTY_III_ ## x ## y
+#define BOOST_PARSER_PP_IS_EMPTY_III_00 0
+#define BOOST_PARSER_PP_IS_EMPTY_III_01 1
+#define BOOST_PARSER_PP_IS_EMPTY_III_10 0
+#define BOOST_PARSER_PP_IS_EMPTY_III_11 0
+
+#define BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_CAT(BOOST_PARSER_PP_CALL_I_, BOOST_PARSER_PP_IS_EMPTY(x))(F, a, x)
+#define BOOST_PARSER_PP_CALL_I_0(F, a, x) F(a, x)
+#define BOOST_PARSER_PP_CALL_I_1(F, a, x)
+
+#define BOOST_PARSER_PP_PARSE(x) BOOST_PARSER_PP_CAT(BOOST_PARSER_PP_PARSE_I_, BOOST_PARSER_PP_PARSE_II x)
+#define BOOST_PARSER_PP_PARSE_II(...) 0, (__VA_ARGS__),
+#define BOOST_PARSER_PP_PARSE_I_BOOST_PARSER_PP_PARSE_II 0, ~,
+#define BOOST_PARSER_PP_PARSE_I_0 1
+#line 63 "boost/parser/detail/pp_utilities.hpp"
+#define BOOST_PARSER_PP_NAME(x) BOOST_PARSER_PP_NAME_I(BOOST_PARSER_PP_PARSE(x))
+#define BOOST_PARSER_PP_NAME_I(x) BOOST_PARSER_PP_NAME_II(x)
+#define BOOST_PARSER_PP_NAME_II(x, y, z) #z
+#line 72 "boost/parser/detail/pp_utilities.hpp"
+#define BOOST_PARSER_PP_POINTER(C, x) BOOST_PARSER_PP_POINTER_I(C, BOOST_PARSER_PP_PARSE(x))
+
+#define BOOST_PARSER_PP_EXPAND_V(...) __VA_ARGS__
+#line 86 "boost/parser/detail/pp_utilities.hpp"
+#define BOOST_PARSER_PP_POINTER_I(C, x) BOOST_PARSER_PP_POINTER_II(C, x)
+#define BOOST_PARSER_PP_POINTER_II(C, x, y, z) BOOST_PARSER_PP_POINTER_III_##x(C, y, z)
+#define BOOST_PARSER_PP_POINTER_III_0(C, y, z) &C::z
+#define BOOST_PARSER_PP_POINTER_III_1(C, y, z) ::boost::describe::detail::mfn<C, BOOST_PARSER_PP_EXPAND_V y>(&C::z)
+#line 11 "boost/parser/detail/pp_for_each.hpp"
+#define BOOST_PARSER_PP_FOR_EACH_0(F, a)
+#define BOOST_PARSER_PP_FOR_EACH_1(F, a, x) BOOST_PARSER_PP_CALL(F, a, x)
+#define BOOST_PARSER_PP_FOR_EACH_2(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_1(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_3(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_2(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_4(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_3(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_5(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_4(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_6(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_5(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_7(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_6(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_8(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_7(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_9(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_8(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_10(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_9(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_11(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_10(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_12(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_11(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_13(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_12(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_14(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_13(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_15(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_14(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_16(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_15(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_17(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_16(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_18(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_17(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_19(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_18(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_20(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_19(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_21(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_20(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_22(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_21(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_23(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_22(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_24(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_23(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_25(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_24(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_26(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_25(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_27(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_26(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_28(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_27(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_29(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_28(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_30(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_29(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_31(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_30(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_32(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_31(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_33(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_32(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_34(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_33(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_35(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_34(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_36(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_35(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_37(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_36(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_38(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_37(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_39(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_38(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_40(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_39(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_41(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_40(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_42(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_41(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_43(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_42(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_44(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_43(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_45(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_44(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_46(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_45(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_47(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_46(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_48(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_47(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_49(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_48(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_50(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_49(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_51(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_50(F, a, __VA_ARGS__))
+#define BOOST_PARSER_PP_FOR_EACH_52(F, a, x, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_CALL(F, a, x) BOOST_PARSER_PP_FOR_EACH_51(F, a, __VA_ARGS__))
+
+#define BOOST_PARSER_PP_FE_EXTRACT(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, V, ...) V
+
+#define BOOST_PARSER_PP_FOR_EACH(F, ...) BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_EXPAND(BOOST_PARSER_PP_FE_EXTRACT(__VA_ARGS__, BOOST_PARSER_PP_FOR_EACH_52, BOOST_PARSER_PP_FOR_EACH_51, BOOST_PARSER_PP_FOR_EACH_50, BOOST_PARSER_PP_FOR_EACH_49, BOOST_PARSER_PP_FOR_EACH_48, BOOST_PARSER_PP_FOR_EACH_47, BOOST_PARSER_PP_FOR_EACH_46, BOOST_PARSER_PP_FOR_EACH_45, BOOST_PARSER_PP_FOR_EACH_44, BOOST_PARSER_PP_FOR_EACH_43, BOOST_PARSER_PP_FOR_EACH_42, BOOST_PARSER_PP_FOR_EACH_41, BOOST_PARSER_PP_FOR_EACH_40, BOOST_PARSER_PP_FOR_EACH_39, BOOST_PARSER_PP_FOR_EACH_38, BOOST_PARSER_PP_FOR_EACH_37, BOOST_PARSER_PP_FOR_EACH_36, BOOST_PARSER_PP_FOR_EACH_35, BOOST_PARSER_PP_FOR_EACH_34, BOOST_PARSER_PP_FOR_EACH_33, BOOST_PARSER_PP_FOR_EACH_32, BOOST_PARSER_PP_FOR_EACH_31, BOOST_PARSER_PP_FOR_EACH_30, BOOST_PARSER_PP_FOR_EACH_29, BOOST_PARSER_PP_FOR_EACH_28, BOOST_PARSER_PP_FOR_EACH_27, BOOST_PARSER_PP_FOR_EACH_26, BOOST_PARSER_PP_FOR_EACH_25, BOOST_PARSER_PP_FOR_EACH_24, BOOST_PARSER_PP_FOR_EACH_23, BOOST_PARSER_PP_FOR_EACH_22, BOOST_PARSER_PP_FOR_EACH_21, BOOST_PARSER_PP_FOR_EACH_20, BOOST_PARSER_PP_FOR_EACH_19, BOOST_PARSER_PP_FOR_EACH_18, BOOST_PARSER_PP_FOR_EACH_17, BOOST_PARSER_PP_FOR_EACH_16, BOOST_PARSER_PP_FOR_EACH_15, BOOST_PARSER_PP_FOR_EACH_14, BOOST_PARSER_PP_FOR_EACH_13, BOOST_PARSER_PP_FOR_EACH_12, BOOST_PARSER_PP_FOR_EACH_11, BOOST_PARSER_PP_FOR_EACH_10, BOOST_PARSER_PP_FOR_EACH_9, BOOST_PARSER_PP_FOR_EACH_8, BOOST_PARSER_PP_FOR_EACH_7, BOOST_PARSER_PP_FOR_EACH_6, BOOST_PARSER_PP_FOR_EACH_5, BOOST_PARSER_PP_FOR_EACH_4, BOOST_PARSER_PP_FOR_EACH_3, BOOST_PARSER_PP_FOR_EACH_2, BOOST_PARSER_PP_FOR_EACH_1, BOOST_PARSER_PP_FOR_EACH_0))(F, __VA_ARGS__))
+#line 7 "boost/parser/detail/text/trie.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_TRIE_HPP
+#line 7 "boost/parser/detail/text/trie_fwd.hpp"
+#define BOOST_PARSER_DETAIL_TEXT_TRIE_FWD_HPP
+
+
 namespace boost::parser::detail { namespace text {
 
 
@@ -14850,7 +15144,7 @@ namespace boost::parser::detail { namespace text {
         auto operator=(U && u)
             -> decltype(*this->t_ = static_cast<U &&>(u), *this)
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             *t_ = static_cast<U &&>(u);
             return *this;
         }
@@ -14861,48 +15155,48 @@ namespace boost::parser::detail { namespace text {
 
         T const & operator*() const
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
         T const * operator->() const
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return t_;
         }
 
         operator T const &() const &
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
 
         operator T const &() const &&
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
 
         T & operator*()
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
 
         T * operator->()
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return t_;
         }
 
         operator T &() &
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
 
         operator T &() &&
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
     };
@@ -14922,24 +15216,24 @@ namespace boost::parser::detail { namespace text {
 
         T & operator*() const
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
         T * operator->() const
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return t_;
         }
 
         operator T &() const &
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
 
         operator T &() const &&
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
     };
@@ -14958,7 +15252,7 @@ namespace boost::parser::detail { namespace text {
         auto operator=(U && u)
             -> decltype(*this->t_ = static_cast<U &&>(u), *this)
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             *t_ = static_cast<U &&>(u);
             return *this;
         }
@@ -14968,24 +15262,24 @@ namespace boost::parser::detail { namespace text {
 
         bool const & operator*() const
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
         bool const * operator->() const
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return t_;
         }
 
         bool & operator*()
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
 
         bool * operator->()
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return t_;
         }
     };
@@ -15005,12 +15299,12 @@ namespace boost::parser::detail { namespace text {
 
         bool const & operator*() const
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return *t_;
         }
         bool const * operator->() const
         {
-            assert(t_);
+            BOOST_ASSERT(t_);
             return t_;
         }
     };
@@ -15028,7 +15322,7 @@ namespace boost::parser::detail { namespace text {
         {
             std::size_t value() const
             {
-                assert(!"This should never be called.");
+                BOOST_ASSERT(!"This should never be called.");
                 return 0;
             }
 
@@ -15223,6 +15517,12 @@ namespace boost::parser::detail { namespace text {
 
         bool empty() const { return size_ == 0; }
         size_type size() const { return size_; }
+
+
+
+#define BOOST_TRIE_C_STR_OVERLOAD(rtype, func) template<typename Char, std::size_t N> rtype func(Char const(&chars)[N]) { static_assert( std::is_same<Char, key_element_type>::value, "Only well-formed when Char is Key::value_type."); return func(detail::char_range<Char const>{chars, chars + N - 1}); }
+#line 444 "boost/parser/detail/text/trie.hpp"
+#define BOOST_TRIE_C_STR_OVERLOAD_QUALS(rtype, func, quals) template<typename Char, std::size_t N> rtype func(Char const(&chars)[N]) quals { static_assert( std::is_same<Char, key_element_type>::value, "Only well-formed when Char is Key::value_type."); return func(detail::char_range<Char const>{chars, chars + N - 1}); }
 #line 457 "boost/parser/detail/text/trie.hpp"
         template<typename KeyRange>
         bool contains(KeyRange const & key) const
@@ -15302,7 +15602,7 @@ namespace boost::parser::detail { namespace text {
         template<typename KeyElementT>
         match_result extend_match(match_result prev, KeyElementT e) const
         {
-            assert(prev.match);
+            BOOST_ASSERT(prev.match);
             auto e_ptr = &e;
             return extend_subsequence_impl<true>(prev, e_ptr, e_ptr + 1);
         }
@@ -15314,7 +15614,7 @@ namespace boost::parser::detail { namespace text {
         match_result
         extend_match(match_result prev, KeyIter first, Sentinel last) const
         {
-            assert(prev.match);
+            BOOST_ASSERT(prev.match);
             return extend_subsequence_impl<true>(prev, first, last);
         }
 
@@ -15672,7 +15972,7 @@ namespace boost::parser::detail { namespace text {
             }
             trie_node_t & operator=(trie_node_t const & rhs)
             {
-                assert(parent_ == nullptr &&
+                BOOST_ASSERT(parent_ == nullptr &&
                     "Assignment of trie_node_ts are defined only for the "
                     "header node.");
 
@@ -15684,7 +15984,7 @@ namespace boost::parser::detail { namespace text {
             }
             trie_node_t & operator=(trie_node_t && rhs)
             {
-                assert(parent_ == nullptr &&
+                BOOST_ASSERT(parent_ == nullptr &&
                     "Move assignments of trie_node_ts are defined only for the "
                     "header node.");
 
@@ -15749,7 +16049,7 @@ namespace boost::parser::detail { namespace text {
 
             key_element const & key(std::size_t i) const
             {
-                assert(key_element(i) == i);
+                BOOST_ASSERT(key_element(i) == i);
                 return key_element(i);
             }
 
@@ -15769,7 +16069,7 @@ namespace boost::parser::detail { namespace text {
 
             void swap(trie_node_t & other)
             {
-                assert(parent_ == nullptr &&
+                BOOST_ASSERT(parent_ == nullptr &&
                     "Swaps of trie_node_ts are defined only for the header "
                     "node.");
 
@@ -15825,7 +16125,7 @@ namespace boost::parser::detail { namespace text {
                     [child](std::unique_ptr<trie_node_t> const & ptr) {
                         return child == ptr.get();
                     });
-                assert(it != children_.end());
+                BOOST_ASSERT(it != children_.end());
                 erase(it - children_.begin());
             }
 
@@ -15929,7 +16229,7 @@ namespace boost::parser::detail { namespace text {
             }
             trie_node_t & operator=(trie_node_t const & rhs)
             {
-                assert(parent_ == nullptr &&
+                BOOST_ASSERT(parent_ == nullptr &&
                     "Assignment of trie_node_ts are defined only for the "
                     "header node.");
 
@@ -15941,7 +16241,7 @@ namespace boost::parser::detail { namespace text {
             }
             trie_node_t & operator=(trie_node_t && rhs)
             {
-                assert(parent_ == nullptr &&
+                BOOST_ASSERT(parent_ == nullptr &&
                     "Move assignments of trie_node_ts are defined only for the "
                     "header node.");
 
@@ -16043,7 +16343,7 @@ namespace boost::parser::detail { namespace text {
 
             void swap(trie_node_t & other)
             {
-                assert(parent_ == nullptr &&
+                BOOST_ASSERT(parent_ == nullptr &&
                     "Swaps of trie_node_ts are defined only for the header "
                     "node.");
 
@@ -16072,7 +16372,7 @@ namespace boost::parser::detail { namespace text {
                 Compare const & comp,
                 std::unique_ptr<trie_node_t> && child)
             {
-                assert(child->empty());
+                BOOST_ASSERT(child->empty());
                 auto it = std::lower_bound(keys_.begin(), keys_.end(), e, comp);
                 it = keys_.insert(it, e);
                 auto const offset = it - keys_.begin();
@@ -16083,7 +16383,7 @@ namespace boost::parser::detail { namespace text {
             }
             iterator insert(std::unique_ptr<trie_node_t> && child)
             {
-                assert(empty());
+                BOOST_ASSERT(empty());
                 index_within_parent_.insert_ptr(child);
                 return children_.insert(children_.begin(), std::move(child));
             }
@@ -16103,7 +16403,7 @@ namespace boost::parser::detail { namespace text {
                     [child](std::unique_ptr<trie_node_t> const & ptr) {
                         return child == ptr.get();
                     });
-                assert(it != children_.end());
+                BOOST_ASSERT(it != children_.end());
                 erase(it - children_.begin());
             }
 
@@ -16472,7 +16772,7 @@ namespace boost { namespace parser {
         void fail() const
         {
 #line 322 "boost/parser/parser.hpp"
-            assert(false);
+            BOOST_ASSERT(false);
         }
     };
 
@@ -18975,7 +19275,7 @@ namespace boost { namespace parser {
 
 
 
-                assert(!detail::is_unconditional_eps<Parser>{} || end < Inf);
+                BOOST_ASSERT(!detail::is_unconditional_eps<Parser>{} || end < Inf);
 
 
                 for (; count != end; ++count) {
@@ -20937,7 +21237,7 @@ namespace boost { namespace parser {
                 return rhs.parser_.prepend(*this);
             } else {
 #line 4967 "boost/parser/parser.hpp"
-                assert(!detail::is_unconditional_eps<parser_type>{});
+                BOOST_ASSERT(!detail::is_unconditional_eps<parser_type>{});
 
                 return parser::parser_interface{
                     or_parser<tuple<parser_type, ParserType2>>{
@@ -21200,7 +21500,7 @@ namespace boost { namespace parser {
         template<typename T, typename... Ts>
         constexpr auto with(T && x, Ts &&... xs) const
         {
-            assert((detail::is_nope_v<ParamsTuple> &&
+            BOOST_ASSERT((detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a rule, "
                  "like 'rule.with(foo).with(bar)'.  Quit it!'"));
 
@@ -21239,7 +21539,7 @@ namespace boost { namespace parser {
         template<typename T, typename... Ts>
         constexpr auto with(T && x, Ts &&... xs) const
         {
-            assert((detail::is_nope_v<ParamsTuple> &&
+            BOOST_ASSERT((detail::is_nope_v<ParamsTuple> &&
                  "If you're seeing this, you tried to chain calls on a "
                  "callback_rule, like 'rule.with(foo).with(bar)'.  Quit it!'"));
 
@@ -21260,14 +21560,24 @@ namespace boost { namespace parser {
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
     };
-#line 5366 "boost/parser/parser.hpp"
+
+
+
+#define BOOST_PARSER_DEFINE_IMPL(_, diagnostic_text_) template< bool UseCallbacks, typename Iter, typename Sentinel, typename Context, typename SkipParser> auto parse_rule( decltype(diagnostic_text_)::parser_type::tag_type *, std::bool_constant<UseCallbacks> use_cbs, Iter & first, Sentinel last, Context const & context, SkipParser const & skip, boost::parser::detail::flags flags, bool & success) { auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def); return parser(use_cbs, first, last, context, skip, flags, success); } template< bool UseCallbacks, typename Iter, typename Sentinel, typename Context, typename SkipParser, typename Attribute> void parse_rule( decltype(diagnostic_text_)::parser_type::tag_type *, std::bool_constant<UseCallbacks> use_cbs, Iter & first, Sentinel last, Context const & context, SkipParser const & skip, boost::parser::detail::flags flags, bool & success, Attribute & retval) { auto const & parser = BOOST_PARSER_PP_CAT(diagnostic_text_, _def); using attr_t = decltype(parser( use_cbs, first, last, context, skip, flags, success)); if constexpr (boost::parser::detail::is_nope_v<attr_t>) { parser(use_cbs, first, last, context, skip, flags, success); } else { parser( use_cbs, first, last, context, skip, flags, success, retval); } }
+#line 5360 "boost/parser/parser.hpp"
+#define BOOST_PARSER_DEFINE_RULES(...) BOOST_PARSER_PP_FOR_EACH(BOOST_PARSER_DEFINE_IMPL, _, __VA_ARGS__)
+
+
+
+
+
     template<typename ParserTuple>
     template<typename Parser>
     constexpr auto or_parser<ParserTuple>::prepend(
         parser_interface<Parser> parser) const noexcept
     {
 #line 5380 "boost/parser/parser.hpp"
-        assert(!detail::is_unconditional_eps<Parser>{});
+        BOOST_ASSERT(!detail::is_unconditional_eps<Parser>{});
         return parser_interface{
             or_parser<decltype(detail::hl::prepend(parsers_, parser.parser_))>{
                 detail::hl::prepend(parsers_, parser.parser_)}};
@@ -21279,7 +21589,7 @@ namespace boost { namespace parser {
         parser_interface<Parser> parser) const noexcept
     {
 #line 5400 "boost/parser/parser.hpp"
-        assert(!detail::is_unconditional_eps_v<decltype(
+        BOOST_ASSERT(!detail::is_unconditional_eps_v<decltype(
                                 detail::hl::back(parsers_))>);
 
         if constexpr (detail::is_or_p<Parser>{}) {
@@ -21443,7 +21753,7 @@ namespace boost { namespace parser {
         constexpr auto
         operator()(parser_interface<SkipParser2> skip_parser) const noexcept
         {
-            assert((detail::is_nope_v<SkipParser> &&
+            BOOST_ASSERT((detail::is_nope_v<SkipParser> &&
                  "If you're seeing this, you tried to chain calls on skip, "
                  "like 'skip(foo)(bar)'.  Quit it!'"));
 
@@ -21566,7 +21876,7 @@ namespace boost { namespace parser {
         template<typename Predicate2>
         constexpr auto operator()(Predicate2 pred) const noexcept
         {
-            assert((detail::is_nope_v<Predicate> &&
+            BOOST_ASSERT((detail::is_nope_v<Predicate> &&
                  "If you're seeing this, you tried to chain calls on eps, "
                  "like 'eps(foo)(bar)'.  Quit it!'"));
 
@@ -21764,7 +22074,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(T x) const noexcept
 
         {
-            assert((detail::is_nope_v<Expected> &&
+            BOOST_ASSERT((detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
                  "like 'char_('a')('b')'.  Quit it!'"));
 
@@ -21779,7 +22089,7 @@ namespace boost { namespace parser {
         template<typename LoType, typename HiType>
         constexpr auto operator()(LoType lo, HiType hi) const noexcept
         {
-            assert((detail::is_nope_v<Expected> &&
+            BOOST_ASSERT((detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
                  "like 'char_('a', 'b')('c', 'd')'.  Quit it!'"));
 
@@ -21798,7 +22108,7 @@ namespace boost { namespace parser {
 
         constexpr auto operator()(R && r) const noexcept
         {
-            assert(((!std::is_rvalue_reference_v<R &&> ||
+            BOOST_ASSERT(((!std::is_rvalue_reference_v<R &&> ||
                   !detail::is_range<detail::remove_cv_ref_t<R>>) &&
                      "It looks like you tried to pass an rvalue range to "
                      "char_().  Don't do that, or you'll end up with dangling "
@@ -21808,7 +22118,7 @@ namespace boost { namespace parser {
 
 
 
-            assert((detail::is_nope_v<Expected> &&
+            BOOST_ASSERT((detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
                  "like 'char_(char-set)(char-set)'.  Quit it!'"));
 
@@ -21829,7 +22139,7 @@ namespace boost { namespace parser {
         constexpr auto operator()(sorted_t, R && r) const noexcept
 
         {
-            assert(((!std::is_rvalue_reference_v<R &&> ||
+            BOOST_ASSERT(((!std::is_rvalue_reference_v<R &&> ||
                   !detail::is_range<detail::remove_cv_ref_t<R>>) &&
                      "It looks like you tried to pass an rvalue range to "
                      "char_().  Don't do that, or you'll end up with dangling "
@@ -21839,7 +22149,7 @@ namespace boost { namespace parser {
 
 
 
-            assert((detail::is_nope_v<Expected> &&
+            BOOST_ASSERT((detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on char_, "
                  "like 'char_(char-set)(char-set)'.  Quit it!'"));
 
@@ -22610,7 +22920,7 @@ namespace boost { namespace parser {
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
-            assert((detail::is_nope_v<Expected> &&
+            BOOST_ASSERT((detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on this "
                  "parser, like 'uint_(2)(3)'.  Quit it!'"));
 
@@ -22724,7 +23034,7 @@ namespace boost { namespace parser {
         template<typename Expected2>
         constexpr auto operator()(Expected2 expected) const noexcept
         {
-            assert((detail::is_nope_v<Expected> &&
+            BOOST_ASSERT((detail::is_nope_v<Expected> &&
                  "If you're seeing this, you tried to chain calls on this "
                  "parser, like 'int_(2)(3)'.  Quit it!'"));
 
@@ -22883,7 +23193,7 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            assert((!detail::is_nope_v<OrParser> &&
+            BOOST_ASSERT((!detail::is_nope_v<OrParser> &&
                  "It looks like you tried to write switch_(val).  You need at "
                  "least one alternative, like: switch_(val)(value_1, "
                  "parser_1)(value_2, parser_2)..."));
@@ -22918,7 +23228,7 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
-            assert((!detail::is_nope_v<OrParser>,
+            BOOST_ASSERT((!detail::is_nope_v<OrParser>,
                  "It looks like you tried to write switch_(val).  You need at "
                  "least one alternative, like: switch_(val)(value_1, "
                  "parser_1)(value_2, parser_2)..."));
@@ -23318,10 +23628,13 @@ namespace boost { namespace parser {
     }
 
 }}
-#line 17 "boost/parser/detail/printing_impl.hpp"
+#line 2 "boost/parser/detail/printing_impl.hpp"
+#define BOOST_PARSER_DETAIL_PRINTING_IMPL_HPP
+
+
+
 #include <typeinfo>
-
-
+#define BOOST_PARSER_HAVE_BOOST_TYPEINDEX 0
 
 
 namespace boost { namespace parser { namespace detail {
@@ -23584,7 +23897,7 @@ namespace boost { namespace parser { namespace detail {
     {
         detail::print_directive(context, "raw", parser.parser_, os, components);
     }
-#line 296 "boost/parser/detail/printing_impl.hpp"
+#line 284 "boost/parser/detail/printing_impl.hpp"
     template<typename Context, typename Parser>
     void print_parser(
         Context const & context,
