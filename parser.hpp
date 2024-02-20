@@ -216,6 +216,14 @@ namespace boost::parser::detail { namespace text { namespace detail {
 
 
 }}}
+#line 46 "boost/parser/detail/text/config.hpp"
+namespace boost::parser::detail { namespace text {
+
+
+
+    using char8_type = char;
+
+}}
 #line 11 "boost/parser/detail/text/utf.hpp"
 #include <cstdint>
 #include <type_traits>
@@ -225,7 +233,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
 namespace boost::parser::detail { namespace text {
 
 
-    enum class format { utf8 = 1, utf16 = 2, utf32 = 4 };
+    enum class format { none = 0, utf8 = 1, utf16 = 2, utf32 = 4 };
 
     namespace detail {
         template<typename T>
@@ -2182,14 +2190,6 @@ namespace boost::parser {
     }
 
 }
-#line 45 "boost/parser/detail/text/config.hpp"
-namespace boost::parser::detail { namespace text {
-
-
-
-    using char8_type = char;
-
-}}
 #line 12 "boost/parser/detail/text/in_out_result.hpp"
 namespace boost::parser::detail { namespace text {
 
@@ -2962,23 +2962,23 @@ namespace boost::parser::detail { namespace text {
 
         template<typename I>
 
-        friend constexpr auto operator==(I it, null_sentinel_t)
+        friend constexpr bool operator==(I it, null_sentinel_t)
         {
             return *it == detail::iter_value_t<I>{};
         }
 
         template<typename I>
-        friend constexpr auto operator==(null_sentinel_t, I it)
+        friend constexpr bool operator==(null_sentinel_t, I it)
         {
             return *it == detail::iter_value_t<I>{};
         }
         template<typename I>
-        friend constexpr auto operator!=(I it, null_sentinel_t)
+        friend constexpr bool operator!=(I it, null_sentinel_t)
         {
             return *it != detail::iter_value_t<I>{};
         }
         template<typename I>
-        friend constexpr auto operator!=(null_sentinel_t, I it)
+        friend constexpr bool operator!=(null_sentinel_t, I it)
         {
             return *it != detail::iter_value_t<I>{};
         }
@@ -5886,6 +5886,137 @@ namespace boost::parser::detail { namespace text { inline namespace v1 {
     }
 
 }}}
+#line 13 "boost/parser/detail/text/detail/all_t.hpp"
+#include <array>
+
+
+
+
+
+namespace boost::parser::detail::text::detail {
+
+    template<typename T>
+    using iterator_ = decltype(text::detail::begin(std::declval<T &>()));
+    template<typename T>
+    using sentinel_ = decltype(text::detail::end(std::declval<T &>()));
+
+    template<typename T>
+    constexpr bool range_ =
+        is_detected_v<iterator_, T> && is_detected_v<sentinel_, T>;
+
+    template<typename T>
+    using has_insert_ = decltype(std::declval<T &>().insert(
+        std::declval<T>().begin(), *std::declval<T>().begin()));
+
+    template<typename T>
+    constexpr bool container_ = is_detected_v<has_insert_, T>;
+
+    template<typename T>
+    constexpr bool is_std_array_v = false;
+    template<typename T, size_t N>
+    constexpr bool is_std_array_v<std::array<T, N>> = false;
+
+    template<typename R>
+    constexpr bool view =
+
+
+
+
+        range_<R> && !container_<R> &&
+        !std::is_array_v<std::remove_reference_t<R>> &&
+        !is_std_array_v<std::remove_reference_t<R>>
+
+        ;
+
+    template<
+        typename R,
+        typename Enable = std::enable_if_t<range_<R> && std::is_object_v<R>>>
+    struct ref_view : stl_interfaces::view_interface<ref_view<R>>
+    {
+    private:
+        static void rvalue_poison(R &);
+        static void rvalue_poison(R &&) = delete;
+
+    public:
+        template<
+            typename T,
+            typename Enable2 = std::enable_if_t<
+                !std::
+                    is_same_v<remove_cv_ref_t<T>, remove_cv_ref_t<ref_view>> &&
+                std::is_convertible_v<T, R &>>,
+            typename Enable3 = decltype(rvalue_poison(std::declval<T>()))>
+        constexpr ref_view(T && t) :
+            r_(std::addressof(static_cast<R &>((T &&) t)))
+        {}
+        constexpr R & base() const { return *r_; }
+        constexpr iterator_<R> begin() const
+        {
+            return text::detail::begin(*r_);
+        }
+        constexpr sentinel_<R> end() const { return text::detail::end(*r_); }
+
+    private:
+        R * r_;
+    };
+
+    template<typename R>
+    ref_view(R &) -> ref_view<R>;
+
+    template<typename R>
+    struct owning_view : stl_interfaces::view_interface<owning_view<R>>
+    {
+        owning_view() = default;
+        constexpr owning_view(R && t) : r_(std::move(t)) {}
+
+        owning_view(owning_view &&) = default;
+        owning_view & operator=(owning_view &&) = default;
+
+        constexpr R & base() & noexcept { return r_; }
+        constexpr const R & base() const & noexcept { return r_; }
+        constexpr R && base() && noexcept { return std::move(r_); }
+        constexpr const R && base() const && noexcept { return std::move(r_); }
+
+        constexpr iterator_<R> begin() { return text::detail::begin(r_); }
+        constexpr sentinel_<R> end() { return text::detail::end(r_); }
+
+        constexpr auto begin() const { return text::detail::begin(r_); }
+        constexpr auto end() const { return text::detail::end(r_); }
+
+    private:
+        R r_ = R();
+    };
+
+    template<typename T>
+    using can_ref_view_expr = decltype(ref_view(std::declval<T>()));
+    template<typename T>
+    constexpr bool can_ref_view = is_detected_v<can_ref_view_expr, T>;
+
+    struct all_impl
+    {
+        template<typename R, typename Enable = std::enable_if_t<range_<R>>>
+        [[nodiscard]] constexpr auto operator()(R && r) const
+        {
+            using T = remove_cv_ref_t<R>;
+            if constexpr (view<T>)
+                return (R &&) r;
+            else if constexpr (can_ref_view<R>)
+                return ref_view(r);
+            else
+                return owning_view<T>(std::move(r));
+        }
+    };
+
+    constexpr all_impl all;
+
+
+
+
+
+    template<typename R>
+    using all_t = decltype(all(std::declval<R>()));
+
+
+}
 #line 11 "boost/parser/detail/stl_interfaces/detail/pipeable_view.hpp"
 #include <type_traits>
 
@@ -6241,9 +6372,22 @@ namespace boost::parser::detail { namespace stl_interfaces {
             typename Enable =
                 std::enable_if_t<detail::is_invocable_v<F const &, T>>>
 
-        constexpr decltype(auto) operator()(T && t) const
+        constexpr decltype(auto) operator()(T && t) const &
         {
             return f_((T &&) t);
+        }
+
+
+
+
+
+        template<
+            typename T,
+            typename Enable = std::enable_if_t<detail::is_invocable_v<F &&, T>>>
+
+        constexpr decltype(auto) operator()(T && t) &&
+        {
+            return std::move(f_)((T &&) t);
         }
 
     private:
@@ -6292,7 +6436,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
         constexpr auto operator()(Args &&... args) const
 
         {
-#line 304 "boost/parser/detail/stl_interfaces/view_adaptor.hpp"
+#line 317 "boost/parser/detail/stl_interfaces/view_adaptor.hpp"
             return detail::adaptor_impl<
                 F const &,
                 detail::is_invocable_v<F const &, Args...>,
@@ -6306,7 +6450,7 @@ namespace boost::parser::detail { namespace stl_interfaces {
 
 
 }}
-#line 15 "boost/parser/detail/text/transcode_view.hpp"
+#line 16 "boost/parser/detail/text/transcode_view.hpp"
 #include <climits>
 
 
@@ -6316,7 +6460,7 @@ namespace boost::parser::detail { namespace text {
         template<class I>
         constexpr auto iterator_to_tag()
         {
-#line 31 "boost/parser/detail/text/transcode_view.hpp"
+#line 32 "boost/parser/detail/text/transcode_view.hpp"
             if constexpr (detail::random_access_iterator_v<I>) {
                 return std::random_access_iterator_tag{};
             } else if constexpr (detail::bidirectional_iterator_v<I>) {
@@ -6330,7 +6474,7 @@ namespace boost::parser::detail { namespace text {
         }
         template<class I>
         using iterator_to_tag_t = decltype(iterator_to_tag<I>());
-#line 58 "boost/parser/detail/text/transcode_view.hpp"
+#line 59 "boost/parser/detail/text/transcode_view.hpp"
         struct cast_to_char8;
         struct cast_to_char16;
         struct cast_to_char32;
@@ -6350,7 +6494,7 @@ namespace boost::parser::detail { namespace text {
         }
 
     }
-#line 84 "boost/parser/detail/text/transcode_view.hpp"
+#line 85 "boost/parser/detail/text/transcode_view.hpp"
     template<typename V, typename F>
 
     class project_view : public stl_interfaces::view_interface<project_view<V, F>>
@@ -6400,7 +6544,7 @@ namespace boost::parser::detail { namespace text {
 
 
     };
-#line 140 "boost/parser/detail/text/transcode_view.hpp"
+#line 141 "boost/parser/detail/text/transcode_view.hpp"
     template<typename V, typename F>
 
     template<bool Const>
@@ -6468,7 +6612,7 @@ namespace boost::parser::detail { namespace text {
         }
 
     };
-#line 214 "boost/parser/detail/text/transcode_view.hpp"
+#line 215 "boost/parser/detail/text/transcode_view.hpp"
     template<typename V, typename F>
 
     template<bool Const>
@@ -6535,7 +6679,7 @@ namespace boost::parser::detail { namespace text {
         {
             template<class R>
             using project_view_type = project_view<R, F>;
-#line 288 "boost/parser/detail/text/transcode_view.hpp"
+#line 289 "boost/parser/detail/text/transcode_view.hpp"
             template<class R>
 
             [[nodiscard]] constexpr auto operator()(R && r) const
@@ -6555,7 +6699,7 @@ namespace boost::parser::detail { namespace text {
     template<typename F>
 
     constexpr detail::project_impl<F> project{};
-#line 345 "boost/parser/detail/text/transcode_view.hpp"
+#line 346 "boost/parser/detail/text/transcode_view.hpp"
     template<typename V>
     class char16_view : public project_view<V, detail::cast_to_char16>
 
@@ -6597,12 +6741,12 @@ namespace boost::parser::detail { namespace text {
 
         {}
     };
-#line 398 "boost/parser/detail/text/transcode_view.hpp"
+#line 399 "boost/parser/detail/text/transcode_view.hpp"
     namespace detail {
         template<template<class> class View, format Format>
         struct as_charn_impl : stl_interfaces::range_adaptor_closure<as_charn_impl<View, Format>>
         {
-#line 409 "boost/parser/detail/text/transcode_view.hpp"
+#line 410 "boost/parser/detail/text/transcode_view.hpp"
             template<class R>
 
             [[nodiscard]] constexpr auto operator()(R && r) const
@@ -6677,7 +6821,15 @@ namespace boost::parser::detail { namespace text {
       constexpr auto end() { return code_units().end(); }
       constexpr auto end() const { return code_units().end(); }
     };
-#line 494 "boost/parser/detail/text/transcode_view.hpp"
+
+    template<class R>
+    unpacking_view(R &&) -> unpacking_view<detail::all_t<R>>;
+
+
+
+
+
+
     template<format Format, typename V>
 
     class utf_view : public stl_interfaces::view_interface<utf_view<Format, V>>
@@ -6706,11 +6858,9 @@ namespace boost::parser::detail { namespace text {
         }
 
     public:
-        constexpr utf_view()
 
 
 
-        = default;
         constexpr utf_view(V base) : base_{std::move(base)} {}
 
         constexpr V base() const &
@@ -6773,9 +6923,9 @@ namespace boost::parser::detail { namespace text {
             }
             return os;
         }
-#line 606 "boost/parser/detail/text/transcode_view.hpp"
+#line 603 "boost/parser/detail/text/transcode_view.hpp"
     };
-#line 627 "boost/parser/detail/text/transcode_view.hpp"
+#line 624 "boost/parser/detail/text/transcode_view.hpp"
     template<typename V>
 
     class utf8_view : public utf_view<format::utf8, V>
@@ -6826,7 +6976,15 @@ namespace boost::parser::detail { namespace text {
             utf_view<format::utf32, V>{std::move(base)}
         {}
     };
-#line 702 "boost/parser/detail/text/transcode_view.hpp"
+
+
+    template<class R>
+    utf8_view(R &&) -> utf8_view<detail::all_t<R>>;
+    template<class R>
+    utf16_view(R &&) -> utf16_view<detail::all_t<R>>;
+    template<class R>
+    utf32_view(R &&) -> utf32_view<detail::all_t<R>>;
+#line 699 "boost/parser/detail/text/transcode_view.hpp"
     namespace detail {
 
 
@@ -6885,7 +7043,7 @@ namespace boost::parser::detail { namespace text {
         template<template<class> class View, format Format>
         struct as_utf_impl : stl_interfaces::range_adaptor_closure<as_utf_impl<View, Format>>
         {
-#line 767 "boost/parser/detail/text/transcode_view.hpp"
+#line 764 "boost/parser/detail/text/transcode_view.hpp"
             template<typename R>
 
             [[nodiscard]] constexpr auto operator()(R && r) const
@@ -7097,8 +7255,15 @@ namespace boost { namespace parser {
     constexpr bool enable_optional = false;
 
 
+
+    template<typename T>
+    constexpr bool enable_variant = false;
+
+
     template<typename T>
     constexpr bool enable_optional<std::optional<T>> = true;
+    template<typename... Ts>
+    constexpr bool enable_variant<std::variant<Ts...>> = true;
 
 
     namespace detail {
@@ -7189,8 +7354,34 @@ namespace boost { namespace parser {
             symbol_table_tries_t & symbol_table_tries) noexcept;
 
         struct skip_skipper;
+
+        struct char_subrange
+        {
+            char32_t lo_;
+            char32_t hi_;
+        };
+
+        template<typename Tag>
+        struct char_subranges
+        {};
+
+        struct hex_digit_subranges
+        {};
+        struct control_subranges
+        {};
+
+        template<typename Tag>
+        struct char_set
+        {};
+
+        struct punct_chars
+        {};
+        struct lower_case_chars
+        {};
+        struct upper_case_chars
+        {};
     }
-#line 135 "boost/parser/parser_fwd.hpp"
+#line 168 "boost/parser/parser_fwd.hpp"
     template<
         typename Parser,
         typename DelimiterParser = detail::nope,
@@ -7210,7 +7401,7 @@ namespace boost { namespace parser {
 
     template<typename Parser>
     struct one_plus_parser;
-#line 161 "boost/parser/parser_fwd.hpp"
+#line 194 "boost/parser/parser_fwd.hpp"
     template<typename Parser, typename DelimiterParser>
     struct delimited_seq_parser;
 
@@ -7228,7 +7419,7 @@ namespace boost { namespace parser {
 
     template<typename ParserTuple>
     struct or_parser;
-#line 186 "boost/parser/parser_fwd.hpp"
+#line 219 "boost/parser/parser_fwd.hpp"
     template<
         typename ParserTuple,
         typename BacktrackingTuple,
@@ -7255,7 +7446,7 @@ namespace boost { namespace parser {
 
     template<typename Parser>
     struct raw_parser;
-#line 230 "boost/parser/parser_fwd.hpp"
+#line 263 "boost/parser/parser_fwd.hpp"
     template<typename Parser>
     struct lexeme_parser;
 
@@ -7278,10 +7469,10 @@ namespace boost { namespace parser {
 
     template<typename Parser, bool FailOnMatch>
     struct expect_parser;
-#line 259 "boost/parser/parser_fwd.hpp"
+#line 292 "boost/parser/parser_fwd.hpp"
     template<typename T>
     struct symbol_parser;
-#line 273 "boost/parser/parser_fwd.hpp"
+#line 306 "boost/parser/parser_fwd.hpp"
     template<
         bool CanUseCallbacks,
         typename TagType,
@@ -7304,9 +7495,38 @@ namespace boost { namespace parser {
 
     template<typename Attribute>
     struct attr_parser;
-#line 302 "boost/parser/parser_fwd.hpp"
+
+
+
+
+    struct sorted_t
+    {};
+
+    inline constexpr sorted_t sorted;
+#line 343 "boost/parser/parser_fwd.hpp"
     template<typename Expected, typename AttributeType = void>
     struct char_parser;
+
+
+
+
+
+
+    template<typename Tag>
+    struct char_set_parser;
+
+
+
+
+
+
+    template<typename Tag>
+    struct char_subrange_parser;
+
+
+
+
+    struct digit_parser;
 
 
 
@@ -7317,13 +7537,14 @@ namespace boost { namespace parser {
 
 
 
-    template<bool NewlinesOnly>
+
+    template<bool NewlinesOnly, bool NoNewlines>
     struct ws_parser;
 
 
 
     struct bool_parser;
-#line 327 "boost/parser/parser_fwd.hpp"
+#line 390 "boost/parser/parser_fwd.hpp"
     template<
         typename T,
         int Radix = 10,
@@ -7331,7 +7552,7 @@ namespace boost { namespace parser {
         int MaxDigits = -1,
         typename Expected = detail::nope>
     struct uint_parser;
-#line 341 "boost/parser/parser_fwd.hpp"
+#line 404 "boost/parser/parser_fwd.hpp"
     template<
         typename T,
         int Radix = 10,
@@ -7352,7 +7573,7 @@ namespace boost { namespace parser {
 
     template<typename SwitchValue, typename OrParser = detail::nope>
     struct switch_parser;
-#line 371 "boost/parser/parser_fwd.hpp"
+#line 434 "boost/parser/parser_fwd.hpp"
     template<
         typename Parser,
         typename GlobalState = detail::nope,
@@ -11061,7 +11282,7 @@ namespace boost { namespace parser { namespace detail::hl {
     }
 
 }}}
-#line 11 "boost/parser/detail/printing.hpp"
+#line 12 "boost/parser/detail/printing.hpp"
 #include <iomanip>
 #include <iostream>
 #include <optional>
@@ -11156,7 +11377,7 @@ namespace boost { namespace parser { namespace detail {
         raw_parser<Parser> const & parser,
         std::ostream & os,
         int components = 0);
-#line 115 "boost/parser/detail/printing.hpp"
+#line 116 "boost/parser/detail/printing.hpp"
     template<typename Context, typename Parser>
     void print_parser(
         Context const & context,
@@ -11245,6 +11466,48 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        digit_parser const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_subrange_parser<hex_digit_subranges> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_subrange_parser<control_subranges> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<punct_chars> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<lower_case_chars> const & parser,
+        std::ostream & os,
+        int components = 0);
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<upper_case_chars> const & parser,
+        std::ostream & os,
+        int components = 0);
+
     template<typename Context, typename Expected, typename AttributeType>
     void print_parser(
         Context const & context,
@@ -11266,17 +11529,10 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components = 0);
 
-    template<typename Context>
+    template<typename Context, bool NewlinesOnly, bool NoNewlines>
     void print_parser(
         Context const & context,
-        ws_parser<true> const & parser,
-        std::ostream & os,
-        int components = 0);
-
-    template<typename Context>
-    void print_parser(
-        Context const & context,
-        ws_parser<false> const & parser,
+        ws_parser<NewlinesOnly, NoNewlines> const & parser,
         std::ostream & os,
         int components = 0);
 
@@ -11360,9 +11616,6 @@ namespace boost { namespace parser { namespace detail {
             bool quote,
             int64_t trace_input_cps)
         {
-            static_assert(
-                std::is_integral<std::decay_t<decltype(*first_)>>{}, "");
-            static_assert(SizeofValueType == 4, "");
             auto utf8 = boost::parser::subrange(first_, last_) | text::as_utf8;
             auto first = utf8.begin();
             auto last = utf8.end();
@@ -11387,16 +11640,19 @@ namespace boost { namespace parser { namespace detail {
             bool quote,
             int64_t trace_input_cps)
         {
-            auto utf32 = boost::parser::subrange(first_, last_) | text::as_utf32;
+            auto r = boost::parser::subrange(first_, last_);
+            auto r_unpacked =
+                detail::text::unpack_iterator_and_sentinel(first_, last_);
+            auto utf32 = r | text::as_utf32;
             auto first = utf32.begin();
             auto const last = utf32.end();
-            static_assert(sizeof(*first_) == 1);
             for (int64_t i = 0; i < trace_input_cps && first != last; ++i) {
                 ++first;
             }
             if (quote)
                 os << '"';
-            for (Iter it = first_, end = first.base(); it != end; ++it) {
+            auto first_repacked = r_unpacked.repack(first.base());
+            for (Iter it = first_, end = first_repacked; it != end; ++it) {
                 detail::print_char(os, *it);
             }
             if (quote)
@@ -11511,9 +11767,7 @@ namespace boost { namespace parser { namespace detail {
     };
 
     template<typename T>
-    constexpr bool is_variant_v = false;
-    template<typename... Ts>
-    constexpr bool is_variant_v<std::variant<Ts...>> = true;
+    constexpr bool is_variant_v = enable_variant<T>;
 
     template<typename Attribute>
     inline void print(std::ostream & os, Attribute const & attr)
@@ -11663,7 +11917,7 @@ namespace boost::parser::detail { namespace text { namespace detail {
     struct non_sentinel_tag
     {};
 }}}
-#line 14 "boost/parser/detail/text/algorithm.hpp"
+#line 15 "boost/parser/detail/text/algorithm.hpp"
 #include <cstddef>
 #include <iterator>
 #include <utility>
@@ -11810,7 +12064,8 @@ namespace boost::parser::detail { namespace text {
 
 
     template<typename Iter, typename Sentinel = Iter>
-    using foreach_subrange_range = subrange<Iter, Sentinel>;
+    using foreach_subrange_range =
+        boost::parser::subrange<Iter, Sentinel>;
 
 
 
@@ -11976,6 +12231,8 @@ namespace boost::parser::detail { namespace text {
 
         if (detail::next(first2) == last2) {
             auto const it = parser::detail::text::find(first1, last1, *first2);
+            if (it == last1)
+                return {it, it};
             return {it, detail::next(it)};
         }
 
@@ -13802,9 +14059,11 @@ namespace boost::parser::detail {
                 return out;
             } else {
 
-                auto const first = std::begin(mapping_ranges) + 1;
+                auto const first =
+                    detail::text::detail::begin(mapping_ranges) + 1;
 
-                auto const last = std::begin(mapping_ranges) + 7;
+                auto const last =
+                    detail::text::detail::begin(mapping_ranges) + 7;
                 if (auto out_opt = do_short_mapping(first, last, cp, out))
                     return *out_opt;
             }
@@ -13814,17 +14073,17 @@ namespace boost::parser::detail {
 
 
         {
-            auto const first = std::begin(mapping_ranges);
-            auto const last = std::end(mapping_ranges);
+            auto const first = detail::text::detail::begin(mapping_ranges);
+            auto const last = detail::text::detail::end(mapping_ranges);
             if (auto out_opt = do_short_mapping(first, last, cp, out))
                 return *out_opt;
         }
 
 
         {
-            auto const last = std::end(long_mappings);
+            auto const last = detail::text::detail::end(long_mappings);
             auto const it = std::lower_bound(
-                std::begin(long_mappings),
+                detail::text::detail::begin(long_mappings),
                 last,
                 cp,
                 [](long_mapping const & mapping, char32_t cp) {
@@ -13838,7 +14097,9 @@ namespace boost::parser::detail {
                 return std::copy(
                     it->mapping_,
                     std::find(
-                        std::begin(it->mapping_), std::end(it->mapping_), 0),
+                        detail::text::detail::begin(it->mapping_),
+                        detail::text::detail::end(it->mapping_),
+                        0),
                     out);
 
             }
@@ -13848,6 +14109,690 @@ namespace boost::parser::detail {
         return out;
     }
 
+}
+#line 12 "boost/parser/detail/unicode_char_sets.hpp"
+namespace boost::parser::detail {
+#line 18 "boost/parser/detail/unicode_char_sets.hpp"
+    template<>
+    struct char_set<punct_chars>
+    {
+        static constexpr uint32_t chars[] = {
+            0x21,    0x22,    0x23,    0x25,    0x26,    0x27,    0x28,
+            0x29,    0x2A,    0x5B,    0x5C,    0x5D,    0x5F,    0x7B,
+            0x7D,    0x2C,    0x2D,    0x2E,    0x2F,    0x3A,    0x3B,
+            0x3F,    0x40,    0xA1,    0xA7,    0xAB,    0xB6,    0xB7,
+            0xBB,    0xBF,    0x37E,   0x387,   0x55A,   0x55B,   0x55C,
+            0x55D,   0x55E,   0x55F,   0x589,   0x58A,   0x5BE,   0x5C0,
+            0x5C3,   0x5C6,   0x5F3,   0x5F4,   0x609,   0x60A,   0x60C,
+            0x60D,   0x61B,   0x61D,   0x61E,   0x61F,   0x66A,   0x66B,
+            0x66C,   0x66D,   0x6D4,   0x700,   0x701,   0x702,   0x703,
+            0x704,   0x705,   0x706,   0x707,   0x708,   0x709,   0x70A,
+            0x70B,   0x70C,   0x70D,   0x7F7,   0x7F8,   0x7F9,   0x830,
+            0x831,   0x832,   0x833,   0x834,   0x835,   0x836,   0x837,
+            0x838,   0x839,   0x83A,   0x83B,   0x83C,   0x83D,   0x83E,
+            0x85E,   0x964,   0x965,   0x970,   0x9FD,   0xA76,   0xAF0,
+            0xC77,   0xC84,   0xDF4,   0xE4F,   0xE5A,   0xE5B,   0xF04,
+            0xF05,   0xF06,   0xF07,   0xFD3,   0xFD4,   0xF08,   0xF09,
+            0xF0A,   0xF0B,   0xF0C,   0xF0D,   0xF0E,   0xF0F,   0xF10,
+            0xF11,   0xF12,   0xF14,   0xF85,   0xFD0,   0xFD1,   0xFD2,
+            0xF3A,   0xF3B,   0xF3C,   0xF3D,   0xFD9,   0xFDA,   0x104A,
+            0x104B,  0x104C,  0x104D,  0x104E,  0x104F,  0x10FB,  0x1360,
+            0x1361,  0x1362,  0x1363,  0x1364,  0x1365,  0x1366,  0x1367,
+            0x1368,  0x1400,  0x166E,  0x169B,  0x169C,  0x16EB,  0x16EC,
+            0x16ED,  0x1735,  0x1736,  0x17D4,  0x17D5,  0x17D6,  0x17D8,
+            0x17D9,  0x17DA,  0x1800,  0x1801,  0x1802,  0x1803,  0x1804,
+            0x1805,  0x1806,  0x1807,  0x1808,  0x1809,  0x180A,  0x1944,
+            0x1945,  0x1A1E,  0x1A1F,  0x1AA0,  0x1AA1,  0x1AA2,  0x1AA3,
+            0x1AA4,  0x1AA5,  0x1AA6,  0x1AA8,  0x1AA9,  0x1AAA,  0x1AAB,
+            0x1AAC,  0x1AAD,  0x1B5A,  0x1B5B,  0x1B5C,  0x1B5D,  0x1B5E,
+            0x1B5F,  0x1B60,  0x1B7D,  0x1B7E,  0x1BFC,  0x1BFD,  0x1BFE,
+            0x1BFF,  0x1C3B,  0x1C3C,  0x1C3D,  0x1C3E,  0x1C3F,  0x1C7E,
+            0x1C7F,  0x1CC0,  0x1CC1,  0x1CC2,  0x1CC3,  0x1CC4,  0x1CC5,
+            0x1CC6,  0x1CC7,  0x1CD3,  0x2010,  0x2011,  0x2012,  0x2013,
+            0x2014,  0x2015,  0x2016,  0x2017,  0x2020,  0x2021,  0x2022,
+            0x2023,  0x2024,  0x2025,  0x2026,  0x2027,  0x2030,  0x2031,
+            0x2032,  0x2033,  0x2034,  0x2035,  0x2036,  0x2037,  0x2038,
+            0x203B,  0x203D,  0x203E,  0x203F,  0x2040,  0x2041,  0x2042,
+            0x2043,  0x204A,  0x204B,  0x204C,  0x204D,  0x204E,  0x204F,
+            0x2050,  0x2051,  0x2053,  0x2054,  0x2055,  0x2057,  0x2018,
+            0x2019,  0x201A,  0x201B,  0x201C,  0x201D,  0x201E,  0x201F,
+            0x2039,  0x203A,  0x203C,  0x2047,  0x2048,  0x2049,  0x2045,
+            0x2046,  0x2056,  0x2058,  0x2059,  0x205A,  0x205B,  0x205C,
+            0x205D,  0x205E,  0x207D,  0x207E,  0x208D,  0x208E,  0x2308,
+            0x2309,  0x230A,  0x230B,  0x2329,  0x232A,  0x2768,  0x2769,
+            0x276A,  0x276B,  0x276C,  0x276D,  0x276E,  0x276F,  0x2770,
+            0x2771,  0x2772,  0x2773,  0x2774,  0x2775,  0x27C5,  0x27C6,
+            0x27E6,  0x27E7,  0x27E8,  0x27E9,  0x27EA,  0x27EB,  0x27EC,
+            0x27ED,  0x27EE,  0x27EF,  0x2983,  0x2984,  0x2985,  0x2986,
+            0x2987,  0x2988,  0x2989,  0x298A,  0x298B,  0x298C,  0x2991,
+            0x2992,  0x2993,  0x2994,  0x2995,  0x2996,  0x2997,  0x2998,
+            0x29FC,  0x29FD,  0x298D,  0x298E,  0x298F,  0x2990,  0x29D8,
+            0x29D9,  0x29DA,  0x29DB,  0x2CF9,  0x2CFA,  0x2CFB,  0x2CFC,
+            0x2CFE,  0x2CFF,  0x2D70,  0x2E00,  0x2E01,  0x2E02,  0x2E03,
+            0x2E04,  0x2E05,  0x2E06,  0x2E07,  0x2E08,  0x2E09,  0x2E0A,
+            0x2E0B,  0x2E0C,  0x2E0D,  0x2E0E,  0x2E0F,  0x2E10,  0x2E11,
+            0x2E12,  0x2E13,  0x2E14,  0x2E15,  0x2E16,  0x2E17,  0x2E18,
+            0x2E19,  0x2E1A,  0x2E1B,  0x2E1E,  0x2E1F,  0x2E1C,  0x2E1D,
+            0x2E20,  0x2E21,  0x2E26,  0x2E27,  0x2E28,  0x2E29,  0x2E55,
+            0x2E56,  0x2E57,  0x2E58,  0x2E22,  0x2E23,  0x2E24,  0x2E25,
+            0x2E2A,  0x2E2B,  0x2E2C,  0x2E2D,  0x2E2E,  0x2E30,  0x2E31,
+            0x2E33,  0x2E34,  0x2E3F,  0x2E4A,  0x2E4B,  0x2E4C,  0x2E4D,
+            0x2E4E,  0x2E4F,  0x2E52,  0x2E53,  0x2E54,  0x2E32,  0x2E35,
+            0x2E36,  0x2E37,  0x2E38,  0x2E39,  0x2E3A,  0x2E3B,  0x2E3C,
+            0x2E3D,  0x2E3E,  0x2E40,  0x2E41,  0x2E42,  0x2E43,  0x2E44,
+            0x2E45,  0x2E46,  0x2E47,  0x2E48,  0x2E49,  0x2E59,  0x2E5A,
+            0x2E5B,  0x2E5C,  0x2E5D,  0x3001,  0x3002,  0x3003,  0x3008,
+            0x3009,  0x300A,  0x300B,  0x300C,  0x300D,  0x300E,  0x300F,
+            0x3010,  0x3011,  0x3014,  0x3015,  0x3016,  0x3017,  0x3018,
+            0x3019,  0x301A,  0x301B,  0x301C,  0x301D,  0x301E,  0x301F,
+            0x3030,  0x303D,  0x30A0,  0x30FB,  0xA4FE,  0xA4FF,  0xA60D,
+            0xA60E,  0xA60F,  0xA673,  0xA67E,  0xA6F2,  0xA6F3,  0xA6F4,
+            0xA6F5,  0xA6F6,  0xA6F7,  0xA874,  0xA875,  0xA876,  0xA877,
+            0xA8CE,  0xA8CF,  0xA8F8,  0xA8F9,  0xA8FA,  0xA8FC,  0xA92E,
+            0xA92F,  0xA95F,  0xA9C1,  0xA9C2,  0xA9C3,  0xA9C4,  0xA9C5,
+            0xA9C6,  0xA9C7,  0xA9C8,  0xA9C9,  0xA9CA,  0xA9CB,  0xA9CC,
+            0xA9CD,  0xA9DE,  0xA9DF,  0xAA5C,  0xAA5D,  0xAA5E,  0xAA5F,
+            0xAADE,  0xAADF,  0xAAF0,  0xAAF1,  0xABEB,  0xFD3E,  0xFD3F,
+            0xFE10,  0xFE11,  0xFE12,  0xFE13,  0xFE14,  0xFE15,  0xFE16,
+            0xFE17,  0xFE18,  0xFE19,  0xFE30,  0xFE31,  0xFE32,  0xFE33,
+            0xFE34,  0xFE35,  0xFE36,  0xFE37,  0xFE38,  0xFE39,  0xFE3A,
+            0xFE3B,  0xFE3C,  0xFE3D,  0xFE3E,  0xFE3F,  0xFE40,  0xFE41,
+            0xFE42,  0xFE43,  0xFE44,  0xFE47,  0xFE48,  0xFE45,  0xFE46,
+            0xFE49,  0xFE4A,  0xFE4B,  0xFE4C,  0xFE4D,  0xFE4E,  0xFE4F,
+            0xFE50,  0xFE51,  0xFE52,  0xFE54,  0xFE55,  0xFE56,  0xFE57,
+            0xFE58,  0xFE59,  0xFE5A,  0xFE5B,  0xFE5C,  0xFE5D,  0xFE5E,
+            0xFE5F,  0xFE60,  0xFE61,  0xFE63,  0xFE68,  0xFE6A,  0xFE6B,
+            0xFF01,  0xFF02,  0xFF03,  0xFF05,  0xFF06,  0xFF07,  0xFF08,
+            0xFF09,  0xFF0A,  0xFF0C,  0xFF0D,  0xFF0E,  0xFF0F,  0xFF1A,
+            0xFF1B,  0xFF1F,  0xFF20,  0xFF3B,  0xFF3C,  0xFF3D,  0xFF3F,
+            0xFF5B,  0xFF5D,  0xFF5F,  0xFF60,  0xFF61,  0xFF62,  0xFF63,
+            0xFF64,  0xFF65,  0x10100, 0x10101, 0x10102, 0x1039F, 0x103D0,
+            0x1056F, 0x10857, 0x1091F, 0x1093F, 0x10A50, 0x10A51, 0x10A52,
+            0x10A53, 0x10A54, 0x10A55, 0x10A56, 0x10A57, 0x10A58, 0x10A7F,
+            0x10AF0, 0x10AF1, 0x10AF2, 0x10AF3, 0x10AF4, 0x10AF5, 0x10AF6,
+            0x10B39, 0x10B3A, 0x10B3B, 0x10B3C, 0x10B3D, 0x10B3E, 0x10B3F,
+            0x10B99, 0x10B9A, 0x10B9B, 0x10B9C, 0x10EAD, 0x10F55, 0x10F56,
+            0x10F57, 0x10F58, 0x10F59, 0x10F86, 0x10F87, 0x10F88, 0x10F89,
+            0x11047, 0x11048, 0x11049, 0x1104A, 0x1104B, 0x1104C, 0x1104D,
+            0x110BB, 0x110BC, 0x110BE, 0x110BF, 0x110C0, 0x110C1, 0x11140,
+            0x11141, 0x11142, 0x11143, 0x11174, 0x11175, 0x111C5, 0x111C6,
+            0x111C7, 0x111C8, 0x111CD, 0x111DB, 0x111DD, 0x111DE, 0x111DF,
+            0x11238, 0x11239, 0x1123A, 0x1123B, 0x1123C, 0x1123D, 0x112A9,
+            0x1144B, 0x1144C, 0x1144D, 0x1144E, 0x1144F, 0x1145A, 0x1145B,
+            0x1145D, 0x114C6, 0x115C1, 0x115C2, 0x115C3, 0x115C4, 0x115C5,
+            0x115C6, 0x115C7, 0x115C8, 0x115C9, 0x115CA, 0x115CB, 0x115CC,
+            0x115CD, 0x115CE, 0x115CF, 0x115D0, 0x115D1, 0x115D2, 0x115D3,
+            0x115D4, 0x115D5, 0x115D6, 0x115D7, 0x11641, 0x11642, 0x11643,
+            0x11660, 0x11661, 0x11662, 0x11663, 0x11664, 0x11665, 0x11666,
+            0x11667, 0x11668, 0x11669, 0x1166A, 0x1166B, 0x1166C, 0x116B9,
+            0x1173C, 0x1173D, 0x1173E, 0x1183B, 0x11944, 0x11945, 0x11946,
+            0x119E2, 0x11A3F, 0x11A40, 0x11A45, 0x11A46, 0x11A41, 0x11A42,
+            0x11A43, 0x11A44, 0x11A9A, 0x11A9B, 0x11A9C, 0x11A9E, 0x11A9F,
+            0x11AA0, 0x11AA1, 0x11AA2, 0x11B00, 0x11B01, 0x11B02, 0x11B03,
+            0x11B04, 0x11B05, 0x11B06, 0x11B07, 0x11B08, 0x11B09, 0x11C41,
+            0x11C42, 0x11C43, 0x11C44, 0x11C45, 0x11C70, 0x11C71, 0x11EF7,
+            0x11EF8, 0x11F43, 0x11F44, 0x11F45, 0x11F46, 0x11F47, 0x11F48,
+            0x11F49, 0x11F4A, 0x11F4B, 0x11F4C, 0x11F4D, 0x11F4E, 0x11F4F,
+            0x11FFF, 0x12470, 0x12471, 0x12472, 0x12473, 0x12474, 0x12FF1,
+            0x12FF2, 0x16A6E, 0x16A6F, 0x16AF5, 0x16B37, 0x16B38, 0x16B39,
+            0x16B3A, 0x16B3B, 0x16B44, 0x16E97, 0x16E98, 0x16E99, 0x16E9A,
+            0x16FE2, 0x1BC9F, 0x1DA87, 0x1DA88, 0x1DA89, 0x1DA8A, 0x1DA8B,
+            0x1E95E, 0x1E95F};
+    };
+#line 148 "boost/parser/detail/unicode_char_sets.hpp"
+    template<>
+    struct char_set<lower_case_chars>
+    {
+        static constexpr uint32_t chars[] = {
+        0x61,    0x62,    0x63,    0x64,    0x65,    0x66,    0x67,    0x68,
+        0x69,    0x6A,    0x6B,    0x6C,    0x6D,    0x6E,    0x6F,    0x70,
+        0x71,    0x72,    0x73,    0x74,    0x75,    0x76,    0x77,    0x78,
+        0x79,    0x7A,    0xB5,    0xDF,    0xE0,    0xE1,    0xE2,    0xE3,
+        0xE4,    0xE5,    0xE6,    0xE7,    0xE8,    0xE9,    0xEA,    0xEB,
+        0xEC,    0xED,    0xEE,    0xEF,    0xF0,    0xF1,    0xF2,    0xF3,
+        0xF4,    0xF5,    0xF6,    0xF8,    0xF9,    0xFA,    0xFB,    0xFC,
+        0xFD,    0xFE,    0xFF,    0x101,   0x103,   0x105,   0x107,   0x109,
+        0x10B,   0x10D,   0x10F,   0x111,   0x113,   0x115,   0x117,   0x119,
+        0x11B,   0x11D,   0x11F,   0x121,   0x123,   0x125,   0x127,   0x129,
+        0x12B,   0x12D,   0x12F,   0x131,   0x133,   0x135,   0x137,   0x138,
+        0x13A,   0x13C,   0x13E,   0x140,   0x142,   0x144,   0x146,   0x148,
+        0x149,   0x14B,   0x14D,   0x14F,   0x151,   0x153,   0x155,   0x157,
+        0x159,   0x15B,   0x15D,   0x15F,   0x161,   0x163,   0x165,   0x167,
+        0x169,   0x16B,   0x16D,   0x16F,   0x171,   0x173,   0x175,   0x177,
+        0x17A,   0x17C,   0x17E,   0x17F,   0x180,   0x183,   0x185,   0x188,
+        0x18C,   0x18D,   0x192,   0x195,   0x199,   0x19A,   0x19B,   0x19E,
+        0x1A1,   0x1A3,   0x1A5,   0x1A8,   0x1AA,   0x1AB,   0x1AD,   0x1B0,
+        0x1B4,   0x1B6,   0x1B9,   0x1BA,   0x1BD,   0x1BE,   0x1BF,   0x1C6,
+        0x1C9,   0x1CC,   0x1CE,   0x1D0,   0x1D2,   0x1D4,   0x1D6,   0x1D8,
+        0x1DA,   0x1DC,   0x1DD,   0x1DF,   0x1E1,   0x1E3,   0x1E5,   0x1E7,
+        0x1E9,   0x1EB,   0x1ED,   0x1EF,   0x1F0,   0x1F3,   0x1F5,   0x1F9,
+        0x1FB,   0x1FD,   0x1FF,   0x201,   0x203,   0x205,   0x207,   0x209,
+        0x20B,   0x20D,   0x20F,   0x211,   0x213,   0x215,   0x217,   0x219,
+        0x21B,   0x21D,   0x21F,   0x221,   0x223,   0x225,   0x227,   0x229,
+        0x22B,   0x22D,   0x22F,   0x231,   0x233,   0x234,   0x235,   0x236,
+        0x237,   0x238,   0x239,   0x23C,   0x23F,   0x240,   0x242,   0x247,
+        0x249,   0x24B,   0x24D,   0x24F,   0x250,   0x251,   0x252,   0x253,
+        0x254,   0x255,   0x256,   0x257,   0x258,   0x259,   0x25A,   0x25B,
+        0x25C,   0x25D,   0x25E,   0x25F,   0x260,   0x261,   0x262,   0x263,
+        0x264,   0x265,   0x266,   0x267,   0x268,   0x269,   0x26A,   0x26B,
+        0x26C,   0x26D,   0x26E,   0x26F,   0x270,   0x271,   0x272,   0x273,
+        0x274,   0x275,   0x276,   0x277,   0x278,   0x279,   0x27A,   0x27B,
+        0x27C,   0x27D,   0x27E,   0x27F,   0x280,   0x281,   0x282,   0x283,
+        0x284,   0x285,   0x286,   0x287,   0x288,   0x289,   0x28A,   0x28B,
+        0x28C,   0x28D,   0x28E,   0x28F,   0x290,   0x291,   0x292,   0x293,
+        0x295,   0x296,   0x297,   0x298,   0x299,   0x29A,   0x29B,   0x29C,
+        0x29D,   0x29E,   0x29F,   0x2A0,   0x2A1,   0x2A2,   0x2A3,   0x2A4,
+        0x2A5,   0x2A6,   0x2A7,   0x2A8,   0x2A9,   0x2AA,   0x2AB,   0x2AC,
+        0x2AD,   0x2AE,   0x2AF,   0x371,   0x373,   0x377,   0x37B,   0x37C,
+        0x37D,   0x390,   0x3AC,   0x3AD,   0x3AE,   0x3AF,   0x3B0,   0x3B1,
+        0x3B2,   0x3B3,   0x3B4,   0x3B5,   0x3B6,   0x3B7,   0x3B8,   0x3B9,
+        0x3BA,   0x3BB,   0x3BC,   0x3BD,   0x3BE,   0x3BF,   0x3C0,   0x3C1,
+        0x3C2,   0x3C3,   0x3C4,   0x3C5,   0x3C6,   0x3C7,   0x3C8,   0x3C9,
+        0x3CA,   0x3CB,   0x3CC,   0x3CD,   0x3CE,   0x3D0,   0x3D1,   0x3D5,
+        0x3D6,   0x3D7,   0x3D9,   0x3DB,   0x3DD,   0x3DF,   0x3E1,   0x3E3,
+        0x3E5,   0x3E7,   0x3E9,   0x3EB,   0x3ED,   0x3EF,   0x3F0,   0x3F1,
+        0x3F2,   0x3F3,   0x3F5,   0x3F8,   0x3FB,   0x3FC,   0x430,   0x431,
+        0x432,   0x433,   0x434,   0x435,   0x436,   0x437,   0x438,   0x439,
+        0x43A,   0x43B,   0x43C,   0x43D,   0x43E,   0x43F,   0x440,   0x441,
+        0x442,   0x443,   0x444,   0x445,   0x446,   0x447,   0x448,   0x449,
+        0x44A,   0x44B,   0x44C,   0x44D,   0x44E,   0x44F,   0x450,   0x451,
+        0x452,   0x453,   0x454,   0x455,   0x456,   0x457,   0x458,   0x459,
+        0x45A,   0x45B,   0x45C,   0x45D,   0x45E,   0x45F,   0x461,   0x463,
+        0x465,   0x467,   0x469,   0x46B,   0x46D,   0x46F,   0x471,   0x473,
+        0x475,   0x477,   0x479,   0x47B,   0x47D,   0x47F,   0x481,   0x48B,
+        0x48D,   0x48F,   0x491,   0x493,   0x495,   0x497,   0x499,   0x49B,
+        0x49D,   0x49F,   0x4A1,   0x4A3,   0x4A5,   0x4A7,   0x4A9,   0x4AB,
+        0x4AD,   0x4AF,   0x4B1,   0x4B3,   0x4B5,   0x4B7,   0x4B9,   0x4BB,
+        0x4BD,   0x4BF,   0x4C2,   0x4C4,   0x4C6,   0x4C8,   0x4CA,   0x4CC,
+        0x4CE,   0x4CF,   0x4D1,   0x4D3,   0x4D5,   0x4D7,   0x4D9,   0x4DB,
+        0x4DD,   0x4DF,   0x4E1,   0x4E3,   0x4E5,   0x4E7,   0x4E9,   0x4EB,
+        0x4ED,   0x4EF,   0x4F1,   0x4F3,   0x4F5,   0x4F7,   0x4F9,   0x4FB,
+        0x4FD,   0x4FF,   0x501,   0x503,   0x505,   0x507,   0x509,   0x50B,
+        0x50D,   0x50F,   0x511,   0x513,   0x515,   0x517,   0x519,   0x51B,
+        0x51D,   0x51F,   0x521,   0x523,   0x525,   0x527,   0x529,   0x52B,
+        0x52D,   0x52F,   0x560,   0x561,   0x562,   0x563,   0x564,   0x565,
+        0x566,   0x567,   0x568,   0x569,   0x56A,   0x56B,   0x56C,   0x56D,
+        0x56E,   0x56F,   0x570,   0x571,   0x572,   0x573,   0x574,   0x575,
+        0x576,   0x577,   0x578,   0x579,   0x57A,   0x57B,   0x57C,   0x57D,
+        0x57E,   0x57F,   0x580,   0x581,   0x582,   0x583,   0x584,   0x585,
+        0x586,   0x587,   0x588,   0x10D0,  0x10D1,  0x10D2,  0x10D3,  0x10D4,
+        0x10D5,  0x10D6,  0x10D7,  0x10D8,  0x10D9,  0x10DA,  0x10DB,  0x10DC,
+        0x10DD,  0x10DE,  0x10DF,  0x10E0,  0x10E1,  0x10E2,  0x10E3,  0x10E4,
+        0x10E5,  0x10E6,  0x10E7,  0x10E8,  0x10E9,  0x10EA,  0x10EB,  0x10EC,
+        0x10ED,  0x10EE,  0x10EF,  0x10F0,  0x10F1,  0x10F2,  0x10F3,  0x10F4,
+        0x10F5,  0x10F6,  0x10F7,  0x10F8,  0x10F9,  0x10FA,  0x10FD,  0x10FE,
+        0x10FF,  0x13F8,  0x13F9,  0x13FA,  0x13FB,  0x13FC,  0x13FD,  0x1C80,
+        0x1C81,  0x1C82,  0x1C83,  0x1C84,  0x1C85,  0x1C86,  0x1C87,  0x1C88,
+        0x1D00,  0x1D01,  0x1D02,  0x1D03,  0x1D04,  0x1D05,  0x1D06,  0x1D07,
+        0x1D08,  0x1D09,  0x1D0A,  0x1D0B,  0x1D0C,  0x1D0D,  0x1D0E,  0x1D0F,
+        0x1D10,  0x1D11,  0x1D12,  0x1D13,  0x1D14,  0x1D15,  0x1D16,  0x1D17,
+        0x1D18,  0x1D19,  0x1D1A,  0x1D1B,  0x1D1C,  0x1D1D,  0x1D1E,  0x1D1F,
+        0x1D20,  0x1D21,  0x1D22,  0x1D23,  0x1D24,  0x1D25,  0x1D26,  0x1D27,
+        0x1D28,  0x1D29,  0x1D2A,  0x1D2B,  0x1D6B,  0x1D6C,  0x1D6D,  0x1D6E,
+        0x1D6F,  0x1D70,  0x1D71,  0x1D72,  0x1D73,  0x1D74,  0x1D75,  0x1D76,
+        0x1D77,  0x1D79,  0x1D7A,  0x1D7B,  0x1D7C,  0x1D7D,  0x1D7E,  0x1D7F,
+        0x1D80,  0x1D81,  0x1D82,  0x1D83,  0x1D84,  0x1D85,  0x1D86,  0x1D87,
+        0x1D88,  0x1D89,  0x1D8A,  0x1D8B,  0x1D8C,  0x1D8D,  0x1D8E,  0x1D8F,
+        0x1D90,  0x1D91,  0x1D92,  0x1D93,  0x1D94,  0x1D95,  0x1D96,  0x1D97,
+        0x1D98,  0x1D99,  0x1D9A,  0x1E01,  0x1E03,  0x1E05,  0x1E07,  0x1E09,
+        0x1E0B,  0x1E0D,  0x1E0F,  0x1E11,  0x1E13,  0x1E15,  0x1E17,  0x1E19,
+        0x1E1B,  0x1E1D,  0x1E1F,  0x1E21,  0x1E23,  0x1E25,  0x1E27,  0x1E29,
+        0x1E2B,  0x1E2D,  0x1E2F,  0x1E31,  0x1E33,  0x1E35,  0x1E37,  0x1E39,
+        0x1E3B,  0x1E3D,  0x1E3F,  0x1E41,  0x1E43,  0x1E45,  0x1E47,  0x1E49,
+        0x1E4B,  0x1E4D,  0x1E4F,  0x1E51,  0x1E53,  0x1E55,  0x1E57,  0x1E59,
+        0x1E5B,  0x1E5D,  0x1E5F,  0x1E61,  0x1E63,  0x1E65,  0x1E67,  0x1E69,
+        0x1E6B,  0x1E6D,  0x1E6F,  0x1E71,  0x1E73,  0x1E75,  0x1E77,  0x1E79,
+        0x1E7B,  0x1E7D,  0x1E7F,  0x1E81,  0x1E83,  0x1E85,  0x1E87,  0x1E89,
+        0x1E8B,  0x1E8D,  0x1E8F,  0x1E91,  0x1E93,  0x1E95,  0x1E96,  0x1E97,
+        0x1E98,  0x1E99,  0x1E9A,  0x1E9B,  0x1E9C,  0x1E9D,  0x1E9F,  0x1EA1,
+        0x1EA3,  0x1EA5,  0x1EA7,  0x1EA9,  0x1EAB,  0x1EAD,  0x1EAF,  0x1EB1,
+        0x1EB3,  0x1EB5,  0x1EB7,  0x1EB9,  0x1EBB,  0x1EBD,  0x1EBF,  0x1EC1,
+        0x1EC3,  0x1EC5,  0x1EC7,  0x1EC9,  0x1ECB,  0x1ECD,  0x1ECF,  0x1ED1,
+        0x1ED3,  0x1ED5,  0x1ED7,  0x1ED9,  0x1EDB,  0x1EDD,  0x1EDF,  0x1EE1,
+        0x1EE3,  0x1EE5,  0x1EE7,  0x1EE9,  0x1EEB,  0x1EED,  0x1EEF,  0x1EF1,
+        0x1EF3,  0x1EF5,  0x1EF7,  0x1EF9,  0x1EFB,  0x1EFD,  0x1EFF,  0x1F00,
+        0x1F01,  0x1F02,  0x1F03,  0x1F04,  0x1F05,  0x1F06,  0x1F07,  0x1F10,
+        0x1F11,  0x1F12,  0x1F13,  0x1F14,  0x1F15,  0x1F20,  0x1F21,  0x1F22,
+        0x1F23,  0x1F24,  0x1F25,  0x1F26,  0x1F27,  0x1F30,  0x1F31,  0x1F32,
+        0x1F33,  0x1F34,  0x1F35,  0x1F36,  0x1F37,  0x1F40,  0x1F41,  0x1F42,
+        0x1F43,  0x1F44,  0x1F45,  0x1F50,  0x1F51,  0x1F52,  0x1F53,  0x1F54,
+        0x1F55,  0x1F56,  0x1F57,  0x1F60,  0x1F61,  0x1F62,  0x1F63,  0x1F64,
+        0x1F65,  0x1F66,  0x1F67,  0x1F70,  0x1F71,  0x1F72,  0x1F73,  0x1F74,
+        0x1F75,  0x1F76,  0x1F77,  0x1F78,  0x1F79,  0x1F7A,  0x1F7B,  0x1F7C,
+        0x1F7D,  0x1F80,  0x1F81,  0x1F82,  0x1F83,  0x1F84,  0x1F85,  0x1F86,
+        0x1F87,  0x1F90,  0x1F91,  0x1F92,  0x1F93,  0x1F94,  0x1F95,  0x1F96,
+        0x1F97,  0x1FA0,  0x1FA1,  0x1FA2,  0x1FA3,  0x1FA4,  0x1FA5,  0x1FA6,
+        0x1FA7,  0x1FB0,  0x1FB1,  0x1FB2,  0x1FB3,  0x1FB4,  0x1FB6,  0x1FB7,
+        0x1FBE,  0x1FC2,  0x1FC3,  0x1FC4,  0x1FC6,  0x1FC7,  0x1FD0,  0x1FD1,
+        0x1FD2,  0x1FD3,  0x1FD6,  0x1FD7,  0x1FE0,  0x1FE1,  0x1FE2,  0x1FE3,
+        0x1FE4,  0x1FE5,  0x1FE6,  0x1FE7,  0x1FF2,  0x1FF3,  0x1FF4,  0x1FF6,
+        0x1FF7,  0x210A,  0x210E,  0x210F,  0x2113,  0x212F,  0x2134,  0x2139,
+        0x213C,  0x213D,  0x2146,  0x2147,  0x2148,  0x2149,  0x214E,  0x2184,
+        0x2C30,  0x2C31,  0x2C32,  0x2C33,  0x2C34,  0x2C35,  0x2C36,  0x2C37,
+        0x2C38,  0x2C39,  0x2C3A,  0x2C3B,  0x2C3C,  0x2C3D,  0x2C3E,  0x2C3F,
+        0x2C40,  0x2C41,  0x2C42,  0x2C43,  0x2C44,  0x2C45,  0x2C46,  0x2C47,
+        0x2C48,  0x2C49,  0x2C4A,  0x2C4B,  0x2C4C,  0x2C4D,  0x2C4E,  0x2C4F,
+        0x2C50,  0x2C51,  0x2C52,  0x2C53,  0x2C54,  0x2C55,  0x2C56,  0x2C57,
+        0x2C58,  0x2C59,  0x2C5A,  0x2C5B,  0x2C5C,  0x2C5D,  0x2C5E,  0x2C5F,
+        0x2C61,  0x2C65,  0x2C66,  0x2C68,  0x2C6A,  0x2C6C,  0x2C71,  0x2C73,
+        0x2C74,  0x2C76,  0x2C77,  0x2C78,  0x2C79,  0x2C7A,  0x2C7B,  0x2C81,
+        0x2C83,  0x2C85,  0x2C87,  0x2C89,  0x2C8B,  0x2C8D,  0x2C8F,  0x2C91,
+        0x2C93,  0x2C95,  0x2C97,  0x2C99,  0x2C9B,  0x2C9D,  0x2C9F,  0x2CA1,
+        0x2CA3,  0x2CA5,  0x2CA7,  0x2CA9,  0x2CAB,  0x2CAD,  0x2CAF,  0x2CB1,
+        0x2CB3,  0x2CB5,  0x2CB7,  0x2CB9,  0x2CBB,  0x2CBD,  0x2CBF,  0x2CC1,
+        0x2CC3,  0x2CC5,  0x2CC7,  0x2CC9,  0x2CCB,  0x2CCD,  0x2CCF,  0x2CD1,
+        0x2CD3,  0x2CD5,  0x2CD7,  0x2CD9,  0x2CDB,  0x2CDD,  0x2CDF,  0x2CE1,
+        0x2CE3,  0x2CE4,  0x2CEC,  0x2CEE,  0x2CF3,  0x2D00,  0x2D01,  0x2D02,
+        0x2D03,  0x2D04,  0x2D05,  0x2D06,  0x2D07,  0x2D08,  0x2D09,  0x2D0A,
+        0x2D0B,  0x2D0C,  0x2D0D,  0x2D0E,  0x2D0F,  0x2D10,  0x2D11,  0x2D12,
+        0x2D13,  0x2D14,  0x2D15,  0x2D16,  0x2D17,  0x2D18,  0x2D19,  0x2D1A,
+        0x2D1B,  0x2D1C,  0x2D1D,  0x2D1E,  0x2D1F,  0x2D20,  0x2D21,  0x2D22,
+        0x2D23,  0x2D24,  0x2D25,  0x2D27,  0x2D2D,  0xA641,  0xA643,  0xA645,
+        0xA647,  0xA649,  0xA64B,  0xA64D,  0xA64F,  0xA651,  0xA653,  0xA655,
+        0xA657,  0xA659,  0xA65B,  0xA65D,  0xA65F,  0xA661,  0xA663,  0xA665,
+        0xA667,  0xA669,  0xA66B,  0xA66D,  0xA681,  0xA683,  0xA685,  0xA687,
+        0xA689,  0xA68B,  0xA68D,  0xA68F,  0xA691,  0xA693,  0xA695,  0xA697,
+        0xA699,  0xA69B,  0xA723,  0xA725,  0xA727,  0xA729,  0xA72B,  0xA72D,
+        0xA72F,  0xA730,  0xA731,  0xA733,  0xA735,  0xA737,  0xA739,  0xA73B,
+        0xA73D,  0xA73F,  0xA741,  0xA743,  0xA745,  0xA747,  0xA749,  0xA74B,
+        0xA74D,  0xA74F,  0xA751,  0xA753,  0xA755,  0xA757,  0xA759,  0xA75B,
+        0xA75D,  0xA75F,  0xA761,  0xA763,  0xA765,  0xA767,  0xA769,  0xA76B,
+        0xA76D,  0xA76F,  0xA771,  0xA772,  0xA773,  0xA774,  0xA775,  0xA776,
+        0xA777,  0xA778,  0xA77A,  0xA77C,  0xA77F,  0xA781,  0xA783,  0xA785,
+        0xA787,  0xA78C,  0xA78E,  0xA791,  0xA793,  0xA794,  0xA795,  0xA797,
+        0xA799,  0xA79B,  0xA79D,  0xA79F,  0xA7A1,  0xA7A3,  0xA7A5,  0xA7A7,
+        0xA7A9,  0xA7AF,  0xA7B5,  0xA7B7,  0xA7B9,  0xA7BB,  0xA7BD,  0xA7BF,
+        0xA7C1,  0xA7C3,  0xA7C8,  0xA7CA,  0xA7D1,  0xA7D3,  0xA7D5,  0xA7D7,
+        0xA7D9,  0xA7F6,  0xA7FA,  0xAB30,  0xAB31,  0xAB32,  0xAB33,  0xAB34,
+        0xAB35,  0xAB36,  0xAB37,  0xAB38,  0xAB39,  0xAB3A,  0xAB3B,  0xAB3C,
+        0xAB3D,  0xAB3E,  0xAB3F,  0xAB40,  0xAB41,  0xAB42,  0xAB43,  0xAB44,
+        0xAB45,  0xAB46,  0xAB47,  0xAB48,  0xAB49,  0xAB4A,  0xAB4B,  0xAB4C,
+        0xAB4D,  0xAB4E,  0xAB4F,  0xAB50,  0xAB51,  0xAB52,  0xAB53,  0xAB54,
+        0xAB55,  0xAB56,  0xAB57,  0xAB58,  0xAB59,  0xAB5A,  0xAB60,  0xAB61,
+        0xAB62,  0xAB63,  0xAB64,  0xAB65,  0xAB66,  0xAB67,  0xAB68,  0xAB70,
+        0xAB71,  0xAB72,  0xAB73,  0xAB74,  0xAB75,  0xAB76,  0xAB77,  0xAB78,
+        0xAB79,  0xAB7A,  0xAB7B,  0xAB7C,  0xAB7D,  0xAB7E,  0xAB7F,  0xAB80,
+        0xAB81,  0xAB82,  0xAB83,  0xAB84,  0xAB85,  0xAB86,  0xAB87,  0xAB88,
+        0xAB89,  0xAB8A,  0xAB8B,  0xAB8C,  0xAB8D,  0xAB8E,  0xAB8F,  0xAB90,
+        0xAB91,  0xAB92,  0xAB93,  0xAB94,  0xAB95,  0xAB96,  0xAB97,  0xAB98,
+        0xAB99,  0xAB9A,  0xAB9B,  0xAB9C,  0xAB9D,  0xAB9E,  0xAB9F,  0xABA0,
+        0xABA1,  0xABA2,  0xABA3,  0xABA4,  0xABA5,  0xABA6,  0xABA7,  0xABA8,
+        0xABA9,  0xABAA,  0xABAB,  0xABAC,  0xABAD,  0xABAE,  0xABAF,  0xABB0,
+        0xABB1,  0xABB2,  0xABB3,  0xABB4,  0xABB5,  0xABB6,  0xABB7,  0xABB8,
+        0xABB9,  0xABBA,  0xABBB,  0xABBC,  0xABBD,  0xABBE,  0xABBF,  0xFB00,
+        0xFB01,  0xFB02,  0xFB03,  0xFB04,  0xFB05,  0xFB06,  0xFB13,  0xFB14,
+        0xFB15,  0xFB16,  0xFB17,  0xFF41,  0xFF42,  0xFF43,  0xFF44,  0xFF45,
+        0xFF46,  0xFF47,  0xFF48,  0xFF49,  0xFF4A,  0xFF4B,  0xFF4C,  0xFF4D,
+        0xFF4E,  0xFF4F,  0xFF50,  0xFF51,  0xFF52,  0xFF53,  0xFF54,  0xFF55,
+        0xFF56,  0xFF57,  0xFF58,  0xFF59,  0xFF5A,  0x10428, 0x10429, 0x1042A,
+        0x1042B, 0x1042C, 0x1042D, 0x1042E, 0x1042F, 0x10430, 0x10431, 0x10432,
+        0x10433, 0x10434, 0x10435, 0x10436, 0x10437, 0x10438, 0x10439, 0x1043A,
+        0x1043B, 0x1043C, 0x1043D, 0x1043E, 0x1043F, 0x10440, 0x10441, 0x10442,
+        0x10443, 0x10444, 0x10445, 0x10446, 0x10447, 0x10448, 0x10449, 0x1044A,
+        0x1044B, 0x1044C, 0x1044D, 0x1044E, 0x1044F, 0x104D8, 0x104D9, 0x104DA,
+        0x104DB, 0x104DC, 0x104DD, 0x104DE, 0x104DF, 0x104E0, 0x104E1, 0x104E2,
+        0x104E3, 0x104E4, 0x104E5, 0x104E6, 0x104E7, 0x104E8, 0x104E9, 0x104EA,
+        0x104EB, 0x104EC, 0x104ED, 0x104EE, 0x104EF, 0x104F0, 0x104F1, 0x104F2,
+        0x104F3, 0x104F4, 0x104F5, 0x104F6, 0x104F7, 0x104F8, 0x104F9, 0x104FA,
+        0x104FB, 0x10597, 0x10598, 0x10599, 0x1059A, 0x1059B, 0x1059C, 0x1059D,
+        0x1059E, 0x1059F, 0x105A0, 0x105A1, 0x105A3, 0x105A4, 0x105A5, 0x105A6,
+        0x105A7, 0x105A8, 0x105A9, 0x105AA, 0x105AB, 0x105AC, 0x105AD, 0x105AE,
+        0x105AF, 0x105B0, 0x105B1, 0x105B3, 0x105B4, 0x105B5, 0x105B6, 0x105B7,
+        0x105B8, 0x105B9, 0x105BB, 0x105BC, 0x10CC0, 0x10CC1, 0x10CC2, 0x10CC3,
+        0x10CC4, 0x10CC5, 0x10CC6, 0x10CC7, 0x10CC8, 0x10CC9, 0x10CCA, 0x10CCB,
+        0x10CCC, 0x10CCD, 0x10CCE, 0x10CCF, 0x10CD0, 0x10CD1, 0x10CD2, 0x10CD3,
+        0x10CD4, 0x10CD5, 0x10CD6, 0x10CD7, 0x10CD8, 0x10CD9, 0x10CDA, 0x10CDB,
+        0x10CDC, 0x10CDD, 0x10CDE, 0x10CDF, 0x10CE0, 0x10CE1, 0x10CE2, 0x10CE3,
+        0x10CE4, 0x10CE5, 0x10CE6, 0x10CE7, 0x10CE8, 0x10CE9, 0x10CEA, 0x10CEB,
+        0x10CEC, 0x10CED, 0x10CEE, 0x10CEF, 0x10CF0, 0x10CF1, 0x10CF2, 0x118C0,
+        0x118C1, 0x118C2, 0x118C3, 0x118C4, 0x118C5, 0x118C6, 0x118C7, 0x118C8,
+        0x118C9, 0x118CA, 0x118CB, 0x118CC, 0x118CD, 0x118CE, 0x118CF, 0x118D0,
+        0x118D1, 0x118D2, 0x118D3, 0x118D4, 0x118D5, 0x118D6, 0x118D7, 0x118D8,
+        0x118D9, 0x118DA, 0x118DB, 0x118DC, 0x118DD, 0x118DE, 0x118DF, 0x16E60,
+        0x16E61, 0x16E62, 0x16E63, 0x16E64, 0x16E65, 0x16E66, 0x16E67, 0x16E68,
+        0x16E69, 0x16E6A, 0x16E6B, 0x16E6C, 0x16E6D, 0x16E6E, 0x16E6F, 0x16E70,
+        0x16E71, 0x16E72, 0x16E73, 0x16E74, 0x16E75, 0x16E76, 0x16E77, 0x16E78,
+        0x16E79, 0x16E7A, 0x16E7B, 0x16E7C, 0x16E7D, 0x16E7E, 0x16E7F, 0x1D41A,
+        0x1D41B, 0x1D41C, 0x1D41D, 0x1D41E, 0x1D41F, 0x1D420, 0x1D421, 0x1D422,
+        0x1D423, 0x1D424, 0x1D425, 0x1D426, 0x1D427, 0x1D428, 0x1D429, 0x1D42A,
+        0x1D42B, 0x1D42C, 0x1D42D, 0x1D42E, 0x1D42F, 0x1D430, 0x1D431, 0x1D432,
+        0x1D433, 0x1D44E, 0x1D44F, 0x1D450, 0x1D451, 0x1D452, 0x1D453, 0x1D454,
+        0x1D456, 0x1D457, 0x1D458, 0x1D459, 0x1D45A, 0x1D45B, 0x1D45C, 0x1D45D,
+        0x1D45E, 0x1D45F, 0x1D460, 0x1D461, 0x1D462, 0x1D463, 0x1D464, 0x1D465,
+        0x1D466, 0x1D467, 0x1D482, 0x1D483, 0x1D484, 0x1D485, 0x1D486, 0x1D487,
+        0x1D488, 0x1D489, 0x1D48A, 0x1D48B, 0x1D48C, 0x1D48D, 0x1D48E, 0x1D48F,
+        0x1D490, 0x1D491, 0x1D492, 0x1D493, 0x1D494, 0x1D495, 0x1D496, 0x1D497,
+        0x1D498, 0x1D499, 0x1D49A, 0x1D49B, 0x1D4B6, 0x1D4B7, 0x1D4B8, 0x1D4B9,
+        0x1D4BB, 0x1D4BD, 0x1D4BE, 0x1D4BF, 0x1D4C0, 0x1D4C1, 0x1D4C2, 0x1D4C3,
+        0x1D4C5, 0x1D4C6, 0x1D4C7, 0x1D4C8, 0x1D4C9, 0x1D4CA, 0x1D4CB, 0x1D4CC,
+        0x1D4CD, 0x1D4CE, 0x1D4CF, 0x1D4EA, 0x1D4EB, 0x1D4EC, 0x1D4ED, 0x1D4EE,
+        0x1D4EF, 0x1D4F0, 0x1D4F1, 0x1D4F2, 0x1D4F3, 0x1D4F4, 0x1D4F5, 0x1D4F6,
+        0x1D4F7, 0x1D4F8, 0x1D4F9, 0x1D4FA, 0x1D4FB, 0x1D4FC, 0x1D4FD, 0x1D4FE,
+        0x1D4FF, 0x1D500, 0x1D501, 0x1D502, 0x1D503, 0x1D51E, 0x1D51F, 0x1D520,
+        0x1D521, 0x1D522, 0x1D523, 0x1D524, 0x1D525, 0x1D526, 0x1D527, 0x1D528,
+        0x1D529, 0x1D52A, 0x1D52B, 0x1D52C, 0x1D52D, 0x1D52E, 0x1D52F, 0x1D530,
+        0x1D531, 0x1D532, 0x1D533, 0x1D534, 0x1D535, 0x1D536, 0x1D537, 0x1D552,
+        0x1D553, 0x1D554, 0x1D555, 0x1D556, 0x1D557, 0x1D558, 0x1D559, 0x1D55A,
+        0x1D55B, 0x1D55C, 0x1D55D, 0x1D55E, 0x1D55F, 0x1D560, 0x1D561, 0x1D562,
+        0x1D563, 0x1D564, 0x1D565, 0x1D566, 0x1D567, 0x1D568, 0x1D569, 0x1D56A,
+        0x1D56B, 0x1D586, 0x1D587, 0x1D588, 0x1D589, 0x1D58A, 0x1D58B, 0x1D58C,
+        0x1D58D, 0x1D58E, 0x1D58F, 0x1D590, 0x1D591, 0x1D592, 0x1D593, 0x1D594,
+        0x1D595, 0x1D596, 0x1D597, 0x1D598, 0x1D599, 0x1D59A, 0x1D59B, 0x1D59C,
+        0x1D59D, 0x1D59E, 0x1D59F, 0x1D5BA, 0x1D5BB, 0x1D5BC, 0x1D5BD, 0x1D5BE,
+        0x1D5BF, 0x1D5C0, 0x1D5C1, 0x1D5C2, 0x1D5C3, 0x1D5C4, 0x1D5C5, 0x1D5C6,
+        0x1D5C7, 0x1D5C8, 0x1D5C9, 0x1D5CA, 0x1D5CB, 0x1D5CC, 0x1D5CD, 0x1D5CE,
+        0x1D5CF, 0x1D5D0, 0x1D5D1, 0x1D5D2, 0x1D5D3, 0x1D5EE, 0x1D5EF, 0x1D5F0,
+        0x1D5F1, 0x1D5F2, 0x1D5F3, 0x1D5F4, 0x1D5F5, 0x1D5F6, 0x1D5F7, 0x1D5F8,
+        0x1D5F9, 0x1D5FA, 0x1D5FB, 0x1D5FC, 0x1D5FD, 0x1D5FE, 0x1D5FF, 0x1D600,
+        0x1D601, 0x1D602, 0x1D603, 0x1D604, 0x1D605, 0x1D606, 0x1D607, 0x1D622,
+        0x1D623, 0x1D624, 0x1D625, 0x1D626, 0x1D627, 0x1D628, 0x1D629, 0x1D62A,
+        0x1D62B, 0x1D62C, 0x1D62D, 0x1D62E, 0x1D62F, 0x1D630, 0x1D631, 0x1D632,
+        0x1D633, 0x1D634, 0x1D635, 0x1D636, 0x1D637, 0x1D638, 0x1D639, 0x1D63A,
+        0x1D63B, 0x1D656, 0x1D657, 0x1D658, 0x1D659, 0x1D65A, 0x1D65B, 0x1D65C,
+        0x1D65D, 0x1D65E, 0x1D65F, 0x1D660, 0x1D661, 0x1D662, 0x1D663, 0x1D664,
+        0x1D665, 0x1D666, 0x1D667, 0x1D668, 0x1D669, 0x1D66A, 0x1D66B, 0x1D66C,
+        0x1D66D, 0x1D66E, 0x1D66F, 0x1D68A, 0x1D68B, 0x1D68C, 0x1D68D, 0x1D68E,
+        0x1D68F, 0x1D690, 0x1D691, 0x1D692, 0x1D693, 0x1D694, 0x1D695, 0x1D696,
+        0x1D697, 0x1D698, 0x1D699, 0x1D69A, 0x1D69B, 0x1D69C, 0x1D69D, 0x1D69E,
+        0x1D69F, 0x1D6A0, 0x1D6A1, 0x1D6A2, 0x1D6A3, 0x1D6A4, 0x1D6A5, 0x1D6C2,
+        0x1D6C3, 0x1D6C4, 0x1D6C5, 0x1D6C6, 0x1D6C7, 0x1D6C8, 0x1D6C9, 0x1D6CA,
+        0x1D6CB, 0x1D6CC, 0x1D6CD, 0x1D6CE, 0x1D6CF, 0x1D6D0, 0x1D6D1, 0x1D6D2,
+        0x1D6D3, 0x1D6D4, 0x1D6D5, 0x1D6D6, 0x1D6D7, 0x1D6D8, 0x1D6D9, 0x1D6DA,
+        0x1D6DC, 0x1D6DD, 0x1D6DE, 0x1D6DF, 0x1D6E0, 0x1D6E1, 0x1D6FC, 0x1D6FD,
+        0x1D6FE, 0x1D6FF, 0x1D700, 0x1D701, 0x1D702, 0x1D703, 0x1D704, 0x1D705,
+        0x1D706, 0x1D707, 0x1D708, 0x1D709, 0x1D70A, 0x1D70B, 0x1D70C, 0x1D70D,
+        0x1D70E, 0x1D70F, 0x1D710, 0x1D711, 0x1D712, 0x1D713, 0x1D714, 0x1D716,
+        0x1D717, 0x1D718, 0x1D719, 0x1D71A, 0x1D71B, 0x1D736, 0x1D737, 0x1D738,
+        0x1D739, 0x1D73A, 0x1D73B, 0x1D73C, 0x1D73D, 0x1D73E, 0x1D73F, 0x1D740,
+        0x1D741, 0x1D742, 0x1D743, 0x1D744, 0x1D745, 0x1D746, 0x1D747, 0x1D748,
+        0x1D749, 0x1D74A, 0x1D74B, 0x1D74C, 0x1D74D, 0x1D74E, 0x1D750, 0x1D751,
+        0x1D752, 0x1D753, 0x1D754, 0x1D755, 0x1D770, 0x1D771, 0x1D772, 0x1D773,
+        0x1D774, 0x1D775, 0x1D776, 0x1D777, 0x1D778, 0x1D779, 0x1D77A, 0x1D77B,
+        0x1D77C, 0x1D77D, 0x1D77E, 0x1D77F, 0x1D780, 0x1D781, 0x1D782, 0x1D783,
+        0x1D784, 0x1D785, 0x1D786, 0x1D787, 0x1D788, 0x1D78A, 0x1D78B, 0x1D78C,
+        0x1D78D, 0x1D78E, 0x1D78F, 0x1D7AA, 0x1D7AB, 0x1D7AC, 0x1D7AD, 0x1D7AE,
+        0x1D7AF, 0x1D7B0, 0x1D7B1, 0x1D7B2, 0x1D7B3, 0x1D7B4, 0x1D7B5, 0x1D7B6,
+        0x1D7B7, 0x1D7B8, 0x1D7B9, 0x1D7BA, 0x1D7BB, 0x1D7BC, 0x1D7BD, 0x1D7BE,
+        0x1D7BF, 0x1D7C0, 0x1D7C1, 0x1D7C2, 0x1D7C4, 0x1D7C5, 0x1D7C6, 0x1D7C7,
+        0x1D7C8, 0x1D7C9, 0x1D7CB, 0x1DF00, 0x1DF01, 0x1DF02, 0x1DF03, 0x1DF04,
+        0x1DF05, 0x1DF06, 0x1DF07, 0x1DF08, 0x1DF09, 0x1DF0B, 0x1DF0C, 0x1DF0D,
+        0x1DF0E, 0x1DF0F, 0x1DF10, 0x1DF11, 0x1DF12, 0x1DF13, 0x1DF14, 0x1DF15,
+        0x1DF16, 0x1DF17, 0x1DF18, 0x1DF19, 0x1DF1A, 0x1DF1B, 0x1DF1C, 0x1DF1D,
+        0x1DF1E, 0x1DF25, 0x1DF26, 0x1DF27, 0x1DF28, 0x1DF29, 0x1DF2A, 0x1E922,
+        0x1E923, 0x1E924, 0x1E925, 0x1E926, 0x1E927, 0x1E928, 0x1E929, 0x1E92A,
+        0x1E92B, 0x1E92C, 0x1E92D, 0x1E92E, 0x1E92F, 0x1E930, 0x1E931, 0x1E932,
+        0x1E933, 0x1E934, 0x1E935, 0x1E936, 0x1E937, 0x1E938, 0x1E939, 0x1E93A,
+        0x1E93B, 0x1E93C, 0x1E93D, 0x1E93E, 0x1E93F, 0x1E940, 0x1E941, 0x1E942,
+        0x1E943};
+    };
+#line 437 "boost/parser/detail/unicode_char_sets.hpp"
+    template<>
+    struct char_set<upper_case_chars>
+    {
+        static constexpr uint32_t chars[] = {
+            0x41,    0x42,    0x43,    0x44,    0x45,    0x46,    0x47,
+            0x48,    0x49,    0x4A,    0x4B,    0x4C,    0x4D,    0x4E,
+            0x4F,    0x50,    0x51,    0x52,    0x53,    0x54,    0x55,
+            0x56,    0x57,    0x58,    0x59,    0x5A,    0xC0,    0xC1,
+            0xC2,    0xC3,    0xC4,    0xC5,    0xC6,    0xC7,    0xC8,
+            0xC9,    0xCA,    0xCB,    0xCC,    0xCD,    0xCE,    0xCF,
+            0xD0,    0xD1,    0xD2,    0xD3,    0xD4,    0xD5,    0xD6,
+            0xD8,    0xD9,    0xDA,    0xDB,    0xDC,    0xDD,    0xDE,
+            0x100,   0x102,   0x104,   0x106,   0x108,   0x10A,   0x10C,
+            0x10E,   0x110,   0x112,   0x114,   0x116,   0x118,   0x11A,
+            0x11C,   0x11E,   0x120,   0x122,   0x124,   0x126,   0x128,
+            0x12A,   0x12C,   0x12E,   0x130,   0x132,   0x134,   0x136,
+            0x139,   0x13B,   0x13D,   0x13F,   0x141,   0x143,   0x145,
+            0x147,   0x14A,   0x14C,   0x14E,   0x150,   0x152,   0x154,
+            0x156,   0x158,   0x15A,   0x15C,   0x15E,   0x160,   0x162,
+            0x164,   0x166,   0x168,   0x16A,   0x16C,   0x16E,   0x170,
+            0x172,   0x174,   0x176,   0x178,   0x179,   0x17B,   0x17D,
+            0x181,   0x182,   0x184,   0x186,   0x187,   0x189,   0x18A,
+            0x18B,   0x18E,   0x18F,   0x190,   0x191,   0x193,   0x194,
+            0x196,   0x197,   0x198,   0x19C,   0x19D,   0x19F,   0x1A0,
+            0x1A2,   0x1A4,   0x1A6,   0x1A7,   0x1A9,   0x1AC,   0x1AE,
+            0x1AF,   0x1B1,   0x1B2,   0x1B3,   0x1B5,   0x1B7,   0x1B8,
+            0x1BC,   0x1C4,   0x1C7,   0x1CA,   0x1CD,   0x1CF,   0x1D1,
+            0x1D3,   0x1D5,   0x1D7,   0x1D9,   0x1DB,   0x1DE,   0x1E0,
+            0x1E2,   0x1E4,   0x1E6,   0x1E8,   0x1EA,   0x1EC,   0x1EE,
+            0x1F1,   0x1F4,   0x1F6,   0x1F7,   0x1F8,   0x1FA,   0x1FC,
+            0x1FE,   0x200,   0x202,   0x204,   0x206,   0x208,   0x20A,
+            0x20C,   0x20E,   0x210,   0x212,   0x214,   0x216,   0x218,
+            0x21A,   0x21C,   0x21E,   0x220,   0x222,   0x224,   0x226,
+            0x228,   0x22A,   0x22C,   0x22E,   0x230,   0x232,   0x23A,
+            0x23B,   0x23D,   0x23E,   0x241,   0x243,   0x244,   0x245,
+            0x246,   0x248,   0x24A,   0x24C,   0x24E,   0x370,   0x372,
+            0x376,   0x37F,   0x386,   0x388,   0x389,   0x38A,   0x38C,
+            0x38E,   0x38F,   0x391,   0x392,   0x393,   0x394,   0x395,
+            0x396,   0x397,   0x398,   0x399,   0x39A,   0x39B,   0x39C,
+            0x39D,   0x39E,   0x39F,   0x3A0,   0x3A1,   0x3A3,   0x3A4,
+            0x3A5,   0x3A6,   0x3A7,   0x3A8,   0x3A9,   0x3AA,   0x3AB,
+            0x3CF,   0x3D2,   0x3D3,   0x3D4,   0x3D8,   0x3DA,   0x3DC,
+            0x3DE,   0x3E0,   0x3E2,   0x3E4,   0x3E6,   0x3E8,   0x3EA,
+            0x3EC,   0x3EE,   0x3F4,   0x3F7,   0x3F9,   0x3FA,   0x3FD,
+            0x3FE,   0x3FF,   0x400,   0x401,   0x402,   0x403,   0x404,
+            0x405,   0x406,   0x407,   0x408,   0x409,   0x40A,   0x40B,
+            0x40C,   0x40D,   0x40E,   0x40F,   0x410,   0x411,   0x412,
+            0x413,   0x414,   0x415,   0x416,   0x417,   0x418,   0x419,
+            0x41A,   0x41B,   0x41C,   0x41D,   0x41E,   0x41F,   0x420,
+            0x421,   0x422,   0x423,   0x424,   0x425,   0x426,   0x427,
+            0x428,   0x429,   0x42A,   0x42B,   0x42C,   0x42D,   0x42E,
+            0x42F,   0x460,   0x462,   0x464,   0x466,   0x468,   0x46A,
+            0x46C,   0x46E,   0x470,   0x472,   0x474,   0x476,   0x478,
+            0x47A,   0x47C,   0x47E,   0x480,   0x48A,   0x48C,   0x48E,
+            0x490,   0x492,   0x494,   0x496,   0x498,   0x49A,   0x49C,
+            0x49E,   0x4A0,   0x4A2,   0x4A4,   0x4A6,   0x4A8,   0x4AA,
+            0x4AC,   0x4AE,   0x4B0,   0x4B2,   0x4B4,   0x4B6,   0x4B8,
+            0x4BA,   0x4BC,   0x4BE,   0x4C0,   0x4C1,   0x4C3,   0x4C5,
+            0x4C7,   0x4C9,   0x4CB,   0x4CD,   0x4D0,   0x4D2,   0x4D4,
+            0x4D6,   0x4D8,   0x4DA,   0x4DC,   0x4DE,   0x4E0,   0x4E2,
+            0x4E4,   0x4E6,   0x4E8,   0x4EA,   0x4EC,   0x4EE,   0x4F0,
+            0x4F2,   0x4F4,   0x4F6,   0x4F8,   0x4FA,   0x4FC,   0x4FE,
+            0x500,   0x502,   0x504,   0x506,   0x508,   0x50A,   0x50C,
+            0x50E,   0x510,   0x512,   0x514,   0x516,   0x518,   0x51A,
+            0x51C,   0x51E,   0x520,   0x522,   0x524,   0x526,   0x528,
+            0x52A,   0x52C,   0x52E,   0x531,   0x532,   0x533,   0x534,
+            0x535,   0x536,   0x537,   0x538,   0x539,   0x53A,   0x53B,
+            0x53C,   0x53D,   0x53E,   0x53F,   0x540,   0x541,   0x542,
+            0x543,   0x544,   0x545,   0x546,   0x547,   0x548,   0x549,
+            0x54A,   0x54B,   0x54C,   0x54D,   0x54E,   0x54F,   0x550,
+            0x551,   0x552,   0x553,   0x554,   0x555,   0x556,   0x10A0,
+            0x10A1,  0x10A2,  0x10A3,  0x10A4,  0x10A5,  0x10A6,  0x10A7,
+            0x10A8,  0x10A9,  0x10AA,  0x10AB,  0x10AC,  0x10AD,  0x10AE,
+            0x10AF,  0x10B0,  0x10B1,  0x10B2,  0x10B3,  0x10B4,  0x10B5,
+            0x10B6,  0x10B7,  0x10B8,  0x10B9,  0x10BA,  0x10BB,  0x10BC,
+            0x10BD,  0x10BE,  0x10BF,  0x10C0,  0x10C1,  0x10C2,  0x10C3,
+            0x10C4,  0x10C5,  0x10C7,  0x10CD,  0x13A0,  0x13A1,  0x13A2,
+            0x13A3,  0x13A4,  0x13A5,  0x13A6,  0x13A7,  0x13A8,  0x13A9,
+            0x13AA,  0x13AB,  0x13AC,  0x13AD,  0x13AE,  0x13AF,  0x13B0,
+            0x13B1,  0x13B2,  0x13B3,  0x13B4,  0x13B5,  0x13B6,  0x13B7,
+            0x13B8,  0x13B9,  0x13BA,  0x13BB,  0x13BC,  0x13BD,  0x13BE,
+            0x13BF,  0x13C0,  0x13C1,  0x13C2,  0x13C3,  0x13C4,  0x13C5,
+            0x13C6,  0x13C7,  0x13C8,  0x13C9,  0x13CA,  0x13CB,  0x13CC,
+            0x13CD,  0x13CE,  0x13CF,  0x13D0,  0x13D1,  0x13D2,  0x13D3,
+            0x13D4,  0x13D5,  0x13D6,  0x13D7,  0x13D8,  0x13D9,  0x13DA,
+            0x13DB,  0x13DC,  0x13DD,  0x13DE,  0x13DF,  0x13E0,  0x13E1,
+            0x13E2,  0x13E3,  0x13E4,  0x13E5,  0x13E6,  0x13E7,  0x13E8,
+            0x13E9,  0x13EA,  0x13EB,  0x13EC,  0x13ED,  0x13EE,  0x13EF,
+            0x13F0,  0x13F1,  0x13F2,  0x13F3,  0x13F4,  0x13F5,  0x1C90,
+            0x1C91,  0x1C92,  0x1C93,  0x1C94,  0x1C95,  0x1C96,  0x1C97,
+            0x1C98,  0x1C99,  0x1C9A,  0x1C9B,  0x1C9C,  0x1C9D,  0x1C9E,
+            0x1C9F,  0x1CA0,  0x1CA1,  0x1CA2,  0x1CA3,  0x1CA4,  0x1CA5,
+            0x1CA6,  0x1CA7,  0x1CA8,  0x1CA9,  0x1CAA,  0x1CAB,  0x1CAC,
+            0x1CAD,  0x1CAE,  0x1CAF,  0x1CB0,  0x1CB1,  0x1CB2,  0x1CB3,
+            0x1CB4,  0x1CB5,  0x1CB6,  0x1CB7,  0x1CB8,  0x1CB9,  0x1CBA,
+            0x1CBD,  0x1CBE,  0x1CBF,  0x1E00,  0x1E02,  0x1E04,  0x1E06,
+            0x1E08,  0x1E0A,  0x1E0C,  0x1E0E,  0x1E10,  0x1E12,  0x1E14,
+            0x1E16,  0x1E18,  0x1E1A,  0x1E1C,  0x1E1E,  0x1E20,  0x1E22,
+            0x1E24,  0x1E26,  0x1E28,  0x1E2A,  0x1E2C,  0x1E2E,  0x1E30,
+            0x1E32,  0x1E34,  0x1E36,  0x1E38,  0x1E3A,  0x1E3C,  0x1E3E,
+            0x1E40,  0x1E42,  0x1E44,  0x1E46,  0x1E48,  0x1E4A,  0x1E4C,
+            0x1E4E,  0x1E50,  0x1E52,  0x1E54,  0x1E56,  0x1E58,  0x1E5A,
+            0x1E5C,  0x1E5E,  0x1E60,  0x1E62,  0x1E64,  0x1E66,  0x1E68,
+            0x1E6A,  0x1E6C,  0x1E6E,  0x1E70,  0x1E72,  0x1E74,  0x1E76,
+            0x1E78,  0x1E7A,  0x1E7C,  0x1E7E,  0x1E80,  0x1E82,  0x1E84,
+            0x1E86,  0x1E88,  0x1E8A,  0x1E8C,  0x1E8E,  0x1E90,  0x1E92,
+            0x1E94,  0x1E9E,  0x1EA0,  0x1EA2,  0x1EA4,  0x1EA6,  0x1EA8,
+            0x1EAA,  0x1EAC,  0x1EAE,  0x1EB0,  0x1EB2,  0x1EB4,  0x1EB6,
+            0x1EB8,  0x1EBA,  0x1EBC,  0x1EBE,  0x1EC0,  0x1EC2,  0x1EC4,
+            0x1EC6,  0x1EC8,  0x1ECA,  0x1ECC,  0x1ECE,  0x1ED0,  0x1ED2,
+            0x1ED4,  0x1ED6,  0x1ED8,  0x1EDA,  0x1EDC,  0x1EDE,  0x1EE0,
+            0x1EE2,  0x1EE4,  0x1EE6,  0x1EE8,  0x1EEA,  0x1EEC,  0x1EEE,
+            0x1EF0,  0x1EF2,  0x1EF4,  0x1EF6,  0x1EF8,  0x1EFA,  0x1EFC,
+            0x1EFE,  0x1F08,  0x1F09,  0x1F0A,  0x1F0B,  0x1F0C,  0x1F0D,
+            0x1F0E,  0x1F0F,  0x1F18,  0x1F19,  0x1F1A,  0x1F1B,  0x1F1C,
+            0x1F1D,  0x1F28,  0x1F29,  0x1F2A,  0x1F2B,  0x1F2C,  0x1F2D,
+            0x1F2E,  0x1F2F,  0x1F38,  0x1F39,  0x1F3A,  0x1F3B,  0x1F3C,
+            0x1F3D,  0x1F3E,  0x1F3F,  0x1F48,  0x1F49,  0x1F4A,  0x1F4B,
+            0x1F4C,  0x1F4D,  0x1F59,  0x1F5B,  0x1F5D,  0x1F5F,  0x1F68,
+            0x1F69,  0x1F6A,  0x1F6B,  0x1F6C,  0x1F6D,  0x1F6E,  0x1F6F,
+            0x1FB8,  0x1FB9,  0x1FBA,  0x1FBB,  0x1FC8,  0x1FC9,  0x1FCA,
+            0x1FCB,  0x1FD8,  0x1FD9,  0x1FDA,  0x1FDB,  0x1FE8,  0x1FE9,
+            0x1FEA,  0x1FEB,  0x1FEC,  0x1FF8,  0x1FF9,  0x1FFA,  0x1FFB,
+            0x2102,  0x2107,  0x210B,  0x210C,  0x210D,  0x2110,  0x2111,
+            0x2112,  0x2115,  0x2119,  0x211A,  0x211B,  0x211C,  0x211D,
+            0x2124,  0x2126,  0x2128,  0x212A,  0x212B,  0x212C,  0x212D,
+            0x2130,  0x2131,  0x2132,  0x2133,  0x213E,  0x213F,  0x2145,
+            0x2183,  0x2C00,  0x2C01,  0x2C02,  0x2C03,  0x2C04,  0x2C05,
+            0x2C06,  0x2C07,  0x2C08,  0x2C09,  0x2C0A,  0x2C0B,  0x2C0C,
+            0x2C0D,  0x2C0E,  0x2C0F,  0x2C10,  0x2C11,  0x2C12,  0x2C13,
+            0x2C14,  0x2C15,  0x2C16,  0x2C17,  0x2C18,  0x2C19,  0x2C1A,
+            0x2C1B,  0x2C1C,  0x2C1D,  0x2C1E,  0x2C1F,  0x2C20,  0x2C21,
+            0x2C22,  0x2C23,  0x2C24,  0x2C25,  0x2C26,  0x2C27,  0x2C28,
+            0x2C29,  0x2C2A,  0x2C2B,  0x2C2C,  0x2C2D,  0x2C2E,  0x2C2F,
+            0x2C60,  0x2C62,  0x2C63,  0x2C64,  0x2C67,  0x2C69,  0x2C6B,
+            0x2C6D,  0x2C6E,  0x2C6F,  0x2C70,  0x2C72,  0x2C75,  0x2C7E,
+            0x2C7F,  0x2C80,  0x2C82,  0x2C84,  0x2C86,  0x2C88,  0x2C8A,
+            0x2C8C,  0x2C8E,  0x2C90,  0x2C92,  0x2C94,  0x2C96,  0x2C98,
+            0x2C9A,  0x2C9C,  0x2C9E,  0x2CA0,  0x2CA2,  0x2CA4,  0x2CA6,
+            0x2CA8,  0x2CAA,  0x2CAC,  0x2CAE,  0x2CB0,  0x2CB2,  0x2CB4,
+            0x2CB6,  0x2CB8,  0x2CBA,  0x2CBC,  0x2CBE,  0x2CC0,  0x2CC2,
+            0x2CC4,  0x2CC6,  0x2CC8,  0x2CCA,  0x2CCC,  0x2CCE,  0x2CD0,
+            0x2CD2,  0x2CD4,  0x2CD6,  0x2CD8,  0x2CDA,  0x2CDC,  0x2CDE,
+            0x2CE0,  0x2CE2,  0x2CEB,  0x2CED,  0x2CF2,  0xA640,  0xA642,
+            0xA644,  0xA646,  0xA648,  0xA64A,  0xA64C,  0xA64E,  0xA650,
+            0xA652,  0xA654,  0xA656,  0xA658,  0xA65A,  0xA65C,  0xA65E,
+            0xA660,  0xA662,  0xA664,  0xA666,  0xA668,  0xA66A,  0xA66C,
+            0xA680,  0xA682,  0xA684,  0xA686,  0xA688,  0xA68A,  0xA68C,
+            0xA68E,  0xA690,  0xA692,  0xA694,  0xA696,  0xA698,  0xA69A,
+            0xA722,  0xA724,  0xA726,  0xA728,  0xA72A,  0xA72C,  0xA72E,
+            0xA732,  0xA734,  0xA736,  0xA738,  0xA73A,  0xA73C,  0xA73E,
+            0xA740,  0xA742,  0xA744,  0xA746,  0xA748,  0xA74A,  0xA74C,
+            0xA74E,  0xA750,  0xA752,  0xA754,  0xA756,  0xA758,  0xA75A,
+            0xA75C,  0xA75E,  0xA760,  0xA762,  0xA764,  0xA766,  0xA768,
+            0xA76A,  0xA76C,  0xA76E,  0xA779,  0xA77B,  0xA77D,  0xA77E,
+            0xA780,  0xA782,  0xA784,  0xA786,  0xA78B,  0xA78D,  0xA790,
+            0xA792,  0xA796,  0xA798,  0xA79A,  0xA79C,  0xA79E,  0xA7A0,
+            0xA7A2,  0xA7A4,  0xA7A6,  0xA7A8,  0xA7AA,  0xA7AB,  0xA7AC,
+            0xA7AD,  0xA7AE,  0xA7B0,  0xA7B1,  0xA7B2,  0xA7B3,  0xA7B4,
+            0xA7B6,  0xA7B8,  0xA7BA,  0xA7BC,  0xA7BE,  0xA7C0,  0xA7C2,
+            0xA7C4,  0xA7C5,  0xA7C6,  0xA7C7,  0xA7C9,  0xA7D0,  0xA7D6,
+            0xA7D8,  0xA7F5,  0xFF21,  0xFF22,  0xFF23,  0xFF24,  0xFF25,
+            0xFF26,  0xFF27,  0xFF28,  0xFF29,  0xFF2A,  0xFF2B,  0xFF2C,
+            0xFF2D,  0xFF2E,  0xFF2F,  0xFF30,  0xFF31,  0xFF32,  0xFF33,
+            0xFF34,  0xFF35,  0xFF36,  0xFF37,  0xFF38,  0xFF39,  0xFF3A,
+            0x10400, 0x10401, 0x10402, 0x10403, 0x10404, 0x10405, 0x10406,
+            0x10407, 0x10408, 0x10409, 0x1040A, 0x1040B, 0x1040C, 0x1040D,
+            0x1040E, 0x1040F, 0x10410, 0x10411, 0x10412, 0x10413, 0x10414,
+            0x10415, 0x10416, 0x10417, 0x10418, 0x10419, 0x1041A, 0x1041B,
+            0x1041C, 0x1041D, 0x1041E, 0x1041F, 0x10420, 0x10421, 0x10422,
+            0x10423, 0x10424, 0x10425, 0x10426, 0x10427, 0x104B0, 0x104B1,
+            0x104B2, 0x104B3, 0x104B4, 0x104B5, 0x104B6, 0x104B7, 0x104B8,
+            0x104B9, 0x104BA, 0x104BB, 0x104BC, 0x104BD, 0x104BE, 0x104BF,
+            0x104C0, 0x104C1, 0x104C2, 0x104C3, 0x104C4, 0x104C5, 0x104C6,
+            0x104C7, 0x104C8, 0x104C9, 0x104CA, 0x104CB, 0x104CC, 0x104CD,
+            0x104CE, 0x104CF, 0x104D0, 0x104D1, 0x104D2, 0x104D3, 0x10570,
+            0x10571, 0x10572, 0x10573, 0x10574, 0x10575, 0x10576, 0x10577,
+            0x10578, 0x10579, 0x1057A, 0x1057C, 0x1057D, 0x1057E, 0x1057F,
+            0x10580, 0x10581, 0x10582, 0x10583, 0x10584, 0x10585, 0x10586,
+            0x10587, 0x10588, 0x10589, 0x1058A, 0x1058C, 0x1058D, 0x1058E,
+            0x1058F, 0x10590, 0x10591, 0x10592, 0x10594, 0x10595, 0x10C80,
+            0x10C81, 0x10C82, 0x10C83, 0x10C84, 0x10C85, 0x10C86, 0x10C87,
+            0x10C88, 0x10C89, 0x10C8A, 0x10C8B, 0x10C8C, 0x10C8D, 0x10C8E,
+            0x10C8F, 0x10C90, 0x10C91, 0x10C92, 0x10C93, 0x10C94, 0x10C95,
+            0x10C96, 0x10C97, 0x10C98, 0x10C99, 0x10C9A, 0x10C9B, 0x10C9C,
+            0x10C9D, 0x10C9E, 0x10C9F, 0x10CA0, 0x10CA1, 0x10CA2, 0x10CA3,
+            0x10CA4, 0x10CA5, 0x10CA6, 0x10CA7, 0x10CA8, 0x10CA9, 0x10CAA,
+            0x10CAB, 0x10CAC, 0x10CAD, 0x10CAE, 0x10CAF, 0x10CB0, 0x10CB1,
+            0x10CB2, 0x118A0, 0x118A1, 0x118A2, 0x118A3, 0x118A4, 0x118A5,
+            0x118A6, 0x118A7, 0x118A8, 0x118A9, 0x118AA, 0x118AB, 0x118AC,
+            0x118AD, 0x118AE, 0x118AF, 0x118B0, 0x118B1, 0x118B2, 0x118B3,
+            0x118B4, 0x118B5, 0x118B6, 0x118B7, 0x118B8, 0x118B9, 0x118BA,
+            0x118BB, 0x118BC, 0x118BD, 0x118BE, 0x118BF, 0x16E40, 0x16E41,
+            0x16E42, 0x16E43, 0x16E44, 0x16E45, 0x16E46, 0x16E47, 0x16E48,
+            0x16E49, 0x16E4A, 0x16E4B, 0x16E4C, 0x16E4D, 0x16E4E, 0x16E4F,
+            0x16E50, 0x16E51, 0x16E52, 0x16E53, 0x16E54, 0x16E55, 0x16E56,
+            0x16E57, 0x16E58, 0x16E59, 0x16E5A, 0x16E5B, 0x16E5C, 0x16E5D,
+            0x16E5E, 0x16E5F, 0x1D400, 0x1D401, 0x1D402, 0x1D403, 0x1D404,
+            0x1D405, 0x1D406, 0x1D407, 0x1D408, 0x1D409, 0x1D40A, 0x1D40B,
+            0x1D40C, 0x1D40D, 0x1D40E, 0x1D40F, 0x1D410, 0x1D411, 0x1D412,
+            0x1D413, 0x1D414, 0x1D415, 0x1D416, 0x1D417, 0x1D418, 0x1D419,
+            0x1D434, 0x1D435, 0x1D436, 0x1D437, 0x1D438, 0x1D439, 0x1D43A,
+            0x1D43B, 0x1D43C, 0x1D43D, 0x1D43E, 0x1D43F, 0x1D440, 0x1D441,
+            0x1D442, 0x1D443, 0x1D444, 0x1D445, 0x1D446, 0x1D447, 0x1D448,
+            0x1D449, 0x1D44A, 0x1D44B, 0x1D44C, 0x1D44D, 0x1D468, 0x1D469,
+            0x1D46A, 0x1D46B, 0x1D46C, 0x1D46D, 0x1D46E, 0x1D46F, 0x1D470,
+            0x1D471, 0x1D472, 0x1D473, 0x1D474, 0x1D475, 0x1D476, 0x1D477,
+            0x1D478, 0x1D479, 0x1D47A, 0x1D47B, 0x1D47C, 0x1D47D, 0x1D47E,
+            0x1D47F, 0x1D480, 0x1D481, 0x1D49C, 0x1D49E, 0x1D49F, 0x1D4A2,
+            0x1D4A5, 0x1D4A6, 0x1D4A9, 0x1D4AA, 0x1D4AB, 0x1D4AC, 0x1D4AE,
+            0x1D4AF, 0x1D4B0, 0x1D4B1, 0x1D4B2, 0x1D4B3, 0x1D4B4, 0x1D4B5,
+            0x1D4D0, 0x1D4D1, 0x1D4D2, 0x1D4D3, 0x1D4D4, 0x1D4D5, 0x1D4D6,
+            0x1D4D7, 0x1D4D8, 0x1D4D9, 0x1D4DA, 0x1D4DB, 0x1D4DC, 0x1D4DD,
+            0x1D4DE, 0x1D4DF, 0x1D4E0, 0x1D4E1, 0x1D4E2, 0x1D4E3, 0x1D4E4,
+            0x1D4E5, 0x1D4E6, 0x1D4E7, 0x1D4E8, 0x1D4E9, 0x1D504, 0x1D505,
+            0x1D507, 0x1D508, 0x1D509, 0x1D50A, 0x1D50D, 0x1D50E, 0x1D50F,
+            0x1D510, 0x1D511, 0x1D512, 0x1D513, 0x1D514, 0x1D516, 0x1D517,
+            0x1D518, 0x1D519, 0x1D51A, 0x1D51B, 0x1D51C, 0x1D538, 0x1D539,
+            0x1D53B, 0x1D53C, 0x1D53D, 0x1D53E, 0x1D540, 0x1D541, 0x1D542,
+            0x1D543, 0x1D544, 0x1D546, 0x1D54A, 0x1D54B, 0x1D54C, 0x1D54D,
+            0x1D54E, 0x1D54F, 0x1D550, 0x1D56C, 0x1D56D, 0x1D56E, 0x1D56F,
+            0x1D570, 0x1D571, 0x1D572, 0x1D573, 0x1D574, 0x1D575, 0x1D576,
+            0x1D577, 0x1D578, 0x1D579, 0x1D57A, 0x1D57B, 0x1D57C, 0x1D57D,
+            0x1D57E, 0x1D57F, 0x1D580, 0x1D581, 0x1D582, 0x1D583, 0x1D584,
+            0x1D585, 0x1D5A0, 0x1D5A1, 0x1D5A2, 0x1D5A3, 0x1D5A4, 0x1D5A5,
+            0x1D5A6, 0x1D5A7, 0x1D5A8, 0x1D5A9, 0x1D5AA, 0x1D5AB, 0x1D5AC,
+            0x1D5AD, 0x1D5AE, 0x1D5AF, 0x1D5B0, 0x1D5B1, 0x1D5B2, 0x1D5B3,
+            0x1D5B4, 0x1D5B5, 0x1D5B6, 0x1D5B7, 0x1D5B8, 0x1D5B9, 0x1D5D4,
+            0x1D5D5, 0x1D5D6, 0x1D5D7, 0x1D5D8, 0x1D5D9, 0x1D5DA, 0x1D5DB,
+            0x1D5DC, 0x1D5DD, 0x1D5DE, 0x1D5DF, 0x1D5E0, 0x1D5E1, 0x1D5E2,
+            0x1D5E3, 0x1D5E4, 0x1D5E5, 0x1D5E6, 0x1D5E7, 0x1D5E8, 0x1D5E9,
+            0x1D5EA, 0x1D5EB, 0x1D5EC, 0x1D5ED, 0x1D608, 0x1D609, 0x1D60A,
+            0x1D60B, 0x1D60C, 0x1D60D, 0x1D60E, 0x1D60F, 0x1D610, 0x1D611,
+            0x1D612, 0x1D613, 0x1D614, 0x1D615, 0x1D616, 0x1D617, 0x1D618,
+            0x1D619, 0x1D61A, 0x1D61B, 0x1D61C, 0x1D61D, 0x1D61E, 0x1D61F,
+            0x1D620, 0x1D621, 0x1D63C, 0x1D63D, 0x1D63E, 0x1D63F, 0x1D640,
+            0x1D641, 0x1D642, 0x1D643, 0x1D644, 0x1D645, 0x1D646, 0x1D647,
+            0x1D648, 0x1D649, 0x1D64A, 0x1D64B, 0x1D64C, 0x1D64D, 0x1D64E,
+            0x1D64F, 0x1D650, 0x1D651, 0x1D652, 0x1D653, 0x1D654, 0x1D655,
+            0x1D670, 0x1D671, 0x1D672, 0x1D673, 0x1D674, 0x1D675, 0x1D676,
+            0x1D677, 0x1D678, 0x1D679, 0x1D67A, 0x1D67B, 0x1D67C, 0x1D67D,
+            0x1D67E, 0x1D67F, 0x1D680, 0x1D681, 0x1D682, 0x1D683, 0x1D684,
+            0x1D685, 0x1D686, 0x1D687, 0x1D688, 0x1D689, 0x1D6A8, 0x1D6A9,
+            0x1D6AA, 0x1D6AB, 0x1D6AC, 0x1D6AD, 0x1D6AE, 0x1D6AF, 0x1D6B0,
+            0x1D6B1, 0x1D6B2, 0x1D6B3, 0x1D6B4, 0x1D6B5, 0x1D6B6, 0x1D6B7,
+            0x1D6B8, 0x1D6B9, 0x1D6BA, 0x1D6BB, 0x1D6BC, 0x1D6BD, 0x1D6BE,
+            0x1D6BF, 0x1D6C0, 0x1D6E2, 0x1D6E3, 0x1D6E4, 0x1D6E5, 0x1D6E6,
+            0x1D6E7, 0x1D6E8, 0x1D6E9, 0x1D6EA, 0x1D6EB, 0x1D6EC, 0x1D6ED,
+            0x1D6EE, 0x1D6EF, 0x1D6F0, 0x1D6F1, 0x1D6F2, 0x1D6F3, 0x1D6F4,
+            0x1D6F5, 0x1D6F6, 0x1D6F7, 0x1D6F8, 0x1D6F9, 0x1D6FA, 0x1D71C,
+            0x1D71D, 0x1D71E, 0x1D71F, 0x1D720, 0x1D721, 0x1D722, 0x1D723,
+            0x1D724, 0x1D725, 0x1D726, 0x1D727, 0x1D728, 0x1D729, 0x1D72A,
+            0x1D72B, 0x1D72C, 0x1D72D, 0x1D72E, 0x1D72F, 0x1D730, 0x1D731,
+            0x1D732, 0x1D733, 0x1D734, 0x1D756, 0x1D757, 0x1D758, 0x1D759,
+            0x1D75A, 0x1D75B, 0x1D75C, 0x1D75D, 0x1D75E, 0x1D75F, 0x1D760,
+            0x1D761, 0x1D762, 0x1D763, 0x1D764, 0x1D765, 0x1D766, 0x1D767,
+            0x1D768, 0x1D769, 0x1D76A, 0x1D76B, 0x1D76C, 0x1D76D, 0x1D76E,
+            0x1D790, 0x1D791, 0x1D792, 0x1D793, 0x1D794, 0x1D795, 0x1D796,
+            0x1D797, 0x1D798, 0x1D799, 0x1D79A, 0x1D79B, 0x1D79C, 0x1D79D,
+            0x1D79E, 0x1D79F, 0x1D7A0, 0x1D7A1, 0x1D7A2, 0x1D7A3, 0x1D7A4,
+            0x1D7A5, 0x1D7A6, 0x1D7A7, 0x1D7A8, 0x1D7CA, 0x1E900, 0x1E901,
+            0x1E902, 0x1E903, 0x1E904, 0x1E905, 0x1E906, 0x1E907, 0x1E908,
+            0x1E909, 0x1E90A, 0x1E90B, 0x1E90C, 0x1E90D, 0x1E90E, 0x1E90F,
+            0x1E910, 0x1E911, 0x1E912, 0x1E913, 0x1E914, 0x1E915, 0x1E916,
+            0x1E917, 0x1E918, 0x1E919, 0x1E91A, 0x1E91B, 0x1E91C, 0x1E91D,
+            0x1E91E, 0x1E91F, 0x1E920, 0x1E921};
+    };
 }
 #line 10 "boost/parser/detail/text/trie_fwd.hpp"
 namespace boost::parser::detail { namespace text {
@@ -15232,7 +16177,7 @@ namespace boost::parser::detail { namespace text {
     }
 
 }}
-#line 19 "boost/parser/parser.hpp"
+#line 24 "boost/parser/parser.hpp"
 #include <type_traits>
 #include <variant>
 #include <vector>
@@ -15524,14 +16469,14 @@ namespace boost { namespace parser {
 
         void fail() const
         {
-#line 317 "boost/parser/parser.hpp"
+#line 322 "boost/parser/parser.hpp"
             assert(false);
         }
     };
 
 
     namespace detail {
-#line 337 "boost/parser/parser.hpp"
+#line 342 "boost/parser/parser.hpp"
         template<typename T>
         struct identity_t
         {
@@ -15540,7 +16485,7 @@ namespace boost { namespace parser {
         template<typename T>
         struct print_t : identity_t<T>
         {
-#line 355 "boost/parser/parser.hpp"
+#line 360 "boost/parser/parser.hpp"
             enum {
                 n =
 
@@ -16157,9 +17102,11 @@ namespace boost { namespace parser {
         constexpr bool is_invocable_v = is_detected_v<callable, F, Args...>;
 
         template<typename T>
-        using has_begin = decltype(*std::begin(std::declval<T &>()));
+        using has_begin =
+            decltype(*detail::text::detail::begin(std::declval<T &>()));
         template<typename T>
-        using has_end = decltype(std::end(std::declval<T &>()));
+        using has_end =
+            decltype(detail::text::detail::end(std::declval<T &>()));
 
         template<typename T>
         constexpr bool is_range =
@@ -16168,17 +17115,26 @@ namespace boost { namespace parser {
         template<typename T>
         using has_push_back =
             decltype(std::declval<T &>().push_back(*std::declval<T>().begin()));
-#line 1001 "boost/parser/parser.hpp"
+#line 1013 "boost/parser/parser.hpp"
         template<typename T>
-        using iterator_t = decltype(std::begin(std::declval<T &>()));
+        using iterator_t =
+            decltype(detail::text::detail::begin(std::declval<T &>()));
         template<typename Range>
-        using sentinel_t = decltype(std::end(std::declval<Range>()));
+        using sentinel_t =
+            decltype(detail::text::detail::end(std::declval<Range &>()));
         template<typename T>
         using iter_value_t = typename std::iterator_traits<T>::value_type;
         template<typename T>
         using iter_reference_t = decltype(*std::declval<T &>());
         template<typename T>
+        using iter_rvalue_reference_t =
+            decltype(std::move(*std::declval<T &>()));
+        template<typename T>
         using range_value_t = iter_value_t<iterator_t<T>>;
+        template<typename T>
+        using range_reference_t = iter_reference_t<iterator_t<T>>;
+        template<typename T>
+        using range_rvalue_reference_t = iter_rvalue_reference_t<iterator_t<T>>;
 
         template<typename T>
         using has_insert = decltype(std::declval<T &>().insert(
@@ -16234,6 +17190,15 @@ namespace boost { namespace parser {
 
     namespace detail {
 
+
+        template<typename T, bool = std::is_pointer_v<T>>
+        constexpr bool is_code_unit_pointer_v = false;
+        template<typename T>
+        constexpr bool is_code_unit_pointer_v<T, true> =
+            is_parsable_code_unit_v<std::remove_pointer_t<T>>;
+
+        template<typename T>
+        constexpr bool is_range_like = is_range<T> || is_code_unit_pointer_v<T>;
 
         template<typename I>
         constexpr bool is_char8_iter_v =
@@ -16448,8 +17413,8 @@ namespace boost { namespace parser {
             if constexpr (needs_transcoding_to_utf8<
                               Container,
                               iter_value_t<Iter>>) {
-                auto const r = boost::parser::subrange(first, last) |
-                               text::as_utf8;
+                auto const r =
+                    boost::parser::subrange(first, last) | text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
             } else {
                 detail::insert(c, first, last);
@@ -16620,7 +17585,8 @@ namespace boost { namespace parser {
             char32_t operator*() const { return folded_[idx_]; }
             no_case_iter & operator++()
             {
-                if (last_idx_ <= ++idx_) {
+                ++idx_;
+                if (last_idx_ <= idx_) {
                     ++it_;
                     fold();
                 }
@@ -16649,6 +17615,7 @@ namespace boost { namespace parser {
                 idx_ = 0;
                 if (it_ == last_) {
                     folded_[0] = 0;
+                    last_idx_ = 1;
                     return;
                 }
                 auto const folded_last =
@@ -16663,12 +17630,35 @@ namespace boost { namespace parser {
             int last_idx_;
         };
 
-        template<typename Iter, typename Sentinel>
+        template<>
+        struct char_subranges<hex_digit_subranges>
+        {
+            static constexpr char_subrange ranges[] = {
+                {U'0', U'9'},
+                {U'A', U'F'},
+                {U'a', U'f'},
+                {U'\uff10', U'\uff19'},
+                {U'\uff21', U'\uff26'},
+                {U'\uff41', U'\uff46'}};
+        };
+
+        template<>
+        struct char_subranges<control_subranges>
+        {
+            static constexpr char_subrange ranges[] = {
+                {U'\u0000', U'\u001f'}, {U'\u007f', U'\u009f'}};
+        };
+
+        template<typename Iter, typename Sentinel, bool SortedUTF32>
         struct char_range
         {
             template<typename T, typename Context>
             bool contains(T c_, Context const & context) const
             {
+                if constexpr (SortedUTF32) {
+                    return std::binary_search(chars_.begin(), chars_.end(), c_);
+                }
+
                 if (context.no_case_depth_) {
                     case_fold_array_t folded;
                     auto folded_last = detail::case_fold(c_, folded.begin());
@@ -16707,23 +17697,24 @@ namespace boost { namespace parser {
                 }
             }
 
-            subrange<Iter, Sentinel> chars_;
+            boost::parser::subrange<Iter, Sentinel> chars_;
         };
 
-        template<typename Iter, typename Sentinel>
+        template<bool SortedUTF32, typename Iter, typename Sentinel>
         constexpr auto make_char_range(Iter first, Sentinel last)
         {
-            return char_range<Iter, Sentinel>{
-                subrange<Iter, Sentinel>{first, last}};
+            return char_range<Iter, Sentinel, SortedUTF32>{
+                boost::parser::subrange<Iter, Sentinel>{first, last}};
         }
 
-        template<typename R>
+        template<bool SortedUTF32, typename R>
         constexpr auto make_char_range(R && r) noexcept
         {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
-                return detail::make_char_range(r, text::null_sentinel);
+                return detail::make_char_range<SortedUTF32>(
+                    r, text::null_sentinel);
             } else {
-                return detail::make_char_range(r.begin(), r.end());
+                return detail::make_char_range<SortedUTF32>(r.begin(), r.end());
             }
         }
 
@@ -16824,85 +17815,83 @@ namespace boost { namespace parser {
             return false;
         }
 
-        enum class ascii_char_class_t {
-            alnum,
-            alpha,
-            blank,
-            cntrl,
-            digit,
-            graph,
-            print,
-            punct,
-            space,
-            xdigit,
-            lower,
-            upper
-        };
-
-        template<ascii_char_class_t CharClass>
-        struct ascii_char_class
-        {
-            template<typename T, typename Context>
-            bool contains(T c, Context const &) const
-            {
-                switch (CharClass) {
-                case ascii_char_class_t::alnum: return std::isalnum(c);
-                case ascii_char_class_t::alpha: return std::isalpha(c);
-                case ascii_char_class_t::blank: return std::isblank(c);
-                case ascii_char_class_t::cntrl: return std::iscntrl(c);
-                case ascii_char_class_t::digit: return std::isdigit(c);
-                case ascii_char_class_t::graph: return std::isgraph(c);
-                case ascii_char_class_t::print: return std::isprint(c);
-                case ascii_char_class_t::punct: return std::ispunct(c);
-                case ascii_char_class_t::space: return std::isspace(c);
-                case ascii_char_class_t::xdigit: return std::isxdigit(c);
-                case ascii_char_class_t::lower: return std::islower(c);
-                case ascii_char_class_t::upper: return std::isupper(c);
-                }
-                return false;
-            }
-        };
-
         template<typename Container, typename T>
         using insertable = decltype(std::declval<Container &>().insert(
             std::declval<Container &>().end(), std::declval<T>()));
 
+        template<typename T, typename Tuple, int... Is>
+        auto
+        make_from_tuple_impl(Tuple && tup, std::integer_sequence<int, Is...>)
+            -> decltype(T(parser::get(std::move(tup), llong<Is>{})...))
+        {
+            return T(parser::get(std::move(tup), llong<Is>{})...);
+        }
+
+        template<typename T, typename... Args>
+        auto make_from_tuple(tuple<Args...> && tup)
+            -> decltype(detail::make_from_tuple_impl<T>(
+                std::move(tup),
+                std::make_integer_sequence<int, tuple_size_<tuple<Args...>>>()))
+        {
+            return detail::make_from_tuple_impl<T>(
+                std::move(tup),
+                std::make_integer_sequence<int, tuple_size_<tuple<Args...>>>());
+        }
+
+        template<typename T, typename Tuple>
+        using constructible_from_tuple_expr =
+            decltype(detail::make_from_tuple<T>(std::declval<Tuple>()));
+
+        template<typename T, typename Tuple, bool = is_tuple<Tuple>{}>
+        constexpr bool is_constructible_from_tuple_v = false;
+        template<typename T, typename Tuple>
+        constexpr bool is_constructible_from_tuple_v<T, Tuple, true> =
+            is_detected_v<constructible_from_tuple_expr, T, Tuple>;
+
         template<typename Container, typename U>
         constexpr void move_back_impl(Container & c, U && x)
         {
+            using just_t = range_value_t<Container>;
+            using just_u = remove_cv_ref_t<U>;
             if constexpr (needs_transcoding_to_utf8<Container, U>) {
                 char32_t cps[1] = {(char32_t)x};
                 auto const r = cps | text::as_utf8;
                 c.insert(c.end(), r.begin(), r.end());
+            } else if constexpr (std::is_convertible_v<just_u &&, just_t>) {
+                detail::insert(c, std::move(x));
+            } else if constexpr (
+                !is_tuple<just_t>::value && is_tuple<just_u>::value &&
+                std::is_aggregate_v<just_t> &&
+                !is_detected_v<insertable, Container, just_u &&> &&
+                is_struct_assignable_v<just_t, just_u>) {
+                auto int_seq =
+                    std::make_integer_sequence<int, tuple_size_<just_u>>();
+                detail::insert(
+                    c,
+                    detail::tuple_to_aggregate<just_t>(std::move(x), int_seq));
+            } else if constexpr (
+                is_tuple<just_t>::value && !is_tuple<just_u>::value &&
+                std::is_aggregate_v<just_u> &&
+                !is_detected_v<insertable, Container, just_u &&> &&
+                is_tuple_assignable_v<just_t, just_u>) {
+                just_t t;
+                auto tie = detail::tie_aggregate(x);
+                detail::aggregate_to_tuple(
+                    t,
+                    tie,
+                    std::make_integer_sequence<int, tuple_size_<just_t>>());
+                detail::insert(c, std::move(t));
+            } else if constexpr (is_constructible_from_tuple_v<
+                                     just_t,
+                                     just_u>) {
+                detail::insert(
+                    c, detail::make_from_tuple<just_t>(std::move(x)));
             } else {
-                using just_t = range_value_t<Container>;
-                using just_u = remove_cv_ref_t<U>;
-                if constexpr (
-                    !is_tuple<just_t>::value && is_tuple<just_u>::value &&
-                    std::is_aggregate_v<just_t> &&
-                    !is_detected_v<insertable, Container, just_u &&> &&
-                    is_struct_assignable_v<just_t, just_u>) {
-                    auto int_seq =
-                        std::make_integer_sequence<int, tuple_size_<just_u>>();
-                    detail::insert(
-                        c,
-                        detail::tuple_to_aggregate<just_t>(
-                            std::move(x), int_seq));
-                } else if constexpr (
-                    is_tuple<just_t>::value && !is_tuple<just_u>::value &&
-                    std::is_aggregate_v<just_u> &&
-                    !is_detected_v<insertable, Container, just_u &&> &&
-                    is_tuple_assignable_v<just_t, just_u>) {
-                    just_t t;
-                    auto tie = detail::tie_aggregate(x);
-                    detail::aggregate_to_tuple(
-                        t,
-                        tie,
-                        std::make_integer_sequence<int, tuple_size_<just_t>>());
-                    detail::insert(c, std::move(t));
-                } else {
-                    detail::insert(c, std::move(x));
-                }
+                static_assert(
+                    sizeof(U) && false,
+                    "Could not insert value into container, by: just inserting "
+                    "it; doing tuple -> aggregate or aggregate -> tuple "
+                    "conversions; or tuple -> class type construction.");
             }
         }
 
@@ -16924,8 +17913,8 @@ namespace boost { namespace parser {
         }
 
         template<typename Container>
-        constexpr void move_back(
-            Container & c, std::optional<Container> & x, bool gen_attrs)
+        constexpr void
+        move_back(Container & c, std::optional<Container> && x, bool gen_attrs)
         {
             if (!gen_attrs || !x)
                 return;
@@ -16941,7 +17930,10 @@ namespace boost { namespace parser {
             detail::move_back_impl(c, std::move(*x));
         }
 
-        template<typename Container, typename T>
+        template<
+            typename Container,
+            typename T,
+            typename Enable = std::enable_if_t<!std::is_same_v<Container, T>>>
         constexpr void
         move_back(Container & c, std::optional<T> && x, bool gen_attrs)
         {
@@ -16956,12 +17948,30 @@ namespace boost { namespace parser {
         constexpr void move_back(Container & c, nope, bool gen_attrs)
         {}
 
+        template<typename From, typename To>
+        using move_assignable_expr =
+            decltype(std::declval<To &>() = std::declval<From &&>());
+        template<typename From, typename To>
+        constexpr bool is_move_assignable_v =
+            is_detected_v<move_assignable_expr, From, To>;
+
         template<typename T, typename U>
         constexpr void assign(T & t, U && u)
         {
             using just_t = remove_cv_ref_t<T>;
             using just_u = remove_cv_ref_t<U>;
-            if constexpr (
+            if constexpr (is_move_assignable_v<just_u, just_t>) {
+                static_assert(
+                    (!std::is_same_v<just_t, std::string> ||
+                     !std::is_arithmetic_v<just_u>),
+                    "std::string is assignable from a char.  Due to implicit "
+                    "conversions among arithmetic types, any arithmetic type "
+                    "(like int or double) is assignable to std::string.  This "
+                    "is almost certainly not what you meant to write, so "
+                    "Boost.Parser disallows it.  If you want to do this, write "
+                    "a semantic action and do it explicitly.");
+                t = std::move(u);
+            } else if constexpr (
                 !is_tuple<just_t>::value && is_tuple<just_u>::value &&
                 std::is_aggregate_v<just_t> &&
                 !std::is_convertible_v<just_u &&, just_t> &&
@@ -16979,8 +17989,16 @@ namespace boost { namespace parser {
                     t,
                     tie,
                     std::make_integer_sequence<int, tuple_size_<just_t>>());
+            } else if constexpr (is_constructible_from_tuple_v<
+                                     just_t,
+                                     just_u>) {
+                t = detail::make_from_tuple<just_t>(std::move(u));
             } else {
-                t = std::move(u);
+                static_assert(
+                    sizeof(T) && false,
+                    "Could not assign value, by: just assigning it; doing tuple "
+                    "-> aggregate or aggregate -> tuple conversions; or tuple "
+                    "-> class type construction.");
             }
         }
 
@@ -17485,19 +18503,19 @@ namespace boost { namespace parser {
             if constexpr (std::is_pointer_v<r_t>) {
                 using value_type = iter_value_t<r_t>;
                 if constexpr (std::is_same_v<value_type, char>) {
-                    return parser::make_subrange(r, text::null_sentinel);
+                    return boost::parser::subrange(r, text::null_sentinel);
                 } else {
                     return r | text::as_utf32;
                 }
             } else {
                 using value_type = range_value_t<r_t>;
-                if constexpr (std::is_array_v<r_t>) {
+                if constexpr (text::detail::is_bounded_array_v<r_t>) {
                     if constexpr (std::is_same_v<value_type, char>) {
-                        auto first = std::begin(r);
-                        auto last = std::end(r);
+                        auto first = detail::text::detail::begin(r);
+                        auto last = detail::text::detail::end(r);
                         if (first != last && !*std::prev(last))
                             --last;
-                        return parser::make_subrange(first, last);
+                        return boost::parser::subrange(first, last);
                     } else {
                         return r | text::as_utf32;
                     }
@@ -17505,7 +18523,9 @@ namespace boost { namespace parser {
                     if constexpr (
                         std::is_same_v<value_type, char> &&
                         !is_utf8_view<r_t>::value) {
-                        return parser::make_subrange(std::begin(r), std::end(r));
+                        return boost::parser::subrange(
+                            detail::text::detail::begin(r),
+                            detail::text::detail::end(r));
                     } else {
                         return r | text::as_utf32;
                     }
@@ -17519,7 +18539,7 @@ namespace boost { namespace parser {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
                 return r;
             } else {
-                return std::begin(r);
+                return detail::text::detail::begin(r);
             }
         }
 
@@ -17529,7 +18549,7 @@ namespace boost { namespace parser {
             if constexpr (std::is_pointer_v<std::decay_t<R>>) {
                 return text::null_sentinel;
             } else {
-                return std::end(r);
+                return detail::text::detail::end(r);
             }
         }
 
@@ -17689,6 +18709,31 @@ namespace boost { namespace parser {
                 return llong<struct_arity_v<remove_cv_ref_t<T>>>{};
             }
         }
+
+        template<typename T>
+        struct attr_reset
+        {
+            attr_reset(T & x) : x_(std::addressof(x)) {}
+            attr_reset(attr_reset const &) = delete;
+            attr_reset(attr_reset &&) = delete;
+            attr_reset & operator=(attr_reset const &) = delete;
+            attr_reset & operator=(attr_reset &&) = delete;
+            ~attr_reset()
+            {
+                if (x_)
+                    *x_ = T();
+            }
+
+            bool operator=(bool b)
+            {
+                if (b)
+                    x_ = nullptr;
+                return b;
+            }
+
+        private:
+            T * x_;
+        };
     }
 
 
@@ -17815,7 +18860,7 @@ namespace boost { namespace parser {
 
     template<unsigned int I>
     inline constexpr detail::param_t<I> _p = {};
-#line 2653 "boost/parser/parser.hpp"
+#line 2763 "boost/parser/parser.hpp"
     int64_t const Inf = detail::unbounded;
 
     template<
@@ -17951,6 +18996,7 @@ namespace boost { namespace parser {
                             success);
                         if (!success) {
                             success = true;
+                            first = prev_first;
                             break;
                         }
                     }
@@ -18016,9 +19062,12 @@ namespace boost { namespace parser {
         {}
     };
 
+
     template<typename Parser>
     struct opt_parser
     {
+
+
         template<
             bool UseCallbacks,
             typename Iter,
@@ -18041,6 +19090,8 @@ namespace boost { namespace parser {
             return retval;
         }
 
+
+
         template<
             bool UseCallbacks,
             typename Iter,
@@ -18058,10 +19109,15 @@ namespace boost { namespace parser {
             bool & success,
             Attribute & retval) const
         {
+
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
 
+
+
             detail::skip(first, last, skip, flags);
+
+
 
             if (!detail::gen_attrs(flags)) {
                 parser_.call(
@@ -18070,13 +19126,19 @@ namespace boost { namespace parser {
                 return;
             }
 
+
+
             parser_.call(
                 use_cbs, first, last, context, skip, flags, success, retval);
             success = true;
+
         }
+
+
 
         Parser parser_;
     };
+
 
     template<typename ParserTuple>
     struct or_parser
@@ -18166,7 +19228,7 @@ namespace boost { namespace parser {
 
             using all_types_wrapped =
                 decltype(detail::hl::transform(all_types{}, detail::wrap{}));
-#line 3008 "boost/parser/parser.hpp"
+#line 3135 "boost/parser/parser.hpp"
             auto append_unique = [](auto result, auto x) {
                 using x_type = typename decltype(x)::type;
                 if constexpr (detail::is_nope_v<x_type>) {
@@ -18192,7 +19254,7 @@ namespace boost { namespace parser {
                     detail::hl::first(wrapped_unique_types{}),
                     detail::unwrap{}),
                 detail::hl::second(wrapped_unique_types{})));
-#line 3037 "boost/parser/parser.hpp"
+#line 3164 "boost/parser/parser.hpp"
             using result_t = detail::to_hana_tuple_or_type_t<unwrapped_types>;
 
             result_t retval;
@@ -18335,7 +19397,7 @@ namespace boost { namespace parser {
 
         template<typename... Args>
         constexpr void static_assert_merge_attributes(tuple<Args...> parsers);
-#line 3183 "boost/parser/parser.hpp"
+#line 3310 "boost/parser/parser.hpp"
         template<typename CombiningGroups, typename... Args>
         constexpr auto make_combining(tuple<Args...> parsers)
         {
@@ -18394,6 +19456,17 @@ namespace boost { namespace parser {
         using combined_combining_t = decltype(detail::make_combined_combining(
             std::declval<CombiningGroups1>(),
             std::declval<CombiningGroups2>()));
+
+        enum class merge_kind { second_pass_detect, singleton, merged, group };
+
+        template<merge_kind Kind>
+        struct merge_kind_t
+        {
+            static constexpr merge_kind kind = Kind;
+        };
+
+        template<merge_kind Kind>
+        static constexpr auto merge_wrap = merge_kind_t<Kind>{};
     }
 
     template<
@@ -18412,22 +19485,6 @@ namespace boost { namespace parser {
         static constexpr auto true_ = std::true_type{};
         static constexpr auto false_ = std::false_type{};
 
-        enum class merge_kind
-        {
-            singleton,
-            merged,
-            group
-        };
-
-        template<merge_kind Kind>
-        struct merge_kind_t
-        {
-            static constexpr merge_kind kind = Kind;
-        };
-
-        template<merge_kind Kind>
-        static constexpr auto wrap = merge_kind_t<Kind>{};
-
         struct combine
         {
             template<typename T, typename U>
@@ -18435,6 +19492,8 @@ namespace boost { namespace parser {
                 T result_merging_indices_and_prev_group, U x_and_group) const
             {
                 using namespace literals;
+                using detail::merge_wrap;
+                using detail::merge_kind;
 
                 auto x = parser::get(x_and_group, 0_c);
                 auto group = parser::get(x_and_group, 1_c);
@@ -18463,11 +19522,12 @@ namespace boost { namespace parser {
                         !detail::is_nope_v<result_back_type> &&
                         0 < decltype(group)::value &&
                         decltype(group)::value != decltype(prev_group)::value) {
-#line 3316 "boost/parser/parser.hpp"
+#line 3440 "boost/parser/parser.hpp"
                         return detail::hl::make_tuple(
                             detail::hl::append(result, x),
                             detail::hl::append(
-                                merging, wrap<merge_kind::singleton>),
+                                merging,
+                                merge_wrap<merge_kind::second_pass_detect>),
                             detail::hl::append(
                                 indices, detail::hl::size(result)),
                             group);
@@ -18476,28 +19536,25 @@ namespace boost { namespace parser {
                         return detail::hl::make_tuple(
                             result,
                             detail::hl::append(
-                                merging, wrap<merge_kind::singleton>),
+                                merging,
+                                merge_wrap<merge_kind::second_pass_detect>),
                             detail::hl::append(
                                 indices, detail::hl::size_minus_one(result)),
                             prev_group);
                     }
                 } else if constexpr (detail::is_nope_v<result_back_type>) {
 
+                    constexpr auto merge =
+                        0 < decltype(group)::value
+                            ? merge_kind::group
+                            : (decltype(group)::value == -1
+                                   ? merge_kind::singleton
+                                   : merge_kind::second_pass_detect);
                     return detail::hl::make_tuple(
                         detail::hl::append(detail::hl::drop_back(result), x),
-                        detail::hl::append(
-                            merging, wrap<merge_kind::singleton>),
+                        detail::hl::append(merging, merge_wrap<merge>),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)),
-                        group);
-                } else if constexpr (
-                    decltype(group)::value == -1 ||
-                    decltype(group)::value != decltype(prev_group)::value) {
-                    return detail::hl::make_tuple(
-                        detail::hl::append(result, x),
-                        detail::hl::append(
-                            merging, wrap<merge_kind::singleton>),
-                        detail::hl::append(indices, detail::hl::size(result)),
                         group);
                 } else if constexpr (0 < decltype(group)::value) {
                     if constexpr (
@@ -18505,7 +19562,7 @@ namespace boost { namespace parser {
                         return detail::hl::make_tuple(
                             result,
                             detail::hl::append(
-                                merging, wrap<merge_kind::group>),
+                                merging, merge_wrap<merge_kind::group>),
                             detail::hl::append(
                                 indices, detail::hl::size_minus_one(result)),
                             group);
@@ -18513,11 +19570,22 @@ namespace boost { namespace parser {
                         return detail::hl::make_tuple(
                             detail::hl::append(result, x),
                             detail::hl::append(
-                                merging, wrap<merge_kind::group>),
+                                merging, merge_wrap<merge_kind::group>),
                             detail::hl::append(
                                 indices, detail::hl::size(result)),
                             group);
                     }
+                } else if constexpr (
+                    decltype(group)::value == -1 ||
+                    decltype(group)::value != decltype(prev_group)::value) {
+                    constexpr auto merge = decltype(group)::value == -1
+                                               ? merge_kind::singleton
+                                               : merge_kind::second_pass_detect;
+                    return detail::hl::make_tuple(
+                        detail::hl::append(result, x),
+                        detail::hl::append(merging, merge_wrap<merge>),
+                        detail::hl::append(indices, detail::hl::size(result)),
+                        group);
                 } else if constexpr (
                     detail::is_char_type_v<result_back_type> &&
                     (detail::is_char_type_v<x_type> ||
@@ -18530,8 +19598,8 @@ namespace boost { namespace parser {
                         detail::hl::append(
                             detail::hl::append(
                                 detail::hl::drop_front(merging),
-                                wrap<merge_kind::merged>),
-                            wrap<merge_kind::merged>),
+                                merge_wrap<merge_kind::second_pass_detect>),
+                            merge_wrap<merge_kind::second_pass_detect>),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)),
                         group);
@@ -18545,7 +19613,9 @@ namespace boost { namespace parser {
 
                     return detail::hl::make_tuple(
                         result,
-                        detail::hl::append(merging, wrap<merge_kind::merged>),
+                        detail::hl::append(
+                            merging,
+                            merge_wrap<merge_kind::second_pass_detect>),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)),
                         group);
@@ -18562,8 +19632,8 @@ namespace boost { namespace parser {
                         detail::hl::append(
                             detail::hl::append(
                                 detail::hl::drop_front(merging),
-                                wrap<merge_kind::merged>),
-                            wrap<merge_kind::singleton>),
+                                merge_wrap<merge_kind::second_pass_detect>),
+                            merge_wrap<merge_kind::second_pass_detect>),
                         detail::hl::append(
                             indices, detail::hl::size_minus_one(result)),
                         group);
@@ -18572,9 +19642,53 @@ namespace boost { namespace parser {
                     return detail::hl::make_tuple(
                         detail::hl::append(result, x),
                         detail::hl::append(
-                            merging, wrap<merge_kind::singleton>),
+                            merging, merge_wrap<merge_kind::second_pass_detect>),
                         detail::hl::append(indices, detail::hl::size(result)),
                         group);
+                }
+            }
+        };
+
+        struct find_merged
+        {
+            template<typename T, typename U>
+            auto operator()(
+                T final_types_and_result, U x_index_and_prev_merged) const
+            {
+                using namespace literals;
+                using detail::merge_wrap;
+                using detail::merge_kind;
+
+                auto final_types = parser::get(final_types_and_result, 0_c);
+                auto result = parser::get(final_types_and_result, 1_c);
+
+                auto x_type_wrapper = parser::get(x_index_and_prev_merged, 0_c);
+                auto index = parser::get(x_index_and_prev_merged, 1_c);
+                auto prev_merged = parser::get(x_index_and_prev_merged, 2_c);
+
+                auto type_at_index_wrapper = parser::get(final_types, index);
+                using x_type = typename decltype(x_type_wrapper)::type;
+                using type_at_index =
+                    typename decltype(type_at_index_wrapper)::type;
+                if constexpr (
+                    decltype(prev_merged)::kind ==
+                    merge_kind::second_pass_detect) {
+                    if constexpr (
+                        !std::is_same_v<x_type, type_at_index> &&
+                        container<type_at_index>) {
+                        return detail::hl::make_tuple(
+                            final_types,
+                            detail::hl::append(
+                                result, merge_wrap<merge_kind::merged>));
+                    } else {
+                        return detail::hl::make_tuple(
+                            final_types,
+                            detail::hl::append(
+                                result, merge_wrap<merge_kind::singleton>));
+                    }
+                } else {
+                    return detail::hl::make_tuple(
+                        final_types, detail::hl::append(result, prev_merged));
                 }
             }
         };
@@ -18583,12 +19697,16 @@ namespace boost { namespace parser {
         static constexpr auto
         merging_from_group(integral_constant<long long, I>)
         {
+            using detail::merge_wrap;
+            using detail::merge_kind;
             if constexpr (0 < I)
-                return wrap<merge_kind::group>;
+                return merge_wrap<merge_kind::group>;
+            else if constexpr (I == -1)
+                return merge_wrap<merge_kind::singleton>;
             else
-                return wrap<merge_kind::singleton>;
+                return merge_wrap<merge_kind::second_pass_detect>;
         }
-#line 3444 "boost/parser/parser.hpp"
+#line 3627 "boost/parser/parser.hpp"
         template<
             bool UseCallbacks,
             typename Iter,
@@ -18625,7 +19743,7 @@ namespace boost { namespace parser {
             using combining_groups =
                 detail::combining_t<ParserTuple, CombiningGroups>;
             constexpr auto first_group = detail::hl::front(combining_groups{});
-#line 3484 "boost/parser/parser.hpp"
+#line 3667 "boost/parser/parser.hpp"
             constexpr auto combine_start = detail::hl::make_tuple(
                 detail::hl::make_tuple(detail::hl::front(all_types_wrapped{})),
                 detail::hl::make_tuple(merging_from_group(first_group)),
@@ -18645,9 +19763,19 @@ namespace boost { namespace parser {
                 result_type_wrapped, detail::unwrap{}));
 
             using indices = decltype(parser::get(combined_types{}, 2_c));
+            using first_pass_merged =
+                decltype(parser::get(combined_types{}, 1_c));
+
+            constexpr auto find_merged_start =
+                detail::hl::make_tuple(result_type_wrapped, tuple<>{});
+            using merged = decltype(detail::hl::fold_left(
+                detail::hl::zip(
+                    all_types_wrapped{}, indices{}, first_pass_merged{}),
+                find_merged_start,
+                find_merged{}));
 
             return detail::hl::make_tuple(
-                result_type{}, indices{}, parser::get(combined_types{}, 1_c));
+                result_type{}, indices{}, parser::get(merged{}, 1_c));
         }
 
 
@@ -18747,10 +19875,20 @@ namespace boost { namespace parser {
                 indices;
             std::decay_t<decltype(parser::get(temp_result, llong<2>{}))>
                 merged;
+
+            auto max_ = [](auto result, auto x) {
+                if constexpr (decltype(result)::value < decltype(x)::value) {
+                    return x;
+                } else {
+                    return result;
+                }
+            };
+            using max_index_t =
+                decltype(detail::hl::fold_left(indices, llong<0>{}, max_));
+
             if constexpr (detail::is_optional_v<Attribute>) {
                 typename Attribute::value_type attr;
-                call(
-                    use_cbs, first_, last, context, skip, flags, success, attr);
+                call(use_cbs, first, last, context, skip, flags, success, attr);
                 if (success)
                     detail::assign(retval, std::move(attr));
             } else if constexpr (
@@ -18770,6 +19908,29 @@ namespace boost { namespace parser {
 
                 if (!success || !detail::gen_attrs(flags))
                     detail::assign(retval, Attribute());
+            } else if constexpr (
+                0 < max_index_t::value && detail::is_constructible_from_tuple_v<
+                                              Attribute,
+                                              temp_result_attr_t>) {
+                temp_result_attr_t temp_retval;
+                call_impl(
+                    use_cbs,
+                    first,
+                    last,
+                    context,
+                    skip,
+                    flags,
+                    success,
+                    temp_retval,
+                    indices,
+                    merged);
+
+                if (success && detail::gen_attrs(flags)) {
+                    detail::assign(
+                        retval,
+                        detail::make_from_tuple<Attribute>(
+                            std::move(temp_retval)));
+                }
             } else {
 
                 tuple<Attribute> temp_retval;
@@ -18794,7 +19955,7 @@ namespace boost { namespace parser {
             if (success)
                 first_ = first;
         }
-#line 3658 "boost/parser/parser.hpp"
+#line 3884 "boost/parser/parser.hpp"
         template<
             bool UseCallbacks,
             typename Iter,
@@ -18816,6 +19977,9 @@ namespace boost { namespace parser {
             Indices const & indices,
             Merged const & merged) const
         {
+            using detail::merge_wrap;
+            using detail::merge_kind;
+
             static_assert(
                 detail::is_tuple<Attribute>{} || std::is_aggregate_v<Attribute>,
                 "");
@@ -18913,11 +20077,18 @@ namespace boost { namespace parser {
                         }
                         return;
                     }
-                    if constexpr (out_container) {
+                    using just_x = attr_t;
+                    using just_out = detail::remove_cv_ref_t<decltype(out)>;
+                    if constexpr (
+                        (!out_container ||
+                         !std::is_same_v<just_x, just_out>) &&
+                        std::is_assignable_v<just_out &, just_x &&> &&
+                        (!std::is_same_v<just_out, std::string> ||
+                         !std::is_integral_v<just_x>)) {
+                        detail::assign(out, std::move(x));
+                    } else {
                         detail::move_back(
                             out, std::move(x), detail::gen_attrs(flags));
-                    } else {
-                        detail::assign(out, std::move(x));
                     }
                 }
             };
@@ -18989,7 +20160,7 @@ namespace boost { namespace parser {
                 skip,
                 detail::enable_attrs(flags),
                 success);
-            subrange const where(initial_first, first);
+            boost::parser::subrange const where(initial_first, first);
             if (success) {
                 auto const action_context =
                     detail::make_action_context(context, attr, where);
@@ -19075,7 +20246,7 @@ namespace boost { namespace parser {
             typename Sentinel,
             typename Context,
             typename SkipParser>
-        subrange<Iter> call(
+        boost::parser::subrange<Iter> call(
             std::bool_constant<UseCallbacks> use_cbs,
             Iter & first,
             Sentinel last,
@@ -19084,16 +20255,8 @@ namespace boost { namespace parser {
             detail::flags flags,
             bool & success) const
         {
-            subrange<Iter> retval;
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_attrs(flags),
-                success,
-                retval);
+            boost::parser::subrange<Iter> retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -19126,12 +20289,14 @@ namespace boost { namespace parser {
                 skip,
                 detail::disable_attrs(flags),
                 success);
-            detail::assign(retval, subrange<Iter>(initial_first, first));
+            if (success && detail::gen_attrs(flags))
+                detail::assign(
+                    retval, boost::parser::subrange<Iter>(initial_first, first));
         }
 
         Parser parser_;
     };
-#line 4089 "boost/parser/parser.hpp"
+#line 4314 "boost/parser/parser.hpp"
     template<typename Parser>
     struct lexeme_parser
     {
@@ -19153,15 +20318,7 @@ namespace boost { namespace parser {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
             attr_t retval{};
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_skip(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -19278,15 +20435,7 @@ namespace boost { namespace parser {
             using attr_t = decltype(parser_.call(
                 use_cbs, first, last, context, skip, flags, success));
             attr_t retval{};
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::enable_skip(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -19356,15 +20505,7 @@ namespace boost { namespace parser {
             bool & success) const
         {
             detail::nope retval;
-            call(
-                use_cbs,
-                first,
-                last,
-                context,
-                skip,
-                detail::disable_attrs(flags),
-                success,
-                retval);
+            call(use_cbs, first, last, context, skip, flags, success, retval);
             return retval;
         }
 
@@ -19633,7 +20774,7 @@ namespace boost { namespace parser {
             }
         }
 
-        std::string_view name_;
+        std::string_view diagnostic_text_;
         ParamsTuple params_;
     };
 
@@ -19785,7 +20926,7 @@ namespace boost { namespace parser {
 
 
         constexpr auto operator>(char32_t rhs) const noexcept;
-#line 4750 "boost/parser/parser.hpp"
+#line 4951 "boost/parser/parser.hpp"
         template<
             typename R,
             typename Enable =
@@ -19804,7 +20945,7 @@ namespace boost { namespace parser {
             } else if constexpr (detail::is_or_p<ParserType2>{}) {
                 return rhs.parser_.prepend(*this);
             } else {
-#line 4777 "boost/parser/parser.hpp"
+#line 4978 "boost/parser/parser.hpp"
                 assert(!detail::is_unconditional_eps<parser_type>{});
 
                 return parser::parser_interface{
@@ -19902,7 +21043,7 @@ namespace boost { namespace parser {
             using action_parser_t = action_parser<parser_type, Action>;
             return parser::parser_interface{action_parser_t{parser_, action}};
         }
-#line 4882 "boost/parser/parser.hpp"
+#line 5083 "boost/parser/parser.hpp"
         template<typename Arg, typename... Args>
         constexpr auto operator()(Arg && arg, Args &&... args) const noexcept
             -> decltype(std::declval<parser_type const &>()(
@@ -19989,7 +21130,7 @@ namespace boost { namespace parser {
         return parser_interface<Parser, GlobalState, ErrorHandler &>{
             parser.parser_, parser.globals_, error_handler};
     }
-#line 4977 "boost/parser/parser.hpp"
+#line 5178 "boost/parser/parser.hpp"
     template<typename T>
     struct symbols : parser_interface<symbol_parser<T>>
     {
@@ -20060,7 +21201,10 @@ namespace boost { namespace parser {
             !std::is_same_v<TagType, void>,
             "void is not a valid tag type for a rule.");
 
-        constexpr rule(char const * name) { this->parser_.name_ = name; }
+        constexpr rule(char const * diagnostic_text)
+        {
+            this->parser_.diagnostic_text_ = diagnostic_text;
+        }
 
         template<typename T, typename... Ts>
         constexpr auto with(T && x, Ts &&... xs) const
@@ -20081,7 +21225,7 @@ namespace boost { namespace parser {
                 params_tuple_type>;
             using result_type = parser_interface<rule_parser_type>;
             return result_type{rule_parser_type{
-                this->parser_.name_,
+                this->parser_.diagnostic_text_,
                 detail::hl::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
@@ -20096,9 +21240,9 @@ namespace boost { namespace parser {
         : parser_interface<
               rule_parser<true, TagType, Attribute, LocalState, ParamsTuple>>
     {
-        constexpr callback_rule(char const * name)
+        constexpr callback_rule(char const * diagnostic_text)
         {
-            this->parser_.name_ = name;
+            this->parser_.diagnostic_text_ = diagnostic_text;
         }
 
         template<typename T, typename... Ts>
@@ -20120,18 +21264,18 @@ namespace boost { namespace parser {
                 params_tuple_type>;
             using result_type = parser_interface<rule_parser_type>;
             return result_type{rule_parser_type{
-                this->parser_.name_,
+                this->parser_.diagnostic_text_,
                 detail::hl::make_tuple(
                     static_cast<T &&>(x), static_cast<Ts &&>(xs)...)}};
         }
     };
-#line 5178 "boost/parser/parser.hpp"
+#line 5377 "boost/parser/parser.hpp"
     template<typename ParserTuple>
     template<typename Parser>
     constexpr auto or_parser<ParserTuple>::prepend(
         parser_interface<Parser> parser) const noexcept
     {
-#line 5192 "boost/parser/parser.hpp"
+#line 5391 "boost/parser/parser.hpp"
         assert(!detail::is_unconditional_eps<Parser>{});
         return parser_interface{
             or_parser<decltype(detail::hl::prepend(parsers_, parser.parser_))>{
@@ -20143,7 +21287,7 @@ namespace boost { namespace parser {
     constexpr auto or_parser<ParserTuple>::append(
         parser_interface<Parser> parser) const noexcept
     {
-#line 5212 "boost/parser/parser.hpp"
+#line 5411 "boost/parser/parser.hpp"
         assert(!detail::is_unconditional_eps_v<decltype(
                                 detail::hl::back(parsers_))>);
 
@@ -20222,7 +21366,7 @@ namespace boost { namespace parser {
                 parser_t{detail::hl::append(parsers_, parser.parser_)}};
         }
     }
-#line 5298 "boost/parser/parser.hpp"
+#line 5497 "boost/parser/parser.hpp"
     template<template<class> class Parser>
     struct directive
     {
@@ -20242,7 +21386,7 @@ namespace boost { namespace parser {
 
 
     inline constexpr directive<raw_parser> raw;
-#line 5328 "boost/parser/parser.hpp"
+#line 5527 "boost/parser/parser.hpp"
     inline constexpr directive<lexeme_parser> lexeme;
 
 
@@ -20344,7 +21488,7 @@ namespace boost { namespace parser {
                     rhs.parser_.parsers_}};
         }
     };
-#line 5434 "boost/parser/parser.hpp"
+#line 5633 "boost/parser/parser.hpp"
     inline constexpr merge_directive merge;
 
 
@@ -20366,7 +21510,7 @@ namespace boost { namespace parser {
                     rhs.parser_.parsers_}};
         }
     };
-#line 5462 "boost/parser/parser.hpp"
+#line 5661 "boost/parser/parser.hpp"
     inline constexpr separate_directive separate;
 
 
@@ -20392,10 +21536,10 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, detail::global_nope);
-            subrange const where(first, first);
+            boost::parser::subrange const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
-#line 5494 "boost/parser/parser.hpp"
+#line 5693 "boost/parser/parser.hpp"
             success = pred_(predicate_context);
             return {};
         }
@@ -20419,10 +21563,10 @@ namespace boost { namespace parser {
         {
             auto _ = detail::scoped_trace(
                 *this, first, last, context, flags, retval);
-            subrange const where(first, first);
+            boost::parser::subrange const where(first, first);
             auto const predicate_context = detail::make_action_context(
                 context, detail::global_nope, where);
-#line 5524 "boost/parser/parser.hpp"
+#line 5723 "boost/parser/parser.hpp"
             success = pred_(predicate_context);
         }
 
@@ -20620,7 +21764,7 @@ namespace boost { namespace parser {
             detail::assign(retval, x);
             ++first;
         }
-#line 5727 "boost/parser/parser.hpp"
+#line 5926 "boost/parser/parser.hpp"
         template<
             typename T,
             typename Enable =
@@ -20655,7 +21799,7 @@ namespace boost { namespace parser {
             return parser_interface(
                 char_parser_t(char_pair_t{std::move(lo), std::move(hi)}));
         }
-#line 5769 "boost/parser/parser.hpp"
+#line 5966 "boost/parser/parser.hpp"
         template<
             typename R,
             typename Enable =
@@ -20679,7 +21823,38 @@ namespace boost { namespace parser {
 
 
 
-            auto chars = detail::make_char_range(r);
+            auto chars = detail::make_char_range<false>(r);
+            using char_range_t = decltype(chars);
+            using char_parser_t = char_parser<char_range_t, AttributeType>;
+            return parser_interface(char_parser_t(chars));
+        }
+#line 5999 "boost/parser/parser.hpp"
+        template<
+            typename R,
+            typename Enable = std::enable_if_t<
+                detail::is_parsable_range_like_v<R> &&
+                std::is_same_v<detail::range_value_t<R>, char32_t>>>
+
+        constexpr auto operator()(sorted_t, R && r) const noexcept
+
+        {
+            assert(((!std::is_rvalue_reference_v<R &&> ||
+                  !detail::is_range<detail::remove_cv_ref_t<R>>) &&
+                     "It looks like you tried to pass an rvalue range to "
+                     "char_().  Don't do that, or you'll end up with dangling "
+                     "references."));
+
+
+
+
+
+            assert((detail::is_nope_v<Expected> &&
+                 "If you're seeing this, you tried to chain calls on char_, "
+                 "like 'char_(char-set)(char-set)'.  Quit it!'"));
+
+
+
+            auto chars = detail::make_char_range<true>(r);
             using char_range_t = decltype(chars);
             using char_parser_t = char_parser<char_range_t, AttributeType>;
             return parser_interface(char_parser_t(chars));
@@ -20687,16 +21862,314 @@ namespace boost { namespace parser {
 
         Expected expected_;
     };
-#line 5801 "boost/parser/parser.hpp"
+
+    struct digit_parser
+    {
+        constexpr digit_parser() {}
+
+        template<typename T>
+        using attribute_t = std::decay_t<T>;
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const -> attribute_t<decltype(*first)>
+        {
+            attribute_t<decltype(*first)> retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            if (first == last) {
+                success = false;
+                return;
+            }
+            attribute_t<decltype(*first)> const x = *first;
+            char32_t const x_cmp = x;
+            if (x_cmp < U'\x0100' && (x_cmp < U'0' || U'9' < x_cmp)) {
+                success = false;
+                return;
+            }
+            char32_t const * it = std::upper_bound(
+                std::begin(zero_cps) + 1, std::end(zero_cps), x);
+            if (it == std::begin(zero_cps) || x_cmp < *(it - 1) ||
+                *(it - 1) + 9 < x_cmp) {
+                success = false;
+                return;
+            }
+            detail::assign(retval, x);
+            ++first;
+        }
+#line 6098 "boost/parser/parser.hpp"
+        static constexpr char32_t zero_cps[] = {
+            U'\u0030',
+            U'\u0660',
+            U'\u06F0',
+            U'\u07C0',
+            U'\u0966',
+            U'\u09E6',
+            U'\u0A66',
+            U'\u0AE6',
+            U'\u0B66',
+            U'\u0BE6',
+            U'\u0C66',
+            U'\u0CE6',
+            U'\u0D66',
+            U'\u0DE6',
+            U'\u0E50',
+            U'\u0ED0',
+            U'\u0F20',
+            U'\u1040',
+            U'\u1090',
+            U'\u17E0',
+            U'\u1810',
+            U'\u1946',
+            U'\u19D0',
+            U'\u1A80',
+            U'\u1A90',
+            U'\u1B50',
+            U'\u1BB0',
+            U'\u1C40',
+            U'\u1C50',
+            U'\uA620',
+            U'\uA8D0',
+            U'\uA900',
+            U'\uA9D0',
+            U'\uA9F0',
+            U'\uAA50',
+            U'\uABF0',
+            U'\uFF10',
+            U'\U000104A0',
+            U'\U00010D30',
+            U'\U00011066',
+            U'\U000110F0',
+            U'\U00011136',
+            U'\U000111D0',
+            U'\U000112F0',
+            U'\U00011450',
+            U'\U000114D0',
+            U'\U00011650',
+            U'\U000116C0',
+            U'\U00011730',
+            U'\U000118E0',
+            U'\U00011950',
+            U'\U00011C50',
+            U'\U00011D50',
+            U'\U00011DA0',
+            U'\U00011F50',
+            U'\U00016A60',
+            U'\U00016AC0',
+            U'\U00016B50',
+            U'\U0001D7CE',
+            U'\U0001D7D8',
+            U'\U0001D7E2',
+            U'\U0001D7EC',
+            U'\U0001D7F6',
+            U'\U0001E140',
+            U'\U0001E2F0',
+            U'\U0001E4F0',
+            U'\U0001E950',
+            U'\U0001FBF0'
+        };
+    };
+
+    template<typename Tag>
+    struct char_set_parser
+    {
+         char_set_parser()
+        {
+            auto const & chars = detail::char_set<Tag>::chars;
+            auto const first = std::begin(chars);
+            auto const last = std::end(chars);
+            auto it = std::upper_bound(first, last, 0x100);
+            if (it != last)
+                one_byte_offset_ = it - first;
+        }
+
+        template<typename T>
+        using attribute_t = std::decay_t<T>;
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const -> attribute_t<decltype(*first)>
+        {
+            attribute_t<decltype(*first)> retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            if (first == last) {
+                success = false;
+                return;
+            }
+
+            auto const & chars = detail::char_set<Tag>::chars;
+            attribute_t<decltype(*first)> const x = *first;
+            uint32_t const x_cmp = x;
+            if (x_cmp < U'\x0100') {
+                uint32_t const * it = std::lower_bound(
+                    std::begin(chars),
+                    std::begin(chars) + one_byte_offset_,
+                    x_cmp);
+                if (it != std::end(chars) && *it == x_cmp) {
+                    detail::assign(retval, x_cmp);
+                    ++first;
+                } else {
+                    success = false;
+                }
+                return;
+            }
+
+            uint32_t const * it = std::lower_bound(
+                std::begin(chars) + one_byte_offset_, std::end(chars), x_cmp);
+            if (it != std::end(chars) && *it == x_cmp) {
+                detail::assign(retval, x_cmp);
+                ++first;
+                return;
+            }
+
+            success = false;
+        }
+
+        int one_byte_offset_ = 0;
+    };
+
+    template<typename Tag>
+    struct char_subrange_parser
+    {
+        constexpr char_subrange_parser() {}
+
+        template<typename T>
+        using attribute_t = std::decay_t<T>;
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser>
+        auto call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success) const -> attribute_t<decltype(*first)>
+        {
+            attribute_t<decltype(*first)> retval;
+            call(use_cbs, first, last, context, skip, flags, success, retval);
+            return retval;
+        }
+
+        template<
+            bool UseCallbacks,
+            typename Iter,
+            typename Sentinel,
+            typename Context,
+            typename SkipParser,
+            typename Attribute>
+        void call(
+            std::bool_constant<UseCallbacks> use_cbs,
+            Iter & first,
+            Sentinel last,
+            Context const & context,
+            SkipParser const & skip,
+            detail::flags flags,
+            bool & success,
+            Attribute & retval) const
+        {
+            auto _ = detail::scoped_trace(
+                *this, first, last, context, flags, retval);
+
+            if (first == last) {
+                success = false;
+                return;
+            }
+            attribute_t<decltype(*first)> const x = *first;
+            char32_t const x_cmp = x;
+            success = false;
+            for (auto subrange : detail::char_subranges<Tag>::ranges) {
+                if (subrange.lo_ <= x_cmp && x_cmp <= subrange.hi_) {
+                    success = true;
+                    detail::assign(retval, x);
+                    ++first;
+                    return;
+                }
+            }
+        }
+    };
+#line 6334 "boost/parser/parser.hpp"
     inline constexpr parser_interface<char_parser<detail::nope>> char_;
-#line 5809 "boost/parser/parser.hpp"
+#line 6342 "boost/parser/parser.hpp"
     inline constexpr parser_interface<char_parser<detail::nope, char32_t>> cp;
-#line 5817 "boost/parser/parser.hpp"
+#line 6350 "boost/parser/parser.hpp"
     inline constexpr parser_interface<char_parser<detail::nope, char>> cu;
 
 
     inline constexpr auto lit(char c) noexcept { return omit[char_(c)]; }
-#line 5828 "boost/parser/parser.hpp"
+#line 6361 "boost/parser/parser.hpp"
     inline constexpr auto lit(char32_t c) noexcept { return omit[char_(c)]; }
 
     template<typename StrIter, typename StrSentinel>
@@ -20765,9 +22238,9 @@ namespace boost { namespace parser {
             if constexpr (std::is_same_v<
                               detail::remove_cv_ref_t<decltype(*first)>,
                               char32_t>) {
-                auto const cps = boost::parser::subrange(
-                                     expected_first_, expected_last_) |
-                                 detail::text::as_utf32;
+                auto const cps =
+                    boost::parser::subrange(expected_first_, expected_last_) |
+                    detail::text::as_utf32;
 
                 auto const mismatch = detail::no_case_aware_string_mismatch(
                     first,
@@ -20839,10 +22312,12 @@ namespace boost { namespace parser {
         return omit[parser::string(str)];
     }
 
-    template<bool NewlinesOnly>
+    template<bool NewlinesOnly, bool NoNewlines>
     struct ws_parser
     {
         constexpr ws_parser() {}
+
+        static_assert(!NewlinesOnly || !NoNewlines);
 
         template<
             bool UseCallbacks,
@@ -20906,6 +22381,22 @@ namespace boost { namespace parser {
                     return;
                 }
                 success = false;
+            } else if constexpr (NoNewlines) {
+                if (x == 0x0020) {
+                    ++first;
+                    return;
+                }
+                if (x == 0x0009) {
+                    ++first;
+                    return;
+                }
+                if (x == 0x00a0 || x == 0x1680 ||
+                    (0x2000 <= x && x <= 0x200a) || x == 0x202F ||
+                    x == 0x205F || x == 0x3000) {
+                    ++first;
+                    return;
+                }
+                success = false;
             } else {
                 if (x == 0x0020 || x == 0x000a) {
                     ++first;
@@ -20935,76 +22426,57 @@ namespace boost { namespace parser {
 
 
 
-    inline constexpr parser_interface<ws_parser<true>> eol;
+    inline constexpr parser_interface<ws_parser<true, false>> eol;
 
 
 
 
 
-    inline constexpr parser_interface<ws_parser<false>> ws;
-
-    namespace ascii {
+    inline constexpr parser_interface<ws_parser<false, false>> ws;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::alnum>>>
-            alnum;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::alpha>>>
-            alpha;
+
+    inline constexpr parser_interface<ws_parser<false, true>> blank;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::blank>>>
-            blank;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::cntrl>>>
-            cntrl;
+
+    inline constexpr parser_interface<digit_parser> digit;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::digit>>>
-            digit;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::graph>>>
-            graph;
+    inline constexpr parser_interface<
+        char_subrange_parser<detail::hex_digit_subranges>>
+        hex_digit;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::print>>>
-            print;
+
+    inline constexpr parser_interface<
+        char_subrange_parser<detail::control_subranges>>
+        control;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::punct>>>
+
+
+    inline
+        parser_interface<char_set_parser<detail::punct_chars>>
             punct;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::space>>>
-            space;
 
-
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::xdigit>>>
-            xdigit;
-
-
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::lower>>>
+    inline
+        parser_interface<char_set_parser<detail::lower_case_chars>>
             lower;
 
 
-        inline constexpr parser_interface<char_parser<
-            detail::ascii_char_class<detail::ascii_char_class_t::upper>>>
+
+    inline
+        parser_interface<char_set_parser<detail::upper_case_chars>>
             upper;
-    }
 
     struct bool_parser
     {
@@ -21505,7 +22977,7 @@ namespace boost { namespace parser {
         SwitchValue switch_value_;
         OrParser or_parser_;
     };
-#line 6635 "boost/parser/parser.hpp"
+#line 7167 "boost/parser/parser.hpp"
     template<typename T>
     constexpr auto switch_(T x) noexcept
     {
@@ -22201,7 +23673,7 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        os << parser.name_;
+        os << parser.diagnostic_text_;
         if constexpr (!is_nope_v<ParamsTuple>) {
             os << ".with(";
             int i = 0;
@@ -22329,13 +23801,13 @@ namespace boost { namespace parser { namespace detail {
         }
     };
 
-    template<typename Context, typename Iter, typename Sentinel>
-    struct char_print_parser_impl<Context, char_range<Iter, Sentinel>>
+    template<typename Context, typename Iter, typename Sentinel, bool B>
+    struct char_print_parser_impl<Context, char_range<Iter, Sentinel, B>>
     {
         static void call(
             Context const & context,
             std::ostream & os,
-            char_range<Iter, Sentinel> expected)
+            char_range<Iter, Sentinel, B> expected)
         {
             os << "\"";
             auto const r = expected.chars_ | text::as_utf8;
@@ -22353,68 +23825,78 @@ namespace boost { namespace parser { namespace detail {
         std::ostream & os,
         int components)
     {
-        if (std::is_same_v<
-                Expected,
-                ascii_char_class<ascii_char_class_t::alnum>>) {
-            os << "ascii::alnum";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::alpha>>) {
-            os << "ascii::alpha";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::blank>>) {
-            os << "ascii::blank";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::cntrl>>) {
-            os << "ascii::cntrl";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::digit>>) {
-            os << "ascii::digit";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::graph>>) {
-            os << "ascii::graph";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::print>>) {
-            os << "ascii::print";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::punct>>) {
-            os << "ascii::punct";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::space>>) {
-            os << "ascii::space";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::xdigit>>) {
-            os << "ascii::xdigit";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::lower>>) {
-            os << "ascii::lower";
-        } else if (std::is_same_v<
-                       Expected,
-                       ascii_char_class<ascii_char_class_t::upper>>) {
-            os << "ascii::upper";
-        } else {
-            if (std::is_same_v<AttributeType, uint32_t>)
-                os << "cp";
-            else if (std::is_same_v<AttributeType, char>)
-                os << "cu";
-            else
-                os << "char_";
-            if constexpr (!is_nope_v<Expected>) {
-                os << "(";
-                char_print_parser_impl<Context, Expected>::call(
-                    context, os, parser.expected_);
-                os << ")";
-            }
+        if (std::is_same_v<AttributeType, uint32_t>)
+            os << "cp";
+        else if (std::is_same_v<AttributeType, char>)
+            os << "cu";
+        else
+            os << "char_";
+        if constexpr (!is_nope_v<Expected>) {
+            os << "(";
+            char_print_parser_impl<Context, Expected>::call(
+                context, os, parser.expected_);
+            os << ")";
         }
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        digit_parser const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "digit";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_subrange_parser<hex_digit_subranges> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "hex_digit";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_subrange_parser<control_subranges> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "control";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<punct_chars> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "punct";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<lower_case_chars> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "lower";
+    }
+
+    template<typename Context>
+    void print_parser(
+        Context const & context,
+        char_set_parser<upper_case_chars> const & parser,
+        std::ostream & os,
+        int components)
+    {
+        os << "upper";
     }
 
     template<typename Context, typename Expected, typename AttributeType>
@@ -22465,24 +23947,19 @@ namespace boost { namespace parser { namespace detail {
         os << "\"";
     }
 
-    template<typename Context>
+    template<typename Context, bool NewlinesOnly, bool NoNewlines>
     void print_parser(
         Context const & context,
-        ws_parser<true> const & parser,
+        ws_parser<NewlinesOnly, NoNewlines> const & parser,
         std::ostream & os,
         int components)
     {
-        os << "eol";
-    }
-
-    template<typename Context>
-    void print_parser(
-        Context const & context,
-        ws_parser<false> const & parser,
-        std::ostream & os,
-        int components)
-    {
-        os << "ws";
+        if constexpr (NoNewlines)
+            os << "blank";
+        else if constexpr (NewlinesOnly)
+            os << "eol";
+        else
+            os << "ws";
     }
 
     template<typename Context>
@@ -22696,13 +24173,13 @@ namespace boost { namespace parser { namespace detail {
     }
 
 }}}
-#line 6987 "boost/parser/parser.hpp"
+#line 7519 "boost/parser/parser.hpp"
 namespace boost { namespace parser {
 
 
 
-    enum class trace { on, off };
-#line 7008 "boost/parser/parser.hpp"
+    enum class trace { off, on };
+#line 7540 "boost/parser/parser.hpp"
     template<
         typename I,
         typename S,
@@ -22721,6 +24198,7 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
+        detail::attr_reset reset(attr);
         if constexpr (!detail::is_char8_iter_v<I>) {
             static_assert(
                 decltype(detail::has_attribute(first, last, parser)){},
@@ -22728,15 +24206,15 @@ namespace boost { namespace parser {
                 "fill in attr above, using the attribute generated by parser. "
                 "However, parser does not generate an attribute.");
             if (trace_mode == trace::on) {
-                return detail::parse_impl<true>(
-                    first, last, parser, parser.error_handler_, attr);
+                return reset = detail::parse_impl<true>(
+                           first, last, parser, parser.error_handler_, attr);
             } else {
-                return detail::parse_impl<false>(
-                    first, last, parser, parser.error_handler_, attr);
+                return reset = detail::parse_impl<false>(
+                           first, last, parser, parser.error_handler_, attr);
             }
         } else {
-            auto r = boost::parser::subrange(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                boost::parser::subrange(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -22746,15 +24224,15 @@ namespace boost { namespace parser {
                 "fill in attr above, using the attribute generated by parser. "
                 "However, parser does not generate an attribute.");
             if (trace_mode == trace::on) {
-                return detail::parse_impl<true>(
-                    f, l, parser, parser.error_handler_, attr);
+                return reset = detail::parse_impl<true>(
+                           f, l, parser, parser.error_handler_, attr);
             } else {
-                return detail::parse_impl<false>(
-                    f, l, parser, parser.error_handler_, attr);
+                return reset = detail::parse_impl<false>(
+                           f, l, parser, parser.error_handler_, attr);
             }
         }
     }
-#line 7074 "boost/parser/parser.hpp"
+#line 7607 "boost/parser/parser.hpp"
     template<
         typename R,
         typename Parser,
@@ -22769,17 +24247,18 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Attr & attr,
         trace trace_mode = trace::off)
-#line 7097 "boost/parser/parser.hpp"
+#line 7630 "boost/parser/parser.hpp"
     {
+        detail::attr_reset reset(attr);
         auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
-        return detail::if_full_parse(
-            first,
-            last,
-            parser::prefix_parse(first, last, parser, attr, trace_mode));
+        return reset = detail::if_full_parse(
+                   first,
+                   last,
+                   parser::prefix_parse(first, last, parser, attr, trace_mode));
     }
-#line 7119 "boost/parser/parser.hpp"
+#line 7653 "boost/parser/parser.hpp"
     template<
         typename I,
         typename S,
@@ -22805,8 +24284,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_);
             }
         } else {
-            auto r = boost::parser::subrange(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                boost::parser::subrange(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -22819,7 +24298,7 @@ namespace boost { namespace parser {
             }
         }
     }
-#line 7171 "boost/parser/parser.hpp"
+#line 7705 "boost/parser/parser.hpp"
     template<
         typename R,
         typename Parser,
@@ -22831,7 +24310,7 @@ namespace boost { namespace parser {
         R const & r,
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         trace trace_mode = trace::off)
-#line 7191 "boost/parser/parser.hpp"
+#line 7725 "boost/parser/parser.hpp"
     {
         auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
@@ -22839,7 +24318,7 @@ namespace boost { namespace parser {
         return detail::if_full_parse(
             first, last, parser::prefix_parse(first, last, parser, trace_mode));
     }
-#line 7215 "boost/parser/parser.hpp"
+#line 7749 "boost/parser/parser.hpp"
     template<
         typename I,
         typename S,
@@ -22860,6 +24339,7 @@ namespace boost { namespace parser {
         Attr & attr,
         trace trace_mode = trace::off)
     {
+        detail::attr_reset reset(attr);
         if constexpr (!detail::is_char8_iter_v<I>) {
             static_assert(
                 decltype(detail::has_attribute(first, last, parser)){},
@@ -22867,15 +24347,25 @@ namespace boost { namespace parser {
                 "fill in attr above, using the attribute generated by parser. "
                 "However, parser does not generate an attribute.");
             if (trace_mode == trace::on) {
-                return detail::skip_parse_impl<true>(
-                    first, last, parser, skip, parser.error_handler_, attr);
+                return reset = detail::skip_parse_impl<true>(
+                           first,
+                           last,
+                           parser,
+                           skip,
+                           parser.error_handler_,
+                           attr);
             } else {
-                return detail::skip_parse_impl<false>(
-                    first, last, parser, skip, parser.error_handler_, attr);
+                return reset = detail::skip_parse_impl<false>(
+                           first,
+                           last,
+                           parser,
+                           skip,
+                           parser.error_handler_,
+                           attr);
             }
         } else {
-            auto r = boost::parser::subrange(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                boost::parser::subrange(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -22885,15 +24375,15 @@ namespace boost { namespace parser {
                 "fill in attr above, using the attribute generated by parser. "
                 "However, parser does not generate an attribute.");
             if (trace_mode == trace::on) {
-                return detail::skip_parse_impl<true>(
-                    f, l, parser, skip, parser.error_handler_, attr);
+                return reset = detail::skip_parse_impl<true>(
+                           f, l, parser, skip, parser.error_handler_, attr);
             } else {
-                return detail::skip_parse_impl<false>(
-                    f, l, parser, skip, parser.error_handler_, attr);
+                return reset = detail::skip_parse_impl<false>(
+                           f, l, parser, skip, parser.error_handler_, attr);
             }
         }
     }
-#line 7285 "boost/parser/parser.hpp"
+#line 7830 "boost/parser/parser.hpp"
     template<
         typename R,
         typename Parser,
@@ -22909,17 +24399,19 @@ namespace boost { namespace parser {
         parser_interface<SkipParser> const & skip,
         Attr & attr,
         trace trace_mode = trace::off)
-#line 7309 "boost/parser/parser.hpp"
+#line 7854 "boost/parser/parser.hpp"
     {
+        detail::attr_reset reset(attr);
         auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
         auto const last = r_.end();
-        return detail::if_full_parse(
-            first,
-            last,
-            parser::prefix_parse(first, last, parser, skip, attr, trace_mode));
+        return reset = detail::if_full_parse(
+                   first,
+                   last,
+                   parser::prefix_parse(
+                       first, last, parser, skip, attr, trace_mode));
     }
-#line 7334 "boost/parser/parser.hpp"
+#line 7881 "boost/parser/parser.hpp"
     template<
         typename I,
         typename S,
@@ -22947,8 +24439,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = boost::parser::subrange(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                boost::parser::subrange(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -22961,7 +24453,7 @@ namespace boost { namespace parser {
             }
         }
     }
-#line 7390 "boost/parser/parser.hpp"
+#line 7937 "boost/parser/parser.hpp"
     template<
         typename I,
         typename S,
@@ -22992,8 +24484,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = boost::parser::subrange(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                boost::parser::subrange(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -23006,7 +24498,7 @@ namespace boost { namespace parser {
             }
         }
     }
-#line 7447 "boost/parser/parser.hpp"
+#line 7994 "boost/parser/parser.hpp"
     template<
         typename I,
         typename S,
@@ -23037,8 +24529,8 @@ namespace boost { namespace parser {
                     first, last, parser, skip, parser.error_handler_);
             }
         } else {
-            auto r = boost::parser::subrange(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                boost::parser::subrange(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -23051,7 +24543,7 @@ namespace boost { namespace parser {
             }
         }
     }
-#line 7509 "boost/parser/parser.hpp"
+#line 8056 "boost/parser/parser.hpp"
     template<
         typename R,
         typename Parser,
@@ -23065,7 +24557,7 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         parser_interface<SkipParser> const & skip,
         trace trace_mode = trace::off)
-#line 7531 "boost/parser/parser.hpp"
+#line 8078 "boost/parser/parser.hpp"
     {
         auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
@@ -23075,7 +24567,7 @@ namespace boost { namespace parser {
             last,
             parser::prefix_parse(first, last, parser, skip, trace_mode));
     }
-#line 7554 "boost/parser/parser.hpp"
+#line 8101 "boost/parser/parser.hpp"
     template<
         typename R,
         typename Parser,
@@ -23092,7 +24584,7 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
         trace trace_mode = trace::off)
-#line 7579 "boost/parser/parser.hpp"
+#line 8126 "boost/parser/parser.hpp"
     {
         auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
@@ -23102,7 +24594,7 @@ namespace boost { namespace parser {
             last,
             parser::prefix_parse(first, last, parser, skip, trace_mode));
     }
-#line 7600 "boost/parser/parser.hpp"
+#line 8147 "boost/parser/parser.hpp"
     template<
         typename R,
         typename Parser,
@@ -23119,7 +24611,7 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         callback_rule<TagType, Attribute, LocalState, ParamsTuple> const & skip,
         trace trace_mode = trace::off)
-#line 7625 "boost/parser/parser.hpp"
+#line 8172 "boost/parser/parser.hpp"
     {
         auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
@@ -23129,7 +24621,7 @@ namespace boost { namespace parser {
             last,
             parser::prefix_parse(first, last, parser, skip, trace_mode));
     }
-#line 7656 "boost/parser/parser.hpp"
+#line 8203 "boost/parser/parser.hpp"
     template<
         typename I,
         typename S,
@@ -23157,8 +24649,8 @@ namespace boost { namespace parser {
                     first, last, parser, parser.error_handler_, callbacks);
             }
         } else {
-            auto r = boost::parser::subrange(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                boost::parser::subrange(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -23171,7 +24663,7 @@ namespace boost { namespace parser {
             }
         }
     }
-#line 7717 "boost/parser/parser.hpp"
+#line 8264 "boost/parser/parser.hpp"
     template<
         typename R,
         typename Parser,
@@ -23185,7 +24677,7 @@ namespace boost { namespace parser {
         parser_interface<Parser, GlobalState, ErrorHandler> const & parser,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
-#line 7739 "boost/parser/parser.hpp"
+#line 8286 "boost/parser/parser.hpp"
     {
         auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
@@ -23195,7 +24687,7 @@ namespace boost { namespace parser {
             last,
             parser::callback_prefix_parse(first, last, parser, callbacks));
     }
-#line 7770 "boost/parser/parser.hpp"
+#line 8317 "boost/parser/parser.hpp"
     template<
         typename I,
         typename S,
@@ -23235,8 +24727,8 @@ namespace boost { namespace parser {
                     callbacks);
             }
         } else {
-            auto r = boost::parser::subrange(first, last) |
-                     detail::text::as_utf32;
+            auto r =
+                boost::parser::subrange(first, last) | detail::text::as_utf32;
             auto f = r.begin();
             auto const l = r.end();
             auto _ = detail::scoped_base_assign(first, f);
@@ -23249,7 +24741,7 @@ namespace boost { namespace parser {
             }
         }
     }
-#line 7845 "boost/parser/parser.hpp"
+#line 8392 "boost/parser/parser.hpp"
     template<
         typename R,
         typename Parser,
@@ -23265,7 +24757,7 @@ namespace boost { namespace parser {
         parser_interface<SkipParser> const & skip,
         Callbacks const & callbacks,
         trace trace_mode = trace::off)
-#line 7869 "boost/parser/parser.hpp"
+#line 8416 "boost/parser/parser.hpp"
     {
         auto r_ = detail::make_input_subrange(r);
         auto first = r_.begin();
@@ -23291,7 +24783,7 @@ namespace boost { namespace parser {
         {
             return parser::lit(str);
         }
-#line 7902 "boost/parser/parser.hpp"
+#line 8449 "boost/parser/parser.hpp"
         constexpr auto operator""_l(char32_t const * str, std::size_t)
         {
             return parser::lit(str);
@@ -23310,7 +24802,7 @@ namespace boost { namespace parser {
         {
             return parser::string(str);
         }
-#line 7928 "boost/parser/parser.hpp"
+#line 8475 "boost/parser/parser.hpp"
         constexpr auto operator""_p(char32_t const * str, std::size_t)
         {
             return parser::string(str);
@@ -23328,7 +24820,7 @@ namespace boost { namespace parser {
                 char const *,
                 char const *,
                 default_error_handler>;
-            using skipper_t = parser_interface<ws_parser<false>>;
+            using skipper_t = parser_interface<ws_parser<false, false>>;
             using use_parser_t = dummy_use_parser_t<
                 false,
                 char const *,
