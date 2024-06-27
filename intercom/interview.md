@@ -1,10 +1,12 @@
 
-Meeting ID: 278 289 478 396 
+Meeting ID: 213 211 513 501 
 
-Passcode: aCEpfU 
+Passcode: XMWbnu 
 
 
-https://teams.microsoft.com/l/meetup-join/19%3ameeting_YTEwNTMzYzUtNTczYy00OWE2LTljNzAtZTFhY2FjOGEyYzNk%40thread.v2/0?context=%7b%22Tid%22%3a%2203ceccf2-fe27-4c66-abdb-699141848e61%22%2c%22Oid%22%3a%22eb3ac1f1-ac6e-42d6-9046-5eaf06fc1baa%22%7d
+
+[https://teams.microsoft.com/l/meetup-join/19%3ameeting_YTEwNTMzYzUtNTczYy00OWE2LTljNzAtZTFhY2FjOGEyYzNk%40thread.v2/0?context=%7b%22Tid%22%3a%2203ceccf2-fe27-4c66-abdb-699141848e61%22%2c%22Oid%22%3a%22eb3ac1f1-ac6e-42d6-9046-5eaf06fc1baa%22%7d](https://teams.microsoft.com/l/meetup-join/19%3ameeting_MDJmOTcwODMtMGUzYS00OTBlLTg1MmMtM2ZhZTViMmYwNjFl%40thread.v2/0?context=%7b%22Tid%22%3a%2203ceccf2-fe27-4c66-abdb-699141848e61%22%2c%22Oid%22%3a%22eb3ac1f1-ac6e-42d6-9046-5eaf06fc1baa%22%7d)
+
 
 https://www.microsoft.com/microsoft-teams/join-a-meeting
 
