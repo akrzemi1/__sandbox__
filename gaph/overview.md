@@ -28,7 +28,7 @@ Concept `graph::index_adjacency_list` requires a number of things from a graph r
 | `G`    | the type of the graph representation   |
 | `g`    | lvalue or lvalue reference of type `G` |
 
-### Random access to edges
+### Random access to vertices
 
 Expression `graph::vertices(g)` must be valid and return an object of type satisfying type-requirements `std::ranges::sized_range` and `std::ranges::random_access_range`. We will use this return type to define two type aliases:
 
@@ -37,7 +37,11 @@ Expression `graph::vertices(g)` must be valid and return an object of type satis
    * `graph::vertex_t<G>` as `std::ranges::range_value_t<graph::vertex_range_t<G>>`,
    * `graph::vertex_reference_t<G>` as `std::ranges::range_reference_t<graph::vertex_range_t<G>>`.
 
-`graph::vertices` is a _Customization Point Object_ (CPO).
+`graph::vertices` is a _Customization Point Object_ (CPO). In order to make it valid for your type `G` you have to do one of the following:
+
+ * provide member function `g.vertices()`,
+ * provide an ADL-discoverable free function `vertices(g)`,
+ * make `G` a `std::ranges::random_access_range`.
 
 
 ------
