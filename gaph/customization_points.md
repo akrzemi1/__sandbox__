@@ -17,3 +17,56 @@ It is defined as follows:
 
 If `g` satisfies more than one criteria from the list above, the first one, in the order presented above, is chosen.
 If `g` satisfies none of the above criteria, the CPO `vertices(g)` is considered invald for `g`.
+
+### `vertex_id(g, ui)`
+
+### `find_vertex(g, uid)`
+
+### `edges(g, u)`
+
+### `edges(g, uid)`
+
+### `num_edges(g)`
+
+### `target_id(g, uv)`
+
+### `target_id(e)`
+
+### `source_id(g, uv)`
+
+### `source_id(e)`
+
+### `target(g, uv)`
+
+### `source(g, uv)`
+
+### `find_vertex_edge(g, u, vid)`
+
+### `find_vertex_edge(g, uid, vid)`
+
+### `contains_edge(g, uid, vid)`
+
+### `partition_id(g, u)`
+
+### `partition_id(g, uid)`
+
+### `num_vertices(g, pid)`
+
+### `num_vertices(g)`
+
+### `degree(g, u)`
+
+### `degree(g, uid)`
+
+### `vertex_value(g, u)`
+
+### `edge_value(g, uv)`
+
+### `edge_value(e)`
+
+### `graph_value(g)`
+
+### `num_partitions(g)`
+
+### `has_edge(g)`
+
