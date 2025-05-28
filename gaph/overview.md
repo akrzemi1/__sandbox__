@@ -79,7 +79,7 @@ The following customization point has to be valid:
 Its values will be used to perform the look-up back in `graph::vertices(g)`. 
 Therefore we have a _semantic_ constraints that the look up of the value returned from `graph::target_id(g, uv)` returns value other than `std::ranges::end(graph::vertices(g))`.
 
-AK: Why don't we require the type to be `vertex_id_t<G>`?
+AK: Why don't we require the type `vertex_id_t<G>` to be `std::copyable`?
 
 ------
 
