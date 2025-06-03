@@ -88,11 +88,51 @@ Based on the customization points the library provides a number of associated ty
 | `edge_t<G>`                 | `std::ranges::range_value_t<vertex_edge_range_t<G>>`     |
 | `edge_reference_t<G>`       | `std::ranges::range_reference_t<vertex_edge_range_t<G>>` |
 
+
+## Views
+
+This library can help you write your own algorithms via _views_ that represent graph traversal patterns as C++ ranges.
+
+Suppose, your task is to compute the distance, in edges, from a given vertex _u_ in your graph _g_, to all vertices in _g_. 
+We will represent the adjacency list as a vector of vectors:
+
+
+```c++
+std::vector<std::vector<int>> g {   //  
+  /*0*/ {1, 3},                     //
+  /*1*/ {0, 2, 4},                  //      (0) --- (1) --- (2)
+  /*2*/ {1, 5},                     //       |       |       |
+  /*3*/ {0, 4},                     //       |       |       |
+  /*4*/ {1, 3},                     //      (3) --- (4)     (5) --- (6)
+  /*5*/ {2, 6},                     //
+  /*6*/ {5}                         //
+};                                  //
+```
+
+The algorithm is simple: you start by assigning value zero to the start vertex, 
+then go through all the graph edges in the breadth-first order and for each edge (_u_, _v_) 
+you will assign the value for _v_ as the value for _u_ plus 1. 
+
+In order to do this, you can employ a depth-first search view from this library:
+
+```c++
+#include <graph/views/breadth_first_search.hpp>
+
+int main()
+{
+  std::vector<int> distances(g.size(), 0); // fill with zeros
+
+  for (auto const& [uid, vid, _] : graph::views::sourced_edges_breadth_first_search(g, 0))
+    distances[vid] = distances[uid] + 1;
+
+  assert((distances == std::vector{0, 1, 2, 1, 2, 3, 4}));
+}
+```
+
 ------
 
 TODO:
 
 - Adapting
 - use our container
-- views (for your own algos)
 - algorithms
