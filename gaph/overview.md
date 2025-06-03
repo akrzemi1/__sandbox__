@@ -46,6 +46,7 @@ We use the following notation to represent the constraints:
 ### Random access to vertices
 
 Customization point `graph::vertices(g)` must be valid and its return type must satisfy type-requirements `std::ranges::sized_range` and `std::ranges::random_access_range`. 
+
 The algorithms will use it to access the vertices of graph represented by `g` in form of a random-access range. 
 
 Customization point `graph::vertex_id(g, ui)` must be valid and its return type must satisfy type-requirements `std::integral`.
@@ -65,10 +66,27 @@ The algorithms will use this function to iterate over out edges of the vertex re
 ### Linking from target edges back to vertices
 
 Customization point `graph::target_id(g, uv)` must be valid and its return type must satisfy type-requirements `std::integral`.
+
 The algorithms will use this value to access a vertex in `graph::vertices(g)`. 
 Therefore we have a _semantic_ constraint: that the look up of the value returned from `graph::target_id(g, uv)` returns value `uid` that satisfies the condition
 `0 <= uid && uid < graph::num_vertices(g)`.
 
+
+### Associated types
+
+Based on the customization points the library provides a number of associated types in namespace `graph`:
+
+| Associated type             | Definition                                               |
+|-----------------------------|----------------------------------------------------------|
+| `vertex_range_t<G>`         | `decltype(graph::vertices(g))`                           |
+| `vertex_iterator_t<G>`      | `std::ranges::iterator_t<vertex_range_t<G>>`             |
+| `vertex_t<G>`               | `std::ranges::range_value_t<vertex_range_t<G>>`          |
+| `vertex_reference_t<G>`     | `std::ranges::range_reference_t<vertex_range_t<G>>`      |
+| `vertex_id_t<G>`            | `decltype(graph::vertex_id(g, ui))`                      |
+| `vertex_edge_range_t<G>`    | `decltype(graph::edges(g, u))`                           |
+| `vertex_edge_iterator_t<G>` | `std::ranges::iterator_t<vertex_edge_range_t<G>>`        |
+| `edge_t<G>`                 | `std::ranges::range_value_t<vertex_edge_range_t<G>>`     |
+| `edge_reference_t<G>`       | `std::ranges::range_reference_t<vertex_edge_range_t<G>>` |
 
 ------
 
