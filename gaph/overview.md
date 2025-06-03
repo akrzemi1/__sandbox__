@@ -21,65 +21,54 @@ Notes:
  2. All declarations reside in namespace `::graph`.
  3. Use concept `graph::index_adjacency_list` to test if your type satisfies the syntactic requirements of an index adjacency list.
 
-Concept `graph::index_adjacency_list` requires a number of things from a graph representation. We use the following notation to represent the constraints:
+The graph representation that is most commonly used in this library is [_adjacency list_](https://en.wikipedia.org/wiki/Adjacency_list). 
+Very conceptually, we call it a random access range (corresponding to vertices) of forward ranges (corresponding to outgoing edges of a vertex).
 
-| Symbol | Meaning                                       |
-|--------|-----------------------------------------------|
-| `G`    | the type of the graph representation          |
-| `g`    | lvalue or lvalue reference of type `G`        |
-| `u`    | value of type `graph::vertex_reference_t<G>`  |
-| `ui`   | value of type `graph::vertex_iterator_t<G>`   |
-| `uid`  | value of type `graph::vertex_id_t<G>`         |
-| `uv`   | variable of type `graph::edge_reference_t<G>` |
+This representation allows the algorithms to:
+
+ 1. Perform an iteration over vertices, and to count them.
+ 2. For each vertex, perform an iteration over its outgoing edges.
+ 3. For each edge to to look up its target vertex in constant time.
+
+Algorithms in this library express the requirements on the adjacency list representations via concept `graph::index_adjacency_list`.
+This concept expresses its syntactic requirments mostly via [_customization points_](./customization_points.md).
+We use the following notation to represent the constraints:
+
+| Symbol | Meaning                                                 |
+|--------|---------------------------------------------------------|
+| `G`    | the type of the graph representation                    |
+| `g`    | lvalue or lvalue reference of type `G`                  |
+| `u`    | lvalue reference of type `graph::vertex_reference_t<G>` |
+| `ui`   | value of type `graph::vertex_iterator_t<G>`             |
+| `uid`  | value of type `graph::vertex_id_t<G>`                   |
+| `uv`   | lvalue reference of type `graph::edge_reference_t<G>`   |
 
 ### Random access to vertices
 
-Expression `graph::vertices(g)` must be valid and return an object of type satisfying type-requirements `std::ranges::sized_range` and `std::ranges::random_access_range`. We will use this return type to define two type aliases:
+Customization point `graph::vertices(g)` must be valid and its return type must satisfy type-requirements `std::ranges::sized_range` and `std::ranges::random_access_range`. 
+The algorithms will use it to access the vertices of graph represented by `g` in form of a random-access range. 
 
-   * `graph::vertex_range_t<G>` as `decltype(graph::vertices(g))`,
-   * `graph::vertex_iterator_t<G>` as `std::ranges::iterator_t<graph::vertex_range_t<G>>`,
-   * `graph::vertex_t<G>` as `std::ranges::range_value_t<graph::vertex_range_t<G>>`,
-   * `graph::vertex_reference_t<G>` as `std::ranges::range_reference_t<graph::vertex_range_t<G>>`.
-
-`graph::vertices` is a _Customization Point Object_ (CPO). 
-For more information about customization points in this library and how to make them valid, see 
-[Customization Points](./customization_points.md).
-
-The algorithms will use function `graph::vertices(g)` to access the vertices of graph represented by `g` in form of a random-access range. 
-
-Another CPO related to vertices needs to be valid: `graph::vertex_id(g, ui)`. We will use it to define type alias:
-
- * `graph::vertex_id_t<G>` as `decltype(graph::vertex_id(g, ui))`.
-
-The algorithms will use this function to convert the iterator pointing to a vertex to the _id_ object identidying the same vertex.
+Customization point `graph::vertex_id(g, ui)` must be valid and its return type must satisfy type-requirements `std::integral`.
+The algorithms will use this function to convert the iterator pointing to a vertex to the _id_ of the vertex.
 
 
 ### Forward access to target edges
 
-The following customization points need to be valid and their return value shall satisfy type requirements `std::ranges::forward_range`:
+The following customization points must be valid and their return type shall satisfy type requirements `std::ranges::forward_range`:
 
  * `graph::edges(g, uid)`,
  * `graph::edges(g, u)`.
 
-We will use the latter to define edge-related type aliases:
+The algorithms will use this function to iterate over out edges of the vertex represended by either `uid` or `u`.
 
- * `graph::vertex_edge_range_t<G>` as `decltype(edges(g, u))`,
- * `graph::vertex_edge_iterator_t<G>` as `std::ranges::iterator_t<vertex_edge_range_t<G>>`,
- * `graph::edge_t<G>` as `std::ranges::range_value_t<graph::vertex_edge_range_t<G>>`,
- * `graph::edge_reference_t<G>` as `std::ranges::range_reference_t<graph::vertex_edge_range_t<G>>`.
-
-The algorithms will use this function to access edges corresponding to the vertex represended by either `uid` or `u`, as a forward range.
 
 ### Linking from target edges back to vertices
 
-The following customization point has to be valid:
+Customization point `graph::target_id(g, uv)` must be valid and its return type must satisfy type-requirements `std::integral`.
+The algorithms will use this value to access a vertex in `graph::vertices(g)`. 
+Therefore we have a _semantic_ constraint: that the look up of the value returned from `graph::target_id(g, uv)` returns value `uid` that satisfies the condition
+`0 <= uid && uid < graph::num_vertices(g)`.
 
- * `graph::target_id(g, uv)`
-
-Its values will be used to perform the look-up back in `graph::vertices(g)`. 
-Therefore we have a _semantic_ constraints that the look up of the value returned from `graph::target_id(g, uv)` returns value other than `std::ranges::end(graph::vertices(g))`.
-
-AK: Why don't we require the type `vertex_id_t<G>` to be `std::copyable`?
 
 ------
 
