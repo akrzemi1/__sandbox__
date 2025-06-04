@@ -1,5 +1,24 @@
 # Algorithms
 
+A graph path _p_ is a possibly empty sequence of graph edges (_e_<sub>0</sub>, _e_<sub>1</sub>, ..., _e_<sub>_N_</sub>) where:
+  * _e_<sub>_i_</sub> ≠ _e_<sub>_j_</sub> for _i_ ≠ _j_,
+  * target(_e_<sub>_i_</sub>) = source(_e_<sub>_i_+1</sub>),
+  * source(_e_<sub>_i_</sub>) != source(_e_<sub>_j_</sub>) for _i_ ≠ _j_.
+
+<code><i>path-source</i>(<i>p</i>)</code> = source(_e_<sub>0</sub>). <code><i>path-target</i>(<i>p</i>)</code> = target(_e_<sub>_N_</sub>).
+
+<code><i>distance(p)</i></code> is a sum over _i_ of <code>weight</code>(_e_<sub>_i_</sub>).
+
+<code><i>shortest-path</i>(g, u, v)</code> is a path in the set of all paths `p` in graph `g` with <code><i>path-source</i>(<i>p</i>)</code> = `u` 
+and <code><i>path-target</i>(<i>p</i>)</code> = v that has the smallest value of <code><i>distance(p)</i></code>.
+
+<code><i>shortest-path-distance</i>(g, u, v)</code> is <code><i>distance</i>(<i>shortest-path</i>(g, u, v))</code> if it exists and _infinite-distance_ otherwise.
+
+<code><i>shortest-path-predecessor</i>(g, u, v)</code>, in the set of all shortest paths <code><i>shortest-path</i>(g, u, v)</code> for any `v`:
+ * if there exists an edge _e_ with target(_e_) = v, then it is source(_e_),
+ * otherwise it is `v`.
+   
+
 ## `dijkstra_shortest_paths` (single source)
 
 ```c++
@@ -41,7 +60,7 @@ constexpr void dijkstra_shortest_distances(
   * `std::size(predecessor) >= num_vertices(g)` is `true`.
 
 *Preconditions:* 
-  * <code>distances[<i>i</i>] == shortest_path_infinite_distance()</code> for each <code><i>i</i></code> in range [`0`; `num_vertices(g)`),
+  * <code>distances[<i>i</i>] == shortest_path_infinite_distance&lt;range_value_t&lt;Distances&gt;&gt;()</code> for each <code><i>i</i></code> in range [`0`; `num_vertices(g)`),
   * <code>predecessor[<i>i</i>] == <i>i</i></code> for each <code><i>i</i></code> in range [`0`; `num_vertices(g)`),
   * `weight` returns non-negative values.
 
