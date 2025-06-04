@@ -27,10 +27,9 @@ constexpr void dijkstra_shortest_distances(
 ```
 
 *Hardened preconditions:* 
-  * `0 <= source && source < std::num_vertices(g)` is `true`,
+  * `0 <= source && source < num_vertices(g)` is `true`,
   * `std::size(distances) >= num_vertices(g)` is `true`,
   * `std::size(predecessor) >= num_vertices(g)` is `true`.
-—(4.1.2) 
 
 *Preconditions:* 
   * <code>distances[<i>i</i>] == shortest_path_infinite_distance()</code> for each <code><i>i</i></code> in range [`0`; `num_vertices(g)`),
