@@ -26,7 +26,7 @@ constexpr void dijkstra_shortest_distances(
       Combine&& combine = plus<range_value_t<Distances>>());
 ```
 
-*Mandates:* 
+*Hardened preconditions:* 
   * `0 <= source && source < std::num_vertices(g)` is `true`,
   * `std::size(distances) >= num_vertices(g)` is `true`,
   * `std::size(predecessor) >= num_vertices(g)` is `true`.
