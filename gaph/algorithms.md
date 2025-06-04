@@ -24,4 +24,7 @@ constexpr void dijkstra_shortest_distances(
 
 *Mandates:* `0 <= source && source < std::num_vertices(g)` is `true`.
 
-*Preconditions:* `distances` has been initialized with `init_shortest_paths()`.
+*Preconditions:* 
+  * <code>distances[<i>i</i>] == shortest_path_infinite_distance()</code> for each <code><i>i</i></code> in range [`0`, `num_vertices(g)`),
+  * <code>predecessors[<i>i</i>] == <i>i</i></code> for each <code><i>i</i></code> in range [`0`, `num_vertices(g)`),
+  * `weight` returns non-negative values.
