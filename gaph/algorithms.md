@@ -25,6 +25,15 @@ constexpr void dijkstra_shortest_distances(
       Compare&& compare = less<range_value_t<Distances>>(),
       Combine&& combine = plus<range_value_t<Distances>>());
 ```
+*Constraints:*
+  * `index_adjacency_list<G>` is `true`,
+  * `std::ranges::random_access_range<Distances>` is `true`,
+  * `std::ranges::sized_range<Distances>` is `true`,
+  * `std::ranges::random_access_range<Predecessors>` is `true`,
+  * `std::ranges::sized_range<Predecessors>` is `true`,
+  * `std::is_arithmetic_v<std::ranges::range_value_t<Distances>>` is `true`,
+  * `std::convertible_to<vertex_id_t<G>, std::ranges::range_value_t<Predecessors>>` is `true`,
+  * `basic_edge_weight_function<G, WF, std::ranges::range_value_t<Distances>, Compare, Combine>` is `true`.
 
 *Hardened preconditions:* 
   * `0 <= source && source < num_vertices(g)` is `true`,
@@ -33,5 +42,9 @@ constexpr void dijkstra_shortest_distances(
 
 *Preconditions:* 
   * <code>distances[<i>i</i>] == shortest_path_infinite_distance()</code> for each <code><i>i</i></code> in range [`0`; `num_vertices(g)`),
-  * <code>predecessors[<i>i</i>] == <i>i</i></code> for each <code><i>i</i></code> in range [`0`; `num_vertices(g)`),
+  * <code>predecessor[<i>i</i>] == <i>i</i></code> for each <code><i>i</i></code> in range [`0`; `num_vertices(g)`),
   * `weight` returns non-negative values.
+
+*Postconditions:* For each <code><i>i</i></code> in range [`0`; `num_vertices(g)`):
+  * <code>distances[<i>i</i>]</code> is <code><i>shortest-path-distance</i>(g, source, <i>i</i>)</code>,
+  * <code>predecessor[<i>i</i>]</code> is <code><i>shortest-path-predecessor</i>(g, source, <i>i</i>)</code>.  
