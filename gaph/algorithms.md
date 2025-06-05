@@ -1,5 +1,7 @@
 # Algorithms
 
+## Definitions
+
 A graph path _p_ is a possibly empty sequence of graph edges (_e_<sub>0</sub>, _e_<sub>1</sub>, ..., _e_<sub>_N_</sub>) where:
   * _e_<sub>_i_</sub> ≠ _e_<sub>_j_</sub> for _i_ ≠ _j_,
   * target(_e_<sub>_i_</sub>) = source(_e_<sub>_i_+1</sub>),
@@ -17,23 +19,24 @@ and <code><i>path-target</i>(<i>p</i>)</code> = v that has the smallest value of
 <code><i>shortest-path-predecessor</i>(g, u, v)</code>, in the set of all shortest paths <code><i>shortest-path</i>(g, u, v)</code> for any `v`:
  * if there exists an edge _e_ with target(_e_) = v, then it is source(_e_),
  * otherwise it is `v`.
-   
+
+## Visitors
+
+TODO: explain the _GraphVisitor_ requirements
+
+TODO: list and describe all possible visitation events
+
 
 ## `dijkstra_shortest_paths` (single source)
 
 ```c++
-template <index_adjacency_list G,
-          random_access_range  Distances,
-          random_access_range  Predecessors,
+template <class G,
+          class Distances,
+          class Predecessors,
           class WF      = function<range_value_t<Distances>(edge_reference_t<G>)>,
           class Visitor = empty_visitor,
           class Compare = less<range_value_t<Distances>>,
           class Combine = plus<range_value_t<Distances>>>
-requires is_arithmetic_v<range_value_t<Distances>> && //
-         sized_range<Distances> &&                    //
-         sized_range<Predecessors> &&                 //
-         convertible_to<vertex_id_t<G>, range_value_t<Predecessors>> &&
-         basic_edge_weight_function<G, WF, range_value_t<Distances>, Compare, Combine>
 constexpr void dijkstra_shortest_distances(
       G&&            g,
       vertex_id_t<G> source,
@@ -54,16 +57,26 @@ constexpr void dijkstra_shortest_distances(
   * `std::convertible_to<vertex_id_t<G>, std::ranges::range_value_t<Predecessors>>` is `true`,
   * `basic_edge_weight_function<G, WF, std::ranges::range_value_t<Distances>, Compare, Combine>` is `true`.
 
-*Hardened preconditions:* 
-  * `0 <= source && source < num_vertices(g)` is `true`,
-  * `std::size(distances) >= num_vertices(g)` is `true`,
-  * `std::size(predecessor) >= num_vertices(g)` is `true`.
-
 *Preconditions:* 
   * <code>distances[<i>i</i>] == shortest_path_infinite_distance&lt;range_value_t&lt;Distances&gt;&gt;()</code> for each <code><i>i</i></code> in range [`0`; `num_vertices(g)`),
   * <code>predecessor[<i>i</i>] == <i>i</i></code> for each <code><i>i</i></code> in range [`0`; `num_vertices(g)`),
   * `weight` returns non-negative values.
+  * `visitor` adheres to the _GraphVisitor_ requirements.
+    
+*Hardened preconditions:* 
+  * `0 <= source && source < num_vertices(g)` is `true`,
+  * `std::size(distances) >= num_vertices(g)` is `true`,
+  * `std::size(predecessor) >= num_vertices(g)` is `true`.
+    
+*Effects:* Supports the following visitation events: `on_initialize_vertex`, `on_discover_vertex`,
+    `on_examine_vertex`, `on_finish_vertex`, `on_examine_edge`, `on_edge_relaxed`, and `on_edge_not_relaxed`.
 
 *Postconditions:* For each <code><i>i</i></code> in range [`0`; `num_vertices(g)`):
   * <code>distances[<i>i</i>]</code> is <code><i>shortest-path-distance</i>(g, source, <i>i</i>)</code>,
-  * <code>predecessor[<i>i</i>]</code> is <code><i>shortest-path-predecessor</i>(g, source, <i>i</i>)</code>.  
+  * <code>predecessor[<i>i</i>]</code> is <code><i>shortest-path-predecessor</i>(g, source, <i>i</i>)</code>.
+
+*Throws:* `std::bad_alloc` if memory for the internal data structures cannot be allocated.
+
+*Complexity:* Either 𝒪((|_E_| + |_V_|)⋅log |_V_|) or 𝒪(|_E_| + |_V_|⋅log |_V_|), depending on the implementation.
+
+*Remarks:* Duplicate sources do not affect the algorithm’s complexity or correctness.
