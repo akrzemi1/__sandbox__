@@ -29,6 +29,8 @@ TODO: list and describe all possible visitation events
 
 ## `dijkstra_shortest_paths` (single source)
 
+Header `<graph/algorithm/dijkstra_shortest_paths.hpp>`
+
 ```c++
 template <class G,
           class Distances,
