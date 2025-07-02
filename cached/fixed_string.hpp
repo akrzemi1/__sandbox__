@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <cassert>
+
 namespace mp_units {
 
 /**
@@ -66,7 +68,7 @@ public:
     requires std::same_as<std::iter_value_t<It>, CharT>
   constexpr basic_fixed_string(It begin, S end)
   {
-    MP_UNITS_EXPECTS(std::distance(begin, end) == N);
+    assert(std::distance(begin, end) == N);
     for (auto it = data_; begin != end; ++begin, ++it) *it = *begin;
   }
 
@@ -74,7 +76,7 @@ public:
     requires std::same_as<std::ranges::range_value_t<R>, CharT>
   constexpr basic_fixed_string(std::from_range_t, R&& r)
   {
-    MP_UNITS_EXPECTS(std::ranges::size(r) == N);
+    assert(std::ranges::size(r) == N);
     for (auto it = data_; auto&& v : std::forward<R>(r)) *it++ = std::forward<decltype(v)>(v);
   }
 
@@ -114,12 +116,12 @@ public:
 
   [[nodiscard]] constexpr const_reference front() const
   {
-    MP_UNITS_EXPECTS(!empty());
+    assert(!empty());
     return (*this)[0];
   }
   [[nodiscard]] constexpr const_reference back() const
   {
-    MP_UNITS_EXPECTS(!empty());
+    assert(!empty());
     return (*this)[N - 1];
   }
 
