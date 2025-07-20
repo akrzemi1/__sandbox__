@@ -221,9 +221,6 @@ namespace graph {
         {
         public:
             template <class G, class T>
-                /*requires has_member<G, T> || 
-                         has_native_ra<G, T> || 
-                         has_adl<G, T>*/
             constexpr auto operator()(G&& g, type<T> t) const {
                 if constexpr (has_member<G, T>)
                     return g.registry(t);
@@ -249,6 +246,7 @@ namespace graph {
     template <typename G>
     concept adjacency_list = requires (G&& g) {
         { vertices(g) } -> std::ranges::forward_range;
+        registry(g, type<bool>{});
     } 
     && requires (G&& g, vertex_nav_ref_t<G&&> u) {
         { vertex_id(g, u) } -> std::copyable;
@@ -259,6 +257,12 @@ namespace graph {
     }
     && requires (G&& g, edge_nav_ref_t<G&&> uv) {
         { target(g, uv) } -> std::same_as<vertex_nav_ref_t<G&&>>;
+    }
+    && requires (G&& g, 
+                 decltype(registry(g, type<bool>{})) reg,
+                 vertex_id_t<G&&> const& uid,
+                 bool b) {
+        reg[uid] = b;
     };
     
     namespace archetype { // TBD
@@ -323,7 +327,8 @@ namespace graph {
         struct Hash { std::size_t operator()(const id&) const { return 0; } };
         
         template <typename T>
-        std::unordered_map<id, T, Hash> registry(adjacency_list_at&, type<T>) { return {}; }
+        std::unordered_map<id, T, Hash> 
+        registry(adjacency_list_at&, type<T>) { return {}; }
     }
      
     static_assert(adjacency_list<archetype::adjacency_list_at>);
@@ -428,8 +433,6 @@ struct MyEdge
 {
   std::string content;
   int indexOfTarget;
-  
-  //int target_id(auto&&) const { return indexOfTarget; }
 };
 
 struct MyVertex
@@ -438,8 +441,6 @@ struct MyVertex
   std::vector<MyEdge> outEdges;
   
   std::vector<MyEdge> /*const*/ & edges(auto&&) /*const*/ { return outEdges; }
-  //std::vector<MyEdge>& edges(auto&&) { return outEdges; }
-  //double vertex_value(auto const&) const { return 1.0; } 
 };
 
 class MyGraph 
@@ -450,7 +451,6 @@ public:
 public:
   std::vector<MyVertex> /*const*/ & vertices() /*const*/  { return _vertices; }
   
-    // AK: not needed?
   MyVertex & target(MyEdge /*const*/ & uv)  {
     return _vertices[uv.indexOfTarget];
   }
@@ -460,7 +460,6 @@ public:
   }
 };
 
-//std::vector<MyEdge> const& edges(MyGraph const& g, MyVertex const& u) { return u.edges(g); }
 }
 
 namespace string_id {
@@ -565,15 +564,11 @@ int main()
     static_assert(graph::adjacency_list<graph::csr>);
     static_assert(graph::adjacency_list<MyLibrary::MyGraph>);
     static_assert(graph::adjacency_list<string_id::Graph>);
-
-
-        
+ 
     dfs(g, 
         1, 
         print_uid,
         [&g](auto& edge) { return g.weight(edge); },
         print_val);
-    std::cout << "\n";
-    
-    
+    std::cout << "\n";  
 }
