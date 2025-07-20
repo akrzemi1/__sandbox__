@@ -3,6 +3,7 @@
 #include <ranges>
 #include <stack>
 #include <iostream>
+#include <unordered_map>
 
 
 namespace graph {
@@ -193,8 +194,55 @@ namespace graph {
         cpo_target::cpo target;
     }
     
+    //---
+    
+    template <typename T> 
+    class type {};        // hack to encode a type in an object
     
     //---
+    namespace cpo_registry {
+        template <class G, class T>
+        concept has_member = requires(G&& g, type<T> t) {
+            { g.registry(t) } -> std::move_constructible;
+        };
+        
+        template <class G, class T>
+        concept has_adl = requires(G&& g, type<T> t) {
+            { registry(g, t) } -> std::move_constructible;
+        };
+                            
+        template <class G, class /*T*/>
+        concept has_native_ra =         
+            std::ranges::random_access_range<vertex_nav_range_t<G>> &&
+            std::integral<vertex_id_t<G>>;
+        
+        
+        class cpo
+        {
+        public:
+            template <class G, class T>
+                /*requires has_member<G, T> || 
+                         has_native_ra<G, T> || 
+                         has_adl<G, T>*/
+            constexpr auto operator()(G&& g, type<T> t) const {
+                if constexpr (has_member<G, T>)
+                    return g.registry(t);
+                else if constexpr (has_adl<G, T>)
+                    return registry(g, t);
+                else if constexpr (has_native_ra<G, T>)
+                    return std::vector<T>(std::ranges::size(vertices(g)));
+                else 
+                    return std::unordered_map<vertex_id_t<G>, T>();
+            }
+        };
+    }
+    
+    inline namespace cpo {
+        cpo_registry::cpo registry;
+    }
+    
+    //---
+    //===
     template <typename T>
     concept reference = std::is_reference_v<T>;
     
@@ -207,25 +255,36 @@ namespace graph {
         { edges(g, u) } -> std::ranges::forward_range;
     }
     && requires (G&& g, vertex_id_t<G&&> const& uid) {
-        { vertex(g, uid) } -> std::move_constructible;
+        { vertex(g, uid) } -> reference;
     }
     && requires (G&& g, edge_nav_ref_t<G&&> uv) {
         { target(g, uv) } -> std::same_as<vertex_nav_ref_t<G&&>>;
     };
+    
+    namespace archetype { // TBD
+        
+        class adjacency_list_at
+        {
+            adjacency_list_at() = delete;
+            ~adjacency_list_at() = delete;
+            adjacency_list_at(adjacency_list_at&&) = delete;
+        };
+    }
 }
 
 namespace graph {
 
-template <adjacency_list G, typename VID, std::invocable<vertex_id_t<G>> VF, std::invocable<edge_nav_ref_t<G>> EWF>
-void bfs(G && g, VID source, VF vf, EWF ewf)
+template <adjacency_list G,
+          std::invocable<vertex_id_t<G>> VF, 
+          std::invocable<edge_nav_ref_t<G>> EWF>
+void dfs(G && g, vertex_id_t<G> source, VF vf, EWF ewf)
 {
-    auto&& vtcs = vertices(g);
-    std::vector<bool> _visited (std::ranges::size(vtcs)); 
-    std::stack<VID> stack;
-    stack.push(source);
+    auto _visited = registry(g, type<bool>{});
+    std::stack<vertex_id_t<G>> stack;
+    stack.push(std::move(source));
     
     while (!stack.empty()) {
-        VID uid = stack.top();
+        vertex_id_t<G> uid = stack.top();
         stack.pop();
         
         _visited[uid] = true;
@@ -335,10 +394,59 @@ public:
 };
 
 //std::vector<MyEdge> const& edges(MyGraph const& g, MyVertex const& u) { return u.edges(g); }
-
-
-
 }
+
+namespace string_id {
+    
+struct Edge
+{
+  std::string payload;
+  std::string idOfTarget;
+};
+
+struct Vertex
+{
+  std::string payload;
+  std::vector<Edge> outEdges;
+  
+  std::vector<Edge> const& edges(auto&&) const { return outEdges; }
+  //std::vector<Edge>& edges(auto&&) { return outEdges; }
+  //double vertex_value(auto const&) const { return 1.0; } 
+};
+
+class Graph 
+{
+public:
+    using Container = std::unordered_map<std::string, Vertex>;
+    using VertexNav = std::unordered_map<std::string, Vertex>::const_reference;
+
+  Container _vertices;
+  
+public:
+  Container const& vertices() const { return _vertices; }
+  
+  friend std::vector<Edge> const& edges(Graph const& g, VertexNav u)
+  { return u.second.outEdges; }
+  
+  VertexNav vertex(std::string const& uid) const {
+    auto it = _vertices.find(uid);
+    assert(it != _vertices.end());
+    return *it;
+  }
+  
+  VertexNav target(Edge const& uv) const {
+    return vertex(uv.idOfTarget);
+  }
+  
+  std::string vertex_id(VertexNav u) const  {
+    return u.first;
+  }
+  
+};
+
+} // namespace string_id
+
+
 
 
  // (0) <-> (1)
@@ -356,9 +464,25 @@ int main()
             {"3", {{"1", 1}, {"2", 2}}}
         };
         
-        graph::bfs(g, 
+        graph::dfs(g, 
             1, 
             [](int uid){ std::cout << uid << " "; },
+            [&g](auto& edge) { return 1.0; });
+        std::cout << "\n";
+    }
+    {
+        using namespace std::string_literals;
+        string_id::Graph g;
+        g._vertices = string_id::Graph::Container{
+            {"i0"s, string_id::Vertex{"pld",{{"pld", "i1"s}, {"pld", "i2"s}}}},
+            {"i1"s, string_id::Vertex{"pld",{{"pld", "i0"s}, {"pld", "i3"s}}}},
+            {"i2"s, string_id::Vertex{"pld",{{"pld", "i0"s}, {"pld", "i3"s}}}},
+            {"i3"s, string_id::Vertex{"pld",{{"pld", "i1"s}, {"pld", "i2"s}}}}
+        };
+        
+        graph::dfs(g, 
+            "i1"s, 
+            [](auto const& uid){ std::cout << uid << " "; },
             [&g](auto& edge) { return 1.0; });
         std::cout << "\n";
     }
@@ -369,11 +493,12 @@ int main()
     
     static_assert(graph::adjacency_list<graph::csr>);
     static_assert(graph::adjacency_list<MyLibrary::MyGraph>);
+    static_assert(graph::adjacency_list<string_id::Graph>);
     static_assert(std::ranges::contiguous_range<graph::vertex_nav_range_t<MyLibrary::MyGraph>>);
     static_assert(graph::cpo_target::has_member<graph::csr>);
 
         
-    bfs(g, 
+    dfs(g, 
         1, 
         [](int uid){ std::cout << uid << " "; },
         [&g](auto& edge) { return g.weight(edge); });
