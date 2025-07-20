@@ -41,17 +41,17 @@ namespace graph {
     using vertex_nav_range_t = decltype(vertices(std::declval<G&&>()));
     
     template <typename G>
-    using vertex_nav_t = std::ranges::range_value_t<vertex_nav_range_t<G>>;
+    using vertex_nav_ref_t = std::ranges::range_reference_t<vertex_nav_range_t<G>>;
     
     
     namespace cpo_vertex_id {
         template <class G>
-        concept has_member = requires(G&& g, vertex_nav_t<G>& u) {
+        concept has_member = requires(G&& g, vertex_nav_ref_t<G> u) {
             { g.vertex_id(u) } -> std::copyable;
         };
                             
         template <class G>
-        concept has_adl = requires(G&& g, vertex_nav_t<G>& u) {
+        concept has_adl = requires(G&& g, vertex_nav_ref_t<G> u) {
             { vertex_id(g, u) } -> std::copyable;
         };
         
@@ -60,7 +60,7 @@ namespace graph {
         public:
             template <class G>
                 requires has_member<G> || has_adl<G>
-            constexpr auto operator()(G&& g, vertex_nav_t<G>& u) const {
+            constexpr auto operator()(G&& g, vertex_nav_ref_t<G> u) const {
                 if constexpr (has_member<G>)
                     return g.vertex_id(u);
                 else if constexpr (has_adl<G>)
@@ -78,7 +78,7 @@ namespace graph {
     }
     
     template <typename G>
-    using vertex_id_t = decltype(vertex_id(std::declval<G&&>(), std::declval<vertex_nav_t<G>&>()));
+    using vertex_id_t = decltype(vertex_id(std::declval<G&&>(), std::declval<vertex_nav_ref_t<G>>()));
     
 
     //---
@@ -118,17 +118,17 @@ namespace graph {
     //---
     namespace cpo_edges {
         template <class G>
-        concept has_member = requires(G&& g, vertex_nav_t<G>& u) {
+        concept has_member = requires(G&& g, vertex_nav_ref_t<G> u) {
             { g.edges(u) } -> std::move_constructible;
         };
         
         template <class G>
-        concept has_inv_member = requires(G&& g, vertex_nav_t<G>& u) {
+        concept has_inv_member = requires(G&& g, vertex_nav_ref_t<G> u) {
             { u.edges(g) } -> std::move_constructible;
         };
                             
         template <class G>
-        concept has_adl = requires(G&& g, vertex_nav_t<G>& u) {
+        concept has_adl = requires(G&& g, vertex_nav_ref_t<G> u) {
             { edges(g, u) } -> std::move_constructible;
         };
         
@@ -137,7 +137,7 @@ namespace graph {
         public:
             template <class G>
                 requires has_member<G> || has_inv_member<G> || has_adl<G>
-            constexpr auto operator()(G&& g, vertex_nav_t<G>& u) const {
+            constexpr auto operator()(G&& g, vertex_nav_ref_t<G> u) const {
                 if constexpr (has_member<G>)
                     return g.edges(u);
                 else if constexpr (has_inv_member<G>)
@@ -155,18 +155,21 @@ namespace graph {
     }
     
     template <typename G>
-    using edge_nav_t = std::ranges::range_value_t<decltype(edges(std::declval<G&&>(), std::declval<vertex_nav_t<G>&>()))>;
+    using edge_nav_range_t = decltype(edges(std::declval<G&&>(), std::declval<vertex_nav_ref_t<G>>()));
+    
+    template <typename G>
+    using edge_nav_ref_t = std::ranges::range_reference_t<edge_nav_range_t<G>>;
     
     
     //---
     namespace cpo_target {
         template <class G>
-        concept has_member = requires(G&& g, edge_nav_t<G>& uv) {
+        concept has_member = requires(G&& g, edge_nav_ref_t<G> uv) {
             { g.target(uv) } -> std::move_constructible;
         };
                             
         template <class G>
-        concept has_adl = requires(G&& g, edge_nav_t<G>& uv) {
+        concept has_adl = requires(G&& g, edge_nav_ref_t<G> uv) {
             { target(g, uv) } -> std::move_constructible;
         };
         
@@ -175,7 +178,7 @@ namespace graph {
         public:
             template <class G>
                 requires has_member<G> || has_adl<G>
-            constexpr decltype(auto) operator()(G&& g, edge_nav_t<G>& uv) const {
+            constexpr decltype(auto) operator()(G&& g, edge_nav_ref_t<G> uv) const {
                 if constexpr (has_member<G>)
                     return g.target(uv);
                 else if constexpr (has_adl<G>)
@@ -199,21 +202,21 @@ namespace graph {
     concept adjacency_list = requires (G&& g) {
         { vertices(g) } -> std::ranges::forward_range;
     } 
-    && requires (G&& g, vertex_nav_t<G&&>& u) {
+    && requires (G&& g, vertex_nav_ref_t<G&&> u) {
         { vertex_id(g, u) } -> std::copyable;
         { edges(g, u) } -> std::ranges::forward_range;
     }
     && requires (G&& g, vertex_id_t<G&&> const& uid) {
         { vertex(g, uid) } -> std::move_constructible;
     }
-    && requires (G&& g, edge_nav_t<G&&>& uv) {
-        { target(g, uv) } -> std::same_as<vertex_nav_t<G&&>&>;
+    && requires (G&& g, edge_nav_ref_t<G&&> uv) {
+        { target(g, uv) } -> std::same_as<vertex_nav_ref_t<G&&>>;
     };
 }
 
 namespace graph {
 
-template <adjacency_list G, typename VID, std::invocable<vertex_id_t<G>> VF, std::invocable<edge_nav_t<G>&> EWF>
+template <adjacency_list G, typename VID, std::invocable<vertex_id_t<G>> VF, std::invocable<edge_nav_ref_t<G>> EWF>
 void bfs(G && g, VID source, VF vf, EWF ewf)
 {
     auto&& vtcs = vertices(g);
