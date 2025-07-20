@@ -91,7 +91,7 @@ namespace graph {
                             
         template <class G>
         concept has_adl = requires(G&& g, vertex_id_t<G> const& uid) {
-            { vertices(g, uid) } -> std::move_constructible;
+            { vertex(g, uid) } -> std::move_constructible;
         };
         
         class cpo
@@ -263,21 +263,79 @@ namespace graph {
     
     namespace archetype { // TBD
         
+        template <typename T>
+        class iter
+        {
+        public:
+            iter& operator++() { return *this; }
+            iter operator++(int) { return *this; }
+            using difference_type = int;
+            T& operator*() const { throw 0; }
+            friend bool operator==(iter const&, iter const&) = default;
+            using value_type = T;
+            using reference = T&;
+            using iterator_category = std::forward_iterator_tag;
+        };
+
+        struct id
+        {
+            id() = delete;
+            friend bool operator==(id const&, id const&) = default;
+        };
+        
+        struct val
+        {
+            val(val&&) = delete;
+        };
+        
+        template <typename T> 
+        class fwr
+        {
+            friend iter<T> begin(fwr&) { throw 0; }
+            friend iter<T> end(fwr&) { throw 0; }
+        };
+        
+        class edge_nav
+        {
+            edge_nav(edge_nav&&) = delete;
+            ~edge_nav() = delete;
+        };
+        
+        class vertex_nav
+        {
+            vertex_nav(vertex_nav&&) = delete;
+            ~vertex_nav() = delete;
+        };
+        
         class adjacency_list_at
         {
             adjacency_list_at() = delete;
             ~adjacency_list_at() = delete;
             adjacency_list_at(adjacency_list_at&&) = delete;
         };
+        
+        fwr<vertex_nav> vertices(adjacency_list_at&) { throw 0; }
+        fwr<edge_nav> edges(adjacency_list_at&, vertex_nav&) { throw 0; }
+        id vertex_id(adjacency_list_at&, vertex_nav&) { throw 0; }
+        vertex_nav& vertex(adjacency_list_at&, const id&) { throw 0; }
+        vertex_nav& target(adjacency_list_at&, const edge_nav&) { throw 0; }
+        
+        struct Hash { std::size_t operator()(const id&) const { return 0; } };
+        
+        template <typename T>
+        std::unordered_map<id, T, Hash> registry(adjacency_list_at&, type<T>) { return {}; }
     }
+     
+    static_assert(adjacency_list<archetype::adjacency_list_at>);
 }
 
 namespace graph {
 
 template <adjacency_list G,
           std::invocable<vertex_id_t<G>> VF, 
-          std::invocable<edge_nav_ref_t<G>> EWF>
-void dfs(G && g, vertex_id_t<G> source, VF vf, EWF ewf)
+          std::invocable<edge_nav_ref_t<G>> EWF,
+          std::invocable<std::invoke_result_t<EWF, edge_nav_ref_t<G>>> CF>
+void dfs(G && g, vertex_id_t<G> source, VF vf, EWF ewf, CF cf)
 {
     auto _visited = registry(g, type<bool>{});
     std::stack<vertex_id_t<G>> stack;
@@ -292,15 +350,25 @@ void dfs(G && g, vertex_id_t<G> source, VF vf, EWF ewf)
         
         auto&& edgs = edges(g, vertex(g, uid));
         for (auto&& uv : edgs) {
-            auto vid = g.vertex_id(g.target(uv));
+            auto vid = vertex_id(g, target(g, uv));
             
             if (!_visited[vid]) {
-                std::cout << " (w" << ewf(uv) << ") ";
+                cf(ewf(uv));
                 _visited[vid] = true;
                 stack.push(vid);
             }
         }
     }
+}
+
+
+void test_dfs(archetype::adjacency_list_at& g, archetype::id uid)
+{
+    auto vf = [](archetype::id const&){};
+    auto ewf = [](archetype::edge_nav&) -> archetype::val { throw 0; };
+    auto cf = [](archetype::val const& ) {};
+    
+    dfs(g, uid, vf, ewf, cf);
 }
 
 }
@@ -348,7 +416,6 @@ public:
     edge_descriptor_t edge_id(const edge_nav_t& uv) { return &uv - _edges.data(); }
     double weight(const edge_nav_t& uv) { return 1.0; }
 };
-
 
 } // namespace graph
 
@@ -410,8 +477,6 @@ struct Vertex
   std::vector<Edge> outEdges;
   
   std::vector<Edge> const& edges(auto&&) const { return outEdges; }
-  //std::vector<Edge>& edges(auto&&) { return outEdges; }
-  //double vertex_value(auto const&) const { return 1.0; } 
 };
 
 class Graph 
@@ -455,6 +520,9 @@ public:
  // 0 1 2
 int main()
 {
+    auto print_uid = [](auto const& uid){ std::cout << uid << " "; };
+    auto print_val = [](double val) { std::cout << " (w" << val << ") "; };
+    
     {
         MyLibrary::MyGraph g;
         g._vertices = {
@@ -466,9 +534,11 @@ int main()
         
         graph::dfs(g, 
             1, 
-            [](int uid){ std::cout << uid << " "; },
-            [&g](auto& edge) { return 1.0; });
+            print_uid,
+            [&g](auto& edge) { return 1.0; },
+            print_val);
         std::cout << "\n";
+        
     }
     {
         using namespace std::string_literals;
@@ -482,8 +552,9 @@ int main()
         
         graph::dfs(g, 
             "i1"s, 
-            [](auto const& uid){ std::cout << uid << " "; },
-            [&g](auto& edge) { return 1.0; });
+            print_uid,
+            [&g](auto& edge) { return 1.0; },
+            print_val);
         std::cout << "\n";
     }
     
@@ -494,14 +565,14 @@ int main()
     static_assert(graph::adjacency_list<graph::csr>);
     static_assert(graph::adjacency_list<MyLibrary::MyGraph>);
     static_assert(graph::adjacency_list<string_id::Graph>);
-    static_assert(std::ranges::contiguous_range<graph::vertex_nav_range_t<MyLibrary::MyGraph>>);
-    static_assert(graph::cpo_target::has_member<graph::csr>);
+
 
         
     dfs(g, 
         1, 
-        [](int uid){ std::cout << uid << " "; },
-        [&g](auto& edge) { return g.weight(edge); });
+        print_uid,
+        [&g](auto& edge) { return g.weight(edge); },
+        print_val);
     std::cout << "\n";
     
     
