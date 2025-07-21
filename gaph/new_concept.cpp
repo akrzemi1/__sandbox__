@@ -52,12 +52,12 @@ namespace graph {
     namespace cpo_vertex_id {
         template <class G>
         concept has_member = requires(G&& g, vertex_nav_ref_t<G> u) {
-            { g.vertex_id(u) } -> std::copyable;
+            { g.vertex_id(u) } -> std::movable;
         };
                             
         template <class G>
         concept has_adl = requires(G&& g, vertex_nav_ref_t<G> u) {
-            { vertex_id(g, u) } -> std::copyable;
+            { vertex_id(g, u) } -> std::movable;
         };
         
         class cpo
@@ -258,6 +258,7 @@ namespace graph {
     }
     && requires (G&& g, vertex_id_t<G&&> const& uid) {
         { vertex(g, uid) } -> reference;
+        requires std::equality_comparable<vertex_id_t<G&&>>;
     }
     && requires (G&& g, edge_nav_ref_t<G&&> uv) {
         { target(g, uv) } -> std::same_as<vertex_nav_ref_t<G&&>>;
