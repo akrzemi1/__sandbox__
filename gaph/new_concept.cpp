@@ -4,7 +4,11 @@
 #include <stack>
 #include <iostream>
 #include <unordered_map>
+#include <map>
 
+// This is a demo of a graph concept.
+// We provide a concept, a generic algorithm, 
+// and a couple of graph representations modeling the concept
 
 namespace graph {
     namespace cpo_vertices {
@@ -265,8 +269,9 @@ namespace graph {
         reg[uid] = b;
     };
     
-    namespace archetype { // TBD
-        
+    namespace archetype { // artificial and very minimal concept model to test if
+                          // the algorithm only uses the interface
+                          // advertised in the concept
         template <typename T>
         class iter
         {
@@ -462,7 +467,7 @@ public:
 
 }
 
-namespace string_id {
+namespace string_id { // graph representation using std::string for IDs
     
 struct Edge
 {
@@ -510,6 +515,54 @@ public:
 
 } // namespace string_id
 
+namespace tricky_int_id { // graph representation using non-contiguous int values for IDs
+    
+struct Edge
+{
+  std::string payload;
+  int idOfTarget;
+};
+
+struct Vertex
+{
+  std::string payload;
+  std::vector<Edge> outEdges;
+  
+  std::vector<Edge> const& edges(auto&&) const { return outEdges; }
+};
+
+class Graph 
+{
+public:
+    using Container = std::map<int, Vertex>;
+    using VertexNav = Container::const_reference;
+
+  Container _vertices;
+  
+public:
+  Container const& vertices() const { return _vertices; }
+  
+  friend std::vector<Edge> const& edges(Graph const& g, VertexNav u)
+  { return u.second.outEdges; }
+  
+  VertexNav vertex(int uid) const {
+    auto it = _vertices.find(uid);
+    assert(it != _vertices.end());
+    return *it;
+  }
+  
+  VertexNav target(Edge const& uv) const {
+    return vertex(uv.idOfTarget);
+  }
+  
+  int vertex_id(VertexNav u) const  {
+    return u.first;
+  }
+  
+};
+
+} // namespace tricky_int_id
+
 
 
 
@@ -543,14 +596,30 @@ int main()
         using namespace std::string_literals;
         string_id::Graph g;
         g._vertices = string_id::Graph::Container{
-            {"i0"s, string_id::Vertex{"pld",{{"pld", "i1"s}, {"pld", "i2"s}}}},
-            {"i1"s, string_id::Vertex{"pld",{{"pld", "i0"s}, {"pld", "i3"s}}}},
-            {"i2"s, string_id::Vertex{"pld",{{"pld", "i0"s}, {"pld", "i3"s}}}},
-            {"i3"s, string_id::Vertex{"pld",{{"pld", "i1"s}, {"pld", "i2"s}}}}
+            {"i0"s, {"pld", {{"pld", "i1"s}, {"pld", "i2"s}}}},
+            {"i1"s, {"pld", {{"pld", "i0"s}, {"pld", "i3"s}}}},
+            {"i2"s, {"pld", {{"pld", "i0"s}, {"pld", "i3"s}}}},
+            {"i3"s, {"pld", {{"pld", "i1"s}, {"pld", "i2"s}}}}
         };
         
         graph::dfs(g, 
             "i1"s, 
+            print_uid,
+            [&g](auto& edge) { return 1.0; },
+            print_val);
+        std::cout << "\n";
+    }
+    {
+        tricky_int_id::Graph g;
+        g._vertices = tricky_int_id::Graph::Container{
+            {100, {"pld", {{"pld", 101}, {"pld", 102}}}},
+            {101, {"pld", {{"pld", 100}, {"pld", 103}}}},
+            {102, {"pld", {{"pld", 100}, {"pld", 103}}}},
+            {103, {"pld", {{"pld", 101}, {"pld", 102}}}}
+        };
+        
+        graph::dfs(g, 
+            101, 
             print_uid,
             [&g](auto& edge) { return 1.0; },
             print_val);
