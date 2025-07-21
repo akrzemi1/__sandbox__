@@ -11,6 +11,7 @@
 // and a couple of graph representations modeling the concept
 
 namespace graph {
+    
     namespace cpo_vertices {
         template <class G>
         concept has_member = requires(G&& g) {
@@ -220,11 +221,19 @@ namespace graph {
             std::ranges::random_access_range<vertex_nav_range_t<G>> &&
             std::integral<vertex_id_t<G>>;
         
+        template <class G, class /*T*/>
+        concept has_native_hash = requires (vertex_id_t<G> uid) {
+            std::hash<vertex_id_t<G>>{}(uid);
+        };
         
         class cpo
         {
         public:
             template <class G, class T>
+                requires has_member<G, T> || 
+                         has_adl<G, T> ||
+                         has_native_ra<G, T> || 
+                         has_native_hash<G, T>
             constexpr auto operator()(G&& g, type<T> t) const {
                 if constexpr (has_member<G, T>)
                     return g.registry(t);
@@ -232,8 +241,10 @@ namespace graph {
                     return registry(g, t);
                 else if constexpr (has_native_ra<G, T>)
                     return std::vector<T>(std::ranges::size(vertices(g)));
-                else 
+                else if constexpr (has_native_hash<G, T>)
                     return std::unordered_map<vertex_id_t<G>, T>();
+                else
+                    static_assert(false);
             }
         };
     }
