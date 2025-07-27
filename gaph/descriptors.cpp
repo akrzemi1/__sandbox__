@@ -253,8 +253,16 @@ namespace graph {
         cpo_registry::cpo registry;
     }
     
+    
     //---
     //===
+    
+    template <typename Reg, typename UID, typename T>
+    concept basic_registry = requires(Reg&& reg, UID&& uid, T&& val)
+    {
+        reg[uid] = val;
+    };
+    
     template <typename T>
     concept reference = std::is_reference_v<T>;
     
@@ -274,12 +282,12 @@ namespace graph {
     && requires (G&& g, edge_nav_ref_t<G&&> uv) {
         { target(g, uv) } -> std::same_as<vertex_nav_ref_t<G&&>>;
     }
-    && requires (G&& g, 
-                 decltype(registry(g, type<bool>{})) reg,
-                 vertex_id_t<G&&> const& uid,
-                 bool b) {
-        reg[uid] = b;
-    };
+    && basic_registry<decltype(registry(std::declval<G&&>(), type<bool>{})), vertex_id_t<G>, bool>;
+  
+    
+    template <typename Reg, typename G, typename T>
+    concept registry_for = adjacency_list<G> && basic_registry<Reg, vertex_id_t<G>, T>; 
+
     
     namespace archetype { // artificial and very minimal concept model to test if
                           // the algorithm only uses the interface
@@ -356,18 +364,21 @@ namespace graph {
 template <adjacency_list G,
           std::invocable<vertex_id_t<G>> VF, 
           std::invocable<edge_nav_ref_t<G>> EWF,
-          std::invocable<std::invoke_result_t<EWF, edge_nav_ref_t<G>>> CF>
-void dfs(G && g, vertex_id_t<G> source, VF vf, EWF ewf, CF cf)
+          std::invocable<std::invoke_result_t<EWF, edge_nav_ref_t<G>>> CF,
+          registry_for<G, vertex_id_t<G>> Reg>
+void dfs(G && g, vertex_id_t<G> source, VF vf, EWF ewf, CF cf, Reg & predecessor)
 {
     auto _visited = registry(g, type<bool>{});
     std::stack<vertex_id_t<G>> stack;
     stack.push(std::move(source));
+    //predecessor[source] = source;
     
     while (!stack.empty()) {
         vertex_id_t<G> uid = stack.top();
         stack.pop();
         
         _visited[uid] = true;
+        
         vf(uid);
         
         auto&& edgs = edges(g, vertex(g, uid));
@@ -377,6 +388,7 @@ void dfs(G && g, vertex_id_t<G> source, VF vf, EWF ewf, CF cf)
             if (!_visited[vid]) {
                 cf(ewf(uv));
                 _visited[vid] = true;
+                //predecessor[vid] = uid;
                 stack.push(vid);
             }
         }
@@ -389,8 +401,8 @@ void test_dfs(archetype::adjacency_list_at& g, archetype::id uid)
     auto vf = [](archetype::id const&){};
     auto ewf = [](archetype::edge_nav&) -> archetype::val { throw 0; };
     auto cf = [](archetype::val const& ) {};
-    
-    dfs(g, uid, vf, ewf, cf);
+    std::unordered_map<archetype::id, archetype::id, archetype::Hash> reg;
+    dfs(g, uid, vf, ewf, cf, reg);
 }
 
 }
@@ -536,11 +548,14 @@ public:
 namespace tricky_int_id { // graph representation using non-contiguous int values for IDs
     
 struct Vertex;
+using Container = std::map<int, Vertex>;
+using VertexNav = Container::const_reference;
+using VertexDescriptor = Container::const_pointer;
 
 struct Edge
 {
   std::string payload;
-  int idOfTarget;
+  VertexDescriptor idOfTarget;
 };
 
 struct Vertex
@@ -554,10 +569,6 @@ struct Vertex
 class Graph 
 {
 public:
-    using Container = std::map<int, Vertex>;
-    using VertexNav = Container::const_reference;
-    using VertexDescriptor = Container::const_pointer;
-
   Container _vertices;
   
 public:
@@ -570,10 +581,14 @@ public:
     return *uid;
   }
   
-  VertexNav target(Edge const& uv) const {
-    auto it = _vertices.find(uv.idOfTarget);
+   VertexDescriptor descr(int const& s) {
+    auto it = _vertices.find(s);
     assert(it != _vertices.end());
-    return *it;
+    return &*it;
+  }
+  
+  VertexNav target(Edge const& uv) const {
+    return *uv.idOfTarget;
   }
   
   VertexDescriptor vertex_id(VertexNav u) const  {
@@ -611,11 +626,13 @@ int main()
             {"3", {{"1", 1}, {"2", 2}}}
         };
         
+        std::vector<int> predecessor(4);
         graph::dfs(g, 
             1, 
             print_uid,
             [&g](auto& edge) { return 1.0; },
-            print_val);
+            print_val,
+            predecessor);
         std::cout << "\n";
         
     }
@@ -631,28 +648,33 @@ int main()
         g._vertices["i2"] = {"pld", {{"pld", g.descr("i0")}, {"pld", g.descr("i3")}}};
         g._vertices["i3"] = {"pld", {{"pld", g.descr("i1")}, {"pld", g.descr("i2")}}};
         
-        
+        std::unordered_map<string_id::VertexDescriptor, string_id::VertexDescriptor> predecessor;
         graph::dfs(g, 
             g.descr("i1"s),
             print_uid,
             [&g](auto& edge) { return 1.0; },
-            print_val);
+            print_val,
+            predecessor);
         std::cout << "\n";
     }
     {
         tricky_int_id::Graph g;
-        g._vertices = tricky_int_id::Graph::Container{
-            {100, {"pld", {{"pld", 101}, {"pld", 102}}}},
-            {101, {"pld", {{"pld", 100}, {"pld", 103}}}},
-            {102, {"pld", {{"pld", 100}, {"pld", 103}}}},
-            {103, {"pld", {{"pld", 101}, {"pld", 102}}}}
-        };
+        g._vertices[100];
+        g._vertices[101];
+        g._vertices[102];
+        g._vertices[103];
+        g._vertices[100] = {"pld", {{"pld", g.descr(101)}, {"pld", g.descr(102)}}};
+        g._vertices[101] = {"pld", {{"pld", g.descr(100)}, {"pld", g.descr(103)}}};
+        g._vertices[102] = {"pld", {{"pld", g.descr(100)}, {"pld", g.descr(103)}}};
+        g._vertices[103] = {"pld", {{"pld", g.descr(101)}, {"pld", g.descr(102)}}};
         
+        std::unordered_map<tricky_int_id::VertexDescriptor, tricky_int_id::VertexDescriptor> predecessor;
         graph::dfs(g, 
-            &*g._vertices.find(101),
+            g.descr(101),
             print_uid,
             [&g](auto& edge) { return 1.0; },
-            print_val);
+            print_val,
+            predecessor);
         std::cout << "\n";
     }
     
@@ -664,10 +686,12 @@ int main()
     static_assert(graph::adjacency_list<MyLibrary::MyGraph>);
     static_assert(graph::adjacency_list<string_id::Graph>);
  
+    std::vector<int> predecessor(4);
     dfs(g, 
         1, 
         print_uid,
         [&g](auto& edge) { return g.weight(edge); },
-        print_val);
+        print_val,
+        predecessor);
     std::cout << "\n";  
 }
