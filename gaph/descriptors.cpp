@@ -253,6 +253,55 @@ namespace graph {
         cpo_registry::cpo registry;
     }
     
+    //---
+    namespace cpo_record {
+        template <class G, class Reg, class T>
+        concept has_member = requires(Reg& reg, vertex_id_t<G> const& uid, const T& val) {
+            reg.record(uid, val);
+        };
+                            
+        template <class G, class Reg, class T>
+        concept has_adl = requires(Reg& reg, vertex_id_t<G> const& uid, const T& val) {
+            record(reg, uid, val);
+        };
+        
+        template <class G, class Reg, class T>
+        concept has_native_ra =         
+            std::ranges::random_access_range<vertex_nav_range_t<G>> &&
+            std::integral<vertex_id_t<G>>;
+        
+        template <class G, class Reg, class /*T*/>
+        concept has_native_hash = requires (Reg && reg, vertex_id_t<G> uid) {
+            { reg.hash_function()(uid) } -> std::convertible_to<std::size_t>;
+        };
+        
+        class cpo
+        {
+        public:
+            template <class G, class Reg, class T>
+                requires has_member<G, Reg, T> 
+                    || has_adl<G, Reg, T>
+                    || has_native_ra<G, Reg, T>
+                    || has_native_hash<G, Reg, T>
+            constexpr void operator()(G&& g, Reg&& reg, vertex_id_t<G> const& uid, T&& val) const {
+                if constexpr (has_member<G, Reg, T>)
+                    reg.record(uid, val);
+                else if constexpr (has_adl<G, Reg, T>)
+                    record(reg, uid,val);
+                else if constexpr (has_native_ra<G, Reg, T>)
+                    reg[uid] = val;
+                else if constexpr (has_native_hash<G, Reg, T>)
+                    reg.insert_or_assign(uid, std::forward<T>(val));
+                else 
+                    static_assert(false);
+            }
+        };
+    }
+    
+    inline namespace cpo {
+        cpo_record::cpo record;
+    }
+    
     
     //---
     //===
@@ -371,7 +420,7 @@ void dfs(G && g, vertex_id_t<G> source, VF vf, EWF ewf, CF cf, Reg & predecessor
     auto _visited = registry(g, type<bool>{});
     std::stack<vertex_id_t<G>> stack;
     stack.push(std::move(source));
-    //predecessor[source] = source;
+    record(g, predecessor, source, source);
     
     while (!stack.empty()) {
         vertex_id_t<G> uid = stack.top();
@@ -388,7 +437,7 @@ void dfs(G && g, vertex_id_t<G> source, VF vf, EWF ewf, CF cf, Reg & predecessor
             if (!_visited[vid]) {
                 cf(ewf(uv));
                 _visited[vid] = true;
-                //predecessor[vid] = uid;
+                record(g, predecessor, vid, uid);
                 stack.push(vid);
             }
         }
