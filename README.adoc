@@ -3,4 +3,7 @@
 This is for testing md and adoc files
 ================
 
+[source,json]
+----
 include::sample.json[]
+----
