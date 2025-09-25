@@ -2,3 +2,5 @@
 
 This is for testing md and adoc files
 ================
+
+include::sample.json[]
