@@ -83,7 +83,7 @@ Regardless of the level or the representation, we always have three distinct cas
  2. failure: the external situation -- in the user input, in the environment -- did not allow us to deliver what we promissed.
  3. cancel: we might have been able to deliver the promise, but you didn't want it (and you wanted to save as many resources as possible).
 
-Whenever the outcome is categorized as either failure or cancel there is *never* a need to communicate data or "partial data" to the awaiter. Only in the case of success is there a need to communicate the value, even if this value is only ‘seaweed’.
+Whenever the outcome is categorized as either failure or cancel there is *never* a need to communicate data or "partial data" to the awaiter. Only in the case of success is there a need to communicate the value, even if this value is only ‘seaweed’. The apparent "partial success" in the I/O-awaitables is the consequence of its representation conflating ‘seaweed’ (success) with cancel.
 
 We do not even consider the incorrect input to the function (precondition violation) as something worth reporting: we assume only correct programs.
 
