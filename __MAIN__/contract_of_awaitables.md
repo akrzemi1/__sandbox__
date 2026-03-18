@@ -80,6 +80,11 @@ Altenatively, the designers could communicate #2, #3 and #4 by output function p
 
 Regardless of the level or the representation, we always have three distinct cases to report: 
  1. success: we delivered what we promissed.
- 2. failure: we did not deliver what we promissed.
- 3. cancel: we might have been able to deliver the promise, but you didn't want it (and you wanted to save as many resources as possible). 
+ 2. failure: the external situation -- in the user input, in the environment -- did not allow us to deliver what we promissed.
+ 3. cancel: we might have been able to deliver the promise, but you didn't want it (and you wanted to save as many resources as possible).
 
+Whenever the outcome is categorized as either failure or cancel there is *never* a need to communicate data or "partial data" to the awaiter. Only in the case of success is there a need to communicate the value, even if this value is only ‘seaweed’.
+
+We do not even consider the incorrect input to the function (precondition violation) as something worth reporting: we assume only correct programs.
+
+A generic `when_all` algorithm needs aclear classification of the awaitable's outcome into at least success and failure. Given that the designers of awaitables can be creative in how they communicate failure, there needs to be a classification tool that makes this uniform. In case of `std::execution` this tool is the three channels. 
