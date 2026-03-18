@@ -1,4 +1,9 @@
+# The Contract of Awaitables
 
+This writeup describes the contract for awaitables: both these related to I/O operations as well as more generic ones. We try to cover separately:
+
+ 1. What different *kinds* of irregular outcomes need to be communicated
+ 2. *How* they are communicated.
 
 ## I/O-specific awaitables
 
