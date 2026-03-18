@@ -30,3 +30,35 @@ We choose to provide a ‘product’ return type (such as `tuple`) that in addit
  2. Indicate that the framework decided to cancel the operation. In this case you will get no bytes.
 
 The failure to acquire the necessary resources is communicated via throwing an exception. In this case you will get neither any bytes nor the seaweed. This also means that for platforms with `-fno-exceptions` resource acquisition failures are turned into program abort.
+
+
+## Other awaitables
+
+Usually it is coroutines that `co_await` on Awaitables. The user code that uses Capy and Corosio will be coroutines. These coroutines at the higher abstraction layers will not deal with I/O streams but with higher-level abstracitons: requests, tables, users. At these levels it is common to provide *stronger postconditions*, such as "I will get you the users" as opposed to "I will maybe get you users or maybe not":
+
+```c++
+// working with weak postconditions
+optional<vector<User>> users = co_await get_users_weak();
+if (users)
+  process(users);
+else
+  /* do what ? */
+```
+
+```c++
+// working with strong postconditions
+vector<User> users = co_await get_users_strong();
+process(users);
+```
+
+In the case of a high-level awaitable with a strong postcondition, we may get the following outcomes:
+
+ 1. The data, as we advertised (full success).
+ 2. We couldn't acquire enough resources to perform the necessary operations. (No data will be returned.)
+ 3. The bytes we received over the network were not sufficient to form the promissed user list. (No "partial users" will be returned.)
+ 4. The program or the framework decided to cancel the already started operation because the data was deemed not needed. (No data will be returned.)
+
+
+## Observations
+
+
