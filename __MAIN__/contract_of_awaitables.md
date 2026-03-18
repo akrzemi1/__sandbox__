@@ -78,5 +78,8 @@ Altenatively, the designers could communicate #2, #3 and #4 by output function p
 
 ## Observations
 
-
+Regardless of the level or the representation, we always have three distinct cases to report: 
+ 1. success: we delivered what we promissed.
+ 2. failure: we did not deliver what we promissed.
+ 3. cancel: we might have been able to deliver the promise, but you didn't want it (and you wanted to save as many resources as possible). 
 
