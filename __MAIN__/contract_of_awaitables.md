@@ -17,9 +17,28 @@ which the I/O functions cannot fully interpret, but the awaiter can.
 This promise may not be delivered in two cases:
 
  1. When system resources required to implement the function (here primarily memory) cannot be acquired.
- 2. When the program of the framework decides that an already strated operation is no longer needed and must be canceled. This can happen via:
+ 2. When the program or the framework decides that an already strated operation is no longer needed and must be canceled. This can happen via:
      * somebody calling `.cancel()`,
      * or a timeout. 
+
+The contract of an I/O-awaitable for `read_until` operation is:
+
+> I will keep reading bytes from the stream until one of the following happens:
+>
+>  1. I reach `eof` (or `stream_truncated`, which is a special case of `eof`),
+>  2. I reach the buffer's `.max_capacity()`,
+>  3. I fetched the byte sequence indicated in the argument.
+
+Each of the three exit conditions will be signaled by a different status code:
+
+ 1. `eof` or `stream_truncated`, as appropriate,
+ 2. `not_found`,
+ 3. `{}` (default-constructed state).
+
+Here also the promise may not be delivered in the same two cases:
+
+ 1. Upon resource exhaustion.
+ 2. Upon explicit cancelation request.
 
 
 ### Representation
