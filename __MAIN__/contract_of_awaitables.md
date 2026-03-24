@@ -49,7 +49,7 @@ Each of the three exit conditions will be signaled by a different status code:
 Here also the promise may not be delivered in the same two cases:
 
  1. Upon resource exhaustion.
- 2. Upon explicit cancelation request.
+ 2. Upon cancelation request (including upon timeout).
 
 
 ### Representation
