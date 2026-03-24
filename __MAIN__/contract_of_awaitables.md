@@ -1,8 +1,8 @@
 # The Contract of Awaitables
 
-This writeup describes the contract for awaitables: both these doing I/O operations (returning `io_result<>`), as well as the higher-level ones that are built from the former. We try to cover separately:
+This writeup describes the contract for awaitables: both these doing I/O operations (returning `io_result<>`), as well as the higher-level ones, which are built from the former. We try to cover separately:
 
- 1. What different *kinds* of irregular outcomes need to be communicated
+ 1. What different *kinds* of irregular outcomes need to be communicated, and
  2. *How* they are communicated.
 
 ## I/O-specific awaitables
