@@ -1,11 +1,17 @@
 # The Contract of Awaitables
 
-This writeup describes the contract for awaitables: both these doing I/O operations (returning `io_result<>`), as well as the higher-level ones, which are built from the former. We try to cover separately:
+This writeup describes the contract for awaitables:
+  * both these provided by Capy/Corosio (dealing directly with I/O),
+  * as well as higher-level ones build on top of the Capy/Corosio ones.
+ 
+ We try to cover separately:
 
  1. What different *kinds* of irregular outcomes need to be communicated, and
  2. *How* they are communicated.
 
 ## I/O-specific awaitables
+
+### `read_some`
 
 The contract of an I/O-awaitable for `read_some` operation, excluding the zero-size buffer, is as follows:
 
@@ -17,9 +23,14 @@ which the I/O functions cannot fully interpret, but the awaiter can.
 This promise may not be delivered in two cases:
 
  1. When system resources required to implement the function (here primarily memory) cannot be acquired.
- 2. When the program or the framework decides that an already strated operation is no longer needed and must be canceled. This can happen via:
+ 2. When the program or the framework decides that an already strated operation is no longer needed and it should stop wasting resources as soon as possible. This can happen via:
      * somebody calling `.cancel()`,
-     * or a timeout. 
+     * or a timeout.
+   
+    In this form of cancelation there may be a need for the operation to return all the results it has collected so far.
+
+
+### `read_until`
 
 The contract of an I/O-awaitable for `read_until` operation is:
 
