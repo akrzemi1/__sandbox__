@@ -36,7 +36,7 @@ The contract of an I/O-awaitable for `read_until` operation is:
 
 > I will keep reading bytes from the stream until one of the following happens:
 >
->  1. I reach `eof` (or `stream_truncated`, which is a special case of `eof`),
+>  1. I get any ‘seaweed’ from stream (`eof`, `stream_truncated`, which is a special case of `eof`, `connection_reset`, etc.),
 >  2. I reach the buffer's `.max_capacity()`,
 >  3. I fetched the byte sequence indicated in the argument.
 
