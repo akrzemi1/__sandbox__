@@ -9,6 +9,20 @@ This writeup describes the contract for awaitables:
  1. What different *kinds* of irregular outcomes need to be communicated, and
  2. *How* they are communicated.
 
+
+## The context
+
+Most of the awaitables provided by Capy/Corosio when `co_await`-ed return types that are instantiations of `io_result<>`, 
+These types can be "destructured" with a structure binding and their first element is of type `error_code`:
+
+```c++
+auto [ec, other...] = co_await capy::read_some(buf);
+```
+
+It is expected that the user code consuming these awaitables would be coroutines that also expose the awaitable interface on the outside. 
+These awaitables would not necessarily, when `co_await`-ed, return `io_result<>` types.
+
+
 ## I/O-specific awaitables
 
 ### `read_some`
