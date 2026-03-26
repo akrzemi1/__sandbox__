@@ -97,6 +97,7 @@ In the case of a high-level awaitable with a strong postcondition, we may get th
  3. The bytes we received over the network were not sufficient to form the promissed user list. (No "partial users" will be returned.)
  4. The program or the framework decided to cancel the already started operation because the data was deemed not needed. (No data will be returned.)
 
+
 ### Representations
 
 Case #1 is trivial. Cases #2 and #3 are both simply failures to deliver the promissed data: they only differ by the reason. 
@@ -110,7 +111,11 @@ For higher-level awaitables with weaker postconditions, ("I will either return t
 
 #2 could still be represented by throwing an exception. #3 could be represented by returning an *empty* result. #4 could be modeled either by an exception or by an empty result with a dedicated code.
 
-Alternatively, given that we have an *empty* state, even the resource failures could be represented by it.
+Alternatively, given that we have an *empty* state, even the resource failures could be represented by it. A more complicated type, possibly reusing `io_result`, may be needed:
+
+```c++
+io_awaitable<optional<vector<Users>>>
+```
 
 Altenatively, the designers could communicate #2, #3 and #4 by output function parameters or by a thread-local variable à la `errno`.
 
