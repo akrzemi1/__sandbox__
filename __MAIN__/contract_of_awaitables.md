@@ -108,7 +108,7 @@ the only possible thing to be done is to throw a special exception.
 
 For higher-level awaitables with weaker postconditions, ("I will either return the users or not"), not returning users is not a failure. In that case there is many ways to represent the four outcomes:
 
-#2 could stil be represented by throwing an exception. #3 could be represented by returning an *empty* result. #4 could be modeled either by an exception or by an empty result with a dedicated code.
+#2 could still be represented by throwing an exception. #3 could be represented by returning an *empty* result. #4 could be modeled either by an exception or by an empty result with a dedicated code.
 
 Alternatively, given that we have an *empty* state, even the resource failures could be represented by it.
 
