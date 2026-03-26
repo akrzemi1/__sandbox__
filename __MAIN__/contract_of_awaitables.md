@@ -54,12 +54,6 @@ The contract of an I/O-awaitable for `read_until` operation is:
 >  2. I reach the buffer's `.max_capacity()`,
 >  3. I fetched the byte sequence indicated in the argument.
 
-Each of the three exit conditions will be signaled by a different status code:
-
- 1. `eof` or `stream_truncated`, as appropriate,
- 2. `not_found`,
- 3. `{}` (default-constructed state).
-
 Here also the promise may not be delivered in the same two cases:
 
  1. Upon resource exhaustion.
@@ -72,6 +66,7 @@ We choose to provide a ‘product’ return type (such as `tuple`) that in addit
 
  1. Represent the ‘seaweed’ extracted from the stream in addition to bytes. In this case it is likely that you will get both the bytes and the seaweed.
  2. Indicate that the framework decided to cancel the operation. In this case you will get no bytes.
+ 3. In the case like `read_until` -- with two possible successful non-seaweed outcomes -- to tell which of the two outcomes we reached.
 
 The failure to acquire the necessary resources is communicated via throwing an exception. In this case you will get neither any bytes nor the seaweed. This also means that for platforms with `-fno-exceptions` resource acquisition failures are turned into program abort.
 
