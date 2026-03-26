@@ -100,7 +100,7 @@ In the case of a high-level awaitable with a strong postcondition, we may get th
 ### Representations
 
 Case #1 is trivial. Cases #2 and #3 are both simply failures to deliver the promissed data: they only differ by the reason. 
-#4 is not easily representable in this interface, but given that the goal of strong postconditions is that the data can just be usedwithout any "checks",
+#4 is not easily representable in this interface, but given that the goal of strong postconditions is that the data can just be used without any "checks",
 the only possible thing to be done is to throw a special exception. 
 
 
