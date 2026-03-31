@@ -1,0 +1,28 @@
+# Contract of `zstring_view`
+
+NOTE: in this paper, whenever the word 'contract' is used, we _do not_ refer to the C++26 feature known as "contract assertions", but instead refer to the methods of Library API specifications.
+
+
+## Design criteria
+
+Our goal is not to cover _all_ possible use cases for zero-terminated string views that programmers might ever come up with. 
+Instead, we identify a clear finite set of use cases, and design a type with a crystal-clear contract that addresses those use cases in  predictable way.
+This means that some use cases will not be addressed by this type. So this is the first engineering trade-off that we are doing:
+
+[cols="1,1"]  
+|===
+| Option A | Option B
+
+| Clear, predictable contract
+| Nebulous, veague, ambiguous contract
+
+| Cover a smaller set of use cases
+| Cover a wider set of, possibly conflicting, use cases
+
+| More types, each simple and doing is clear job
+| Fewer types, with compromised contracts
+
+|===
+
+We propose to go with option A.
+
