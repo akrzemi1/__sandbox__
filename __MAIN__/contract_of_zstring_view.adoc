@@ -14,7 +14,7 @@ This means that some use cases will not be addressed by this type. So this is th
 | Option A | Option B
 
 | Clear, predictable contract
-| Nebulous, veague, ambiguous contract
+| Nebulous, vague, ambiguous contract
 
 | Cover a smaller set of use cases
 | Cover a wider set of, possibly conflicting, use cases
