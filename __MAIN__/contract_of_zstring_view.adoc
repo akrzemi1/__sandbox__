@@ -48,6 +48,27 @@ We propose to go with option A.
 We have, on one side a zero-terminated string: either as a string literal, or a `std::string` object, or a pointer returned by a system function compliant with the C-string contract. On the other side we have a system function expecting a pointer compliant with the C-string contract. In the middle, we have a function that needs to convey this C-string-contract with a minimum overhead, while additionally being able to verify the contract compliance via an optional runtime check.
 
 
+## The class invariant
+
+Usually, the goal of having a class is to provide and maintaint an _invariant_. This is typically achieved via the class interface making operations that would otherwise resulted in compromising the invariant inaccessible. In our case, the situation is special because we are dealing with a "reference" or a "view" type, where we do not control who and how modifies the content of the string. The obvious part of the invariant is "the sequence is zero-terminated", but we cannot guarantee even that:
+
+```c++
+char name [9] = "file.txt";
+assert(name[8] == 0);
+
+zstring_view sv = name; 
+// runtime checks, if any, pass at this time
+
+name[8] = 'a';
+read(sv);
+```
+
+
+
+
+
+
+
 > [!NOTE]  
 > Highlights information that users should take into account, even when skimming.
 
@@ -60,3 +81,9 @@ Coöperative-invariant
 The "C-string contract".
 
 `strlen(zsv.data()) == zsv.size()` ???
+
+implicit conversion to `const char *`?
+
+https://eel.is/c++draft/meta.syn#3
+
+operator==
