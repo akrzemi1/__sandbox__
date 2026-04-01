@@ -1,6 +1,20 @@
 # Contract of `zstring_view`
 
-NOTE: in this paper, whenever the word 'contract' is used, we _do not_ refer to the C++26 feature known as "contract assertions", but instead refer to the methods of Library API specifications.
+## Terminology
+
+### Contract
+
+In this paper, whenever the word 'contract' is used, we _do not_ refer to the C++26 feature known as "contract assertions", but instead refer to the methods of Library API specifications.
+
+### C-string contract
+
+The term C-string contract refers to the convention that the C programming language uses for representing strings:
+
+ 1. The type is `const char*`
+ 2. The pointer is not null.
+ 3. The pointer points to a valid array of characters.
+ 4. The iteration over the array is guaranteed to reach the zero character without hitting any undefined behavior.
+ 5. A zero-size string is a valid string value.
 
 
 ## Design criteria
