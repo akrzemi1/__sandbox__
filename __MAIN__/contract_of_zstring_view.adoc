@@ -13,8 +13,10 @@ The term C-string contract refers to the convention that the C programming langu
  1. The type is `const char*`
  2. The pointer is not null.
  3. The pointer points to a valid array of characters.
- 4. The iteration over the array is guaranteed to reach the zero character without hitting any undefined behavior.
+ 4. The iteration over the array is guaranteed to reach the zero character without hitting any undefined behavior. The position of this zero character determines the string size.
  5. A zero-size string is a valid string value.
+
+Note that under this contract it is impossible for the string to have a zero character within its contents, as -- as per the contract -- the first ocurrence of this character indicates the one-past-last character.
 
 
 ## Design criteria
@@ -39,6 +41,12 @@ This means that some use cases will not be addressed by this type. So this is th
 |===
 
 We propose to go with option A.
+
+
+## The use case
+
+We have, on one side a zero-terminated string: either as a string literal, or a `std::string` object, or a pointer returned by a system function compliant with the C-string contract. On the other side we have a system function expecting a pointer compliant with the C-string contract. In the middle, we have a function that needs to convey this C-string-contract with a minimum overhead, while additionally being able to verify the contract compliance via an optional runtime check.
+
 
 > [!NOTE]  
 > Highlights information that users should take into account, even when skimming.
