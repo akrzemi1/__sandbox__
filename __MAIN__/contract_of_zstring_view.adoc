@@ -50,7 +50,7 @@ We have, on one side a zero-terminated string: either as a string literal, or a 
 
 ## The class invariant
 
-Usually, the goal of having a class is to provide and maintaint an _invariant_. This is typically achieved via the class interface making operations that would otherwise resulted in compromising the invariant inaccessible. In our case, the situation is special because we are dealing with a "reference" or a "view" type, where we do not control who and how modifies the content of the string. The obvious part of the invariant is "the sequence is zero-terminated", but we cannot guarantee even that:
+Usually, the goal of having a class is to provide and maintain an _invariant_. This is typically achieved via the class interface making operations that would otherwise resulted in compromising the invariant inaccessible. In our case, the situation is special because we are dealing with a "reference" or a "view" type, where we do not control who and how modifies the content of the string. The obvious part of the invariant is "the sequence is zero-terminated", but we cannot guarantee even that:
 
 ```c++
 char name [9] = "file.txt";
@@ -59,7 +59,7 @@ assert(name[8] == 0);
 zstring_view sv = name; 
 // runtime checks, if any, pass at this time
 
-name[8] = 'a';
+name[8] = 'a'; // no zero character anymore
 read(sv);
 ```
 
