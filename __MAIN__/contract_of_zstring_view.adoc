@@ -26,8 +26,10 @@ This means that some use cases will not be addressed by this type. So this is th
 
 We propose to go with option A.
 
+> [!NOTE]  
+> Highlights information that users should take into account, even when skimming.
 
--------------
+- - - - - -
 
 Coöperative-invariant
 
