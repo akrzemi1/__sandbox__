@@ -58,3 +58,5 @@ Coöperative-invariant
 `cstring` -- bad name. It is the pointer that is "C-strring".
 
 The "C-string contract".
+
+`strlen(zsv.data()) == zsv.size()` ???
