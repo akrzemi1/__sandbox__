@@ -113,21 +113,62 @@ The two approaches that make it easy to reason about `zstring_view` contract are
 
  2. Make it the constructor's precondition that the literal shall not have zeros in the middle. This clearly declares passing such literals to `zstring_view` constructor a _programmer bug_. 
 
-> [!NOTE]  
-> Highlights information that users should take into account, even when skimming.
+Option #1 introduces no new surprises relative to using naked `const char *`, but at the same time it does not allow `zstring_view` to offer its full value. The constructor has now linear complexity instead of constant-time complexity. Also, the semantics of the program are not easily auditable: the trimming logic is hard to spot. 
 
-- - - - - -
+Regarding option #2, often any mention of the word "precondition" triggers fear/uncertainty/doubt over "undefined behavior". The unhealthy tendency to mechanically avoid *any* UB at *any* cost results in components with unhelpful contracts where intentional hacks cannot be distinguished from inadvertent bugs. It should be noted that in our case the most optimized implementation of the function, one that does not attempt to perform any precondition validation, would end up with system functions being called with the string value truncated to the first zero character, which is equivalent to option #1 above. The only difference being that in some cases we would have `zv.size() != strlen(zv.data())`. *This is _not_ this UB that causes security vulnerabilities.* In contrast, an implementation that performs contract validations or that adds platform-specific annotations in the declaration allows user bugs to be detected either at runtime or during static analysis.
+
+One could consider an alternative where passing middle zeros in constructor is legal and then throws an exception. We do not recommend such "half measures". The programmer does not get the functionality in #1 and the static analyzers cannot report a bug as in #2. This complicates the classification of the class into hosted versus freestanding. In `-fno-exceptions` compiler modes the exception would be turned into `std::abort()` which is not that bad, but the other problems remain. 
+
+The following summarizes the engineering trade-off.
+
+[cols="1,1,1"]  
+|===
+| Option 1 | Option 2 | Option 3
+
+| Trimming
+| Precondition
+| Throw
+
+| Consistent with `const char*` behavior.
+| Clear, simple contract.
+| Guaranteed no execution past the point.
+
+| Middle zeros not a bug.
+| Middle zeros are a bug diagnosable by sanitizers and static analyzers.
+| Middle zeros not a bug.
+
+| 𝒪(_n_) constructor.
+| 𝒪(1) constructor.
+| 𝒪(_n_) constructor.
+
+| Class available in freestanding.
+| Class available in freestanding.
+| Class not available in freestanding.
+
+| 
+| Invariant `zv.size() == strlen(zv.data())`.
+| Invariant `zv.size() == strlen(zv.data())`.
+
+|===
+
+We propose to go with option 2.
 
 
+## Hardened precondition?
 
-`cstring` -- bad name. It is the pointer that is "C-strring".
+Should the constructor precondition be hardened? https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3697r0.html[P3697r0] lists criteria for making the preconditions hardened:
 
-The "C-string contract".
+ 1. Violating the precondition results in a memory safety issue (an out-of-bounds access or an access to uninitialized memory).
+ 2. The call site has all the necessary data to perform the check.
+ 3. The check can be done in constant time and imposes relatively little overhead.
 
-`strlen(zsv.data()) == zsv.size()` ???
+Regarding the condition that the pointer be not null, it matches all three criteria. We recommend that it be hardened.
 
-implicit conversion to `const char *`?
+Regarding the condition that there be no middle zeros, criteria #1 and #3 are not satisfied. We recommend that it be _not_ hardened.
 
 
+# Bikeshedding
 
-operator==
+We recommend the name `zstring_view`. It reflects the contract more clearly. It is a [z]ero-terminated string, as called in POSIX. Name `c_str()` is adequate for the member function in class `string`, as it says, "give me the pointer that has C-string contract". The same name is not adequate for the new type. The class `zstring_view` doesn't have the C-string contract: it is only its data member `.data()` that has the C-string contract.  
+
+
