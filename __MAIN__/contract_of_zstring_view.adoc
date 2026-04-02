@@ -69,7 +69,7 @@ Given that the class invariant cannot be guaranteed, one could wonder what is th
 
 ```c++
 File(std::string_view fname)
-  // precondition: `fname[fname.size()]` is valid and equal to zero
+  // precondition: `fname.data()[fname.size()]` is valid and equal to zero
 ;
 ```
 
