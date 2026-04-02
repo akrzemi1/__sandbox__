@@ -22,7 +22,7 @@ Note that under this contract it is impossible for the string to have a zero cha
 ## Design criteria
 
 Our goal is not to cover _all_ possible use cases for zero-terminated string views that programmers might ever come up with. 
-Instead, we identify a clear finite set of use cases, and design a type with a crystal-clear contract that addresses those use cases in  predictable way.
+Instead, we identify a clear finite set of use cases, and design a type with a crystal-clear contract that addresses those use cases in a predictable way.
 This means that some use cases will not be addressed by this type. So this is the first engineering trade-off that we are doing:
 
 [cols="1,1"]  
@@ -35,7 +35,7 @@ This means that some use cases will not be addressed by this type. So this is th
 | Cover a smaller set of use cases
 | Cover a wider set of, possibly conflicting, use cases
 
-| More types, each simple and doing is clear job
+| More types, each simple and doing its clear job
 | Fewer types, with compromised contracts
 
 |===
@@ -45,7 +45,7 @@ We propose to go with option A.
 
 ## The use case
 
-We have, on one side a zero-terminated string: either as a string literal, or a `std::string` object, or a pointer returned by a system function compliant with the C-string contract. On the other side we have a system function expecting a pointer compliant with the C-string contract. In the middle, we have a function that needs to convey this C-string-contract with a minimum overhead, while additionally being able to verify the contract compliance via an optional runtime check.
+We have, on one side a zero-terminated string: either as a string literal, or a `std::string` object, or a pointer returned by a system function compliant with the C-string contract. On the other side we have a system function expecting a pointer compliant with the C-string contract. In the middle, we have a function that needs to convey this C-string-contract with a minimum overhead, while additionally being able to verify the contract compliance via an optional runtime check, and clearly reflecting the contract via its type.
 
 
 ## The class invariant
@@ -56,7 +56,8 @@ Usually, the goal of having a class is to provide and maintain an _invariant_. T
 char name [9] = "file.txt";
 assert(name[8] == 0);
 
-const zstring_view sv = name; 
+const zstring_view sv = name;
+// or even `const zstring_view sv(name, strlen(name));`
 // runtime checks, if any, pass at this time
 
 name[8] = 'a'; // no zero character anymore
@@ -74,7 +75,7 @@ File(std::string_view fname)
 ```
 
 The guarantee implied by `zstring_view` works in practice because these types are either short-lived, or point to immutable buffers. We formalize it by introducing the notion of a _coöperative-invariant_:
-whoever creates an object of type `zstring_view` guarantees that that the characters in the buffer do not change during the life-time of the `zstring_view` buffer. It is easy to provide this guarantee when `zstring_view` is only used for function parameters. A coöperative-invariant, while requiring an additional commitment and caution from the programmer, still offers the benefits of invatiants: the condition is associated with the class, in one place, rather than with every function that needs it; it can engage the type system for the contract enforcement.
+whoever creates an object of type `zstring_view` guarantees that the characters in the buffer do not change during the life-time of the `zstring_view` object. It is easy to provide this guarantee when `zstring_view` is only used for function parameters. A coöperative-invariant, while requiring an additional commitment and caution from the programmer, still offers the benefits of invatiants: the condition is associated with the class, in one place, rather than with every function that needs it; it can engage the type system for the contract enforcement.
 
 
 ## Zeros in the middle
@@ -90,7 +91,7 @@ bool the_guarantee(zstring_view zv)
 
 Recall that in the motivating use case the `zstring_view` object is consumed as follows:
 
-```
+```c++
 fopen(zv.data(), "w")
 ```
 
@@ -115,7 +116,7 @@ The two approaches that make it easy to reason about `zstring_view` contract are
 
 Option #1 introduces no new surprises relative to using naked `const char *`, but at the same time it does not allow `zstring_view` to offer its full value. The constructor has now linear complexity instead of constant-time complexity. Also, the semantics of the program are not easily auditable: the trimming logic is hard to spot. 
 
-Regarding option #2, often any mention of the word "precondition" triggers fear/uncertainty/doubt over "undefined behavior". The unhealthy tendency to mechanically avoid *any* UB at *any* cost results in components with unhelpful contracts where intentional hacks cannot be distinguished from inadvertent bugs. It should be noted that in our case the most optimized implementation of the function, one that does not attempt to perform any precondition validation, would end up with system functions being called with the string value truncated to the first zero character, which is equivalent to option #1 above. The only difference being that in some cases we would have `zv.size() != strlen(zv.data())`. *This is _not_ this UB that causes security vulnerabilities.* In contrast, an implementation that performs contract validations or that adds platform-specific annotations in the declaration allows user bugs to be detected either at runtime or during static analysis.
+Regarding option #2, often any mention of the word "precondition" triggers fear/uncertainty/doubt over "undefined behavior". The unhealthy tendency to mechanically avoid *any* UB at *any* cost results in components with unhelpful contracts where intentional hacks cannot be distinguished from inadvertent bugs. It should be noted that in our case the most optimized implementation of the function, one that does not attempt to perform any precondition validation, would end up with system functions being called with the string value truncated to the first zero character, which is equivalent to option #1 above. The only difference being that in some cases we would have `zv.size() != strlen(zv.data())`. *This is _not_ this UB that causes security vulnerabilities.* On the other hand, an implementation that performs contract validations or that adds platform-specific annotations in the declaration allows user bugs to be detected either at runtime or during static analysis.
 
 One could consider an alternative where passing middle zeros in constructor is legal and then throws an exception. We do not recommend such "half measures". The programmer does not get the functionality in #1 and the static analyzers cannot report a bug as in #2. This complicates the classification of the class into hosted versus freestanding. In `-fno-exceptions` compiler modes the exception would be turned into `std::abort()` which is not that bad, but the other problems remain. 
 
