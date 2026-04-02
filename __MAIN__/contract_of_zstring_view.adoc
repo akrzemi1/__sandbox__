@@ -8,7 +8,7 @@ In this paper, whenever the word 'contract' is used, we _do not_ refer to the C+
 
 ### C-string contract
 
-The term C-string contract refers to the convention that the C programming language uses for representing strings:
+The term _C-string contract_ refers to the convention that the C programming language uses for representing strings:
 
  1. The type is `const char*`
  2. The pointer is not null.
