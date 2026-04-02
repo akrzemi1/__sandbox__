@@ -144,7 +144,7 @@ The following summarizes the engineering trade-off.
 
 | Class available in freestanding.
 | Class available in freestanding.
-| Class not available in freestanding.
+| Class _not_ available in freestanding.
 
 | 
 | Invariant `zv.size() == strlen(zv.data())`.
@@ -162,6 +162,8 @@ Should the constructor precondition be hardened? https://www.open-std.org/jtc1/s
  1. Violating the precondition results in a memory safety issue (an out-of-bounds access or an access to uninitialized memory).
  2. The call site has all the necessary data to perform the check.
  3. The check can be done in constant time and imposes relatively little overhead.
+
+This represents a sound trade-off between preventing security vulnerabilities and compromising runtime performance.
 
 Regarding the condition that the pointer be not null, it matches all three criteria. We recommend that it be hardened.
 
