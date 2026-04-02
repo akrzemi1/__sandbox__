@@ -73,6 +73,8 @@ File(std::string_view fname)
 ;
 ```
 
+The guarantee implied by `zstring_view` works in practice because these types are either short-lived, or point to immutable buffers. We formalize it by introducing the notion of a _coöperative-invariant_:
+whoever creates an object of type `zstring_view` guarantees that that the characters in the buffer do not change during the life-time of the `zstring_view` buffer. It is easy to provide this guarantee when `zstring_view` is only used for function parameters.
 
 
 
@@ -83,7 +85,7 @@ File(std::string_view fname)
 
 - - - - - -
 
-Coöperative-invariant
+
 
 `cstring` -- bad name. It is the pointer that is "C-strring".
 
