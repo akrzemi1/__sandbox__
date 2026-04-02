@@ -96,8 +96,15 @@ fopen(zv.data(), "w")
 
 Thus, the size that the users will ultimately see will be determined by the C-string contract. Having `zv.size()` return anything else is only confusing.
 
-Again, `std::string` doesn't need to take such approach because its contract makes it very clear: the size is determined by a dedicated member, unrelated to any zeros in the middle or at the end. In the case of `std::string_view` calling `strlen(sv.data())` is not advised at all when we do not know its history, because we may end up in buffer overflow (undefined behavior).
+Again, `std::string` doesn't need to take such approach because its contract makes it very clear: the size is determined by a dedicated member, unrelated to any zeros in the middle or at the end. In the case of `std::string_view`, calling `strlen(sv.data())` is not advised at all when we do not know its history, because we may end up in buffer overflow (undefined behavior).
 
+Classes guarantee invariants (including coöperative-invariants) by either declaring preconditions or applying validation/sanitization in constructors (and mutating functions). The quesiton, tightly related to the invariant, is what happens when the string literal used to construct `zstring_view` has zeros in the middle:
+
+```c++
+const char fname [] = "config.ini\0{metainfo}";
+zstring_view zv(fname);
+fopen(zv.data(), "w");
+```
 
 > [!NOTE]  
 > Highlights information that users should take into account, even when skimming.
