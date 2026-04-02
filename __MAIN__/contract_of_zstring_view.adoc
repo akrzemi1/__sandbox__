@@ -16,7 +16,7 @@ The term C-string contract refers to the convention that the C programming langu
  4. The iteration over the array is guaranteed to reach the zero character without hitting any undefined behavior. The position of this zero character determines the string size.
  5. A zero-size string is a valid string value.
 
-Note that under this contract it is impossible for the string to have a zero character within its contents, as -- as per the contract -- the first ocurrence of this character indicates the one-past-last character.
+Note that under this contract it is impossible for the string to have a zero character within its contents, as -- per the contract -- the first ocurrence of this character indicates the one-past-last character.
 
 
 ## Design criteria
@@ -74,10 +74,29 @@ File(std::string_view fname)
 ```
 
 The guarantee implied by `zstring_view` works in practice because these types are either short-lived, or point to immutable buffers. We formalize it by introducing the notion of a _coöperative-invariant_:
-whoever creates an object of type `zstring_view` guarantees that that the characters in the buffer do not change during the life-time of the `zstring_view` buffer. It is easy to provide this guarantee when `zstring_view` is only used for function parameters.
+whoever creates an object of type `zstring_view` guarantees that that the characters in the buffer do not change during the life-time of the `zstring_view` buffer. It is easy to provide this guarantee when `zstring_view` is only used for function parameters. A coöperative-invariant, while requiring an additional commitment and caution from the programmer, still offers the benefits of invatiants: the condition is associated with the class, in one place, rather than with every function that needs it; it can engage the type system for the contract enforcement.
 
 
+## Zeros in the middle
 
+The question of whether zero characters within the string contents are allowed can be reformulated as follows. Should the coöperative-invariant contain the following guarantee:
+
+```c++
+bool the_guarantee(zstring_view zv)
+{
+  return zv.size() == strlen(zv.data());
+}
+```
+
+Recall that in the motivating use case the `zstring_view` object is consumed as follows:
+
+```
+fopen(zv.data(), "w")
+```
+
+Thus, the size that the users will ultimately see will be determined by the C-string contract. Having `zv.size()` return anything else is only confusing.
+
+Again, `std::string` doesn't need to take such approach because its contract makes it very clear: the size is determined by a dedicated member, unrelated to any zeros in the middle or at the end. In the case of `std::string_view` calling `strlen(sv.data())` is not advised at all when we do not know its history, because we may end up in buffer overflow (undefined behavior).
 
 
 > [!NOTE]  
