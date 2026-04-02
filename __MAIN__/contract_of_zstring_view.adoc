@@ -56,13 +56,22 @@ Usually, the goal of having a class is to provide and maintain an _invariant_. T
 char name [9] = "file.txt";
 assert(name[8] == 0);
 
-zstring_view sv = name; 
+const zstring_view sv = name; 
 // runtime checks, if any, pass at this time
 
 name[8] = 'a'; // no zero character anymore
 read(sv);
 ```
 
+Class `std::string` doesn't have this problem, as it controls the access to the character buffer. Class `std::string_view` doesn't have this problem, as it doesn't attempt to guarantee the presence of the zero character.
+
+Given that the class invariant cannot be guaranteed, one could wonder what is the value of having the new class type relative to -- as in https://eel.is/c++draft/meta.syn#3[[meta.syn]/3] -- preconditions and postconditions on functions that need/provide the zero-termination:
+
+```c++
+File(std::string_view fname)
+  // precondition: `fname[fname.size()]` is valid and equal to zero
+;
+```
 
 
 
@@ -84,6 +93,6 @@ The "C-string contract".
 
 implicit conversion to `const char *`?
 
-https://eel.is/c++draft/meta.syn#3
+
 
 operator==
