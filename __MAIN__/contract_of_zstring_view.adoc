@@ -111,7 +111,7 @@ The two approaches that make it easy to reason about `zstring_view` contract are
  1. `zv` should recognize only the part of the string literal that ends just before the first zero character. 
     This makes the behavior of the program consistent with what we would get if we used the `const char*` type instead: `fopen(fname)`. 
 
- 2. Make it the constructor's precondition that the literal shall not have zeros in the middle. This clearly declares passing such literals to `zstring_view`'s constructor a _programmer bug_. 
+ 2. Make it the constructor's precondition that the literal shall not have zeros in the middle. This clearly declares passing such literals to `zstring_view` constructor a _programmer bug_. 
 
 > [!NOTE]  
 > Highlights information that users should take into account, even when skimming.
