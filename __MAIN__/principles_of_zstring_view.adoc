@@ -253,6 +253,6 @@ Regarding the condition that there be no middle zeros, criteria #1 and #3 are no
 
 # Bikeshedding
 
-We recommend the name `zstring_view`. It reflects the contract more clearly. It is a [z]ero-terminated string, as called in POSIX. Name `c_str()` is adequate for the member function in class `string`, as it says, "give me the pointer that has C-string contract". The same name is not adequate for the new type. The class `zstring_view` doesn't have the C-string contract: it is only its data member `.data()` that has the C-string contract.  
+We recommend the name `zstring_view`. It reflects the contract more clearly. It is a [z]ero-terminated string, as called in POSIX. Name `c_str()` is adequate for the member function in class `string`, as it says, "give me the pointer that has C-string contract". The same name is not adequate for the new type. The class `zstring_view` doesn't have the C-string contract: it is only its data member `.c_str()` that has the C-string contract.  
 
 
