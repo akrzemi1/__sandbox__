@@ -1,4 +1,4 @@
-# Contract of `zstring_view`
+# The principles of `zstring_view`
 
 ## Terminology
 
@@ -50,7 +50,9 @@ First, consider the following two different possible motivaitons for having a st
  1. I just want to have a `const char*` but indicate in the type system that it encodes the C-string contract.
  2. The full range of `std::string` interface with the non-owing semantics, and the zero terminator guarantee. 
 
+Depending on which of the two motivations we follow, we end up with different engineering trade-offs. For instance, motivation #1 does not require the ~80 member functions (inclusive of `find_last_not_of`), and can have the `sizeof` of one pointer.
 
+// https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html 
 
 We have, on one side a zero-terminated string: either as a string literal, or a `std::string` object, or a pointer returned by a system function compliant with the C-string contract. On the other side we have a system function expecting a pointer compliant with the C-string contract. In the middle, we have a function that needs to convey this C-string-contract with a minimum overhead, while additionally being able to verify the contract compliance via an optional runtime check, and clearly reflecting the contract via its type.
 
