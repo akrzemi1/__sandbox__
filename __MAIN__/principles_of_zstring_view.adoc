@@ -118,6 +118,8 @@ One can envision two different APIs for `zstring_view`:
  1. Modest: just the constructors and `.c_str()`, plus maybe some regular operations and conversion to `string_view` and `string`.
  2. The full interface of `std::string`.
 
+We keep in mind that LEWG already decided in Kona 2019 that this problem domain shall not be pursued. Therefore we recommend the path that is substantially different from https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1402r0.pdf[P1402r0]. We propose a type with a minimalistic interface. If the full `string` interface is necessary, the user can always convert to `string_view`.
+
 
 ### Member function `length()`
 
