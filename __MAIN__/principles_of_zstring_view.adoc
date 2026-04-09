@@ -96,8 +96,8 @@ whoever creates an object of type `zstring_view` guarantees that the characters 
 
 Recall our use case:
 
- * The callee will pass the stored pointer to the system function that expects a C-string contract: it will traverse the array in the3 search of the zero terminator anyway.
- * There is no need as for `string_view` (https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html[n3921]) to efficiently compute substrings. 
+ * The callee will pass the stored pointer to the system function that expects a C-string contract: it will traverse the array in the search of the zero terminator anyway.
+ * There is no need as for `string_view` (https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html[N3921]) to efficiently compute substrings. 
 
 For this purpose, the business logic does not benefit from `zstring_view` separately maintaining the stringth's length. It is unlike in the case of `string` and `string_view` where it is precisely this additional member that determines the length of the string (this is why these types can afford to have zero characters in the middle).
 
