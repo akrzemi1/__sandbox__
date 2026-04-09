@@ -108,7 +108,7 @@ The length may be needed for less frequent tasks, such as converting to `string`
 
 It may still be beneficial though to have the "size" parameter during thre construction. Not to determine the string length -- this will be determined by the zero character anyway -- but to be able to validate (part of) the precondition. Validating if the pointer is non-null is easy. Validating if the pointer points to a valid object or array is impossible. Validating if iterating over the array reaches a zero character or not requires the iteration to be finite. The additional "size" parameter would guarantee that the iteration stops (although it does not guarantee that we will not overflow past the array boundary).  
 
-It may be also desireable to allow the validation of the index in `zstring_view::operator[]`, although access to characters will likely performed via the stored pointer and the builtin array index operator anyway. 
+It may be also desireable to allow the validation of the index value in `zstring_view::operator[]`, although access to characters will likely performed via the stored pointer and the built-in array index operator anyway. 
 
 
 ### Rich vs modest interface
