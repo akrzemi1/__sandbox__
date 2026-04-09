@@ -173,6 +173,7 @@ const char fname [] = "config.ini\0{metainfo}";
 zstring_view zv(fname);
 fopen(zv.data(), "w");
 ----
+|====
 
 But at the same time it does not allow `zstring_view` to offer its full value. 
 The constructor has now linear complexity instead of constant-time complexity, regardless of whether preconditions are checked or not. Also, the semantics of the program are not easily auditable: the trimming logic is hard to spot. 
