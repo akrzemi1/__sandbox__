@@ -56,7 +56,7 @@ We poropose the following use case as motivation.
 
 We have, on one side (the caller side) a zero-terminated string: either as a string literal, or a `std::string` object, or a pointer returned by a system function compliant with the C-string contract. On the other side (the callee side) we have a system function expecting a pointer compliant with the C-string contract. In the middle, we have a function that needs to convey this C-string-contract with a minimum overhead, while additionally being able to verify the contract compliance via an optional runtime check, and clearly reflecting the contract via its type.
 
-THe design is optimized for this use case. Any other additions are considered only inasmuch as the main use case is not compromised.
+The design is optimized for this use case. Any other additions are considered only inasmuch as the main use case is not compromised.
 
 // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html 
 
