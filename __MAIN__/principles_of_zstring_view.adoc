@@ -101,7 +101,7 @@ Recall our use case:
 
 For this purpose, the business logic does not benefit from `zstring_view` separately maintaining the stringth's length. It is unlike in the case of `string` and `string_view` where it is precisely this additional member that determines the length of the string (this is why these types can afford to have zero characters in the middle).
 
-The length may be needed for less frequent tasks, such as converting to `string` or `string_view`.
+The length may be needed for less frequent tasks, such as converting to `string` or `string_view`, as wel as for the runtime contract enforcements.
 
 
 ### Enforcing the contract
