@@ -27,7 +27,7 @@ This means that some use cases will not be addressed by this type. So this is th
 
 [cols="1,1"]  
 |===
-| Option A | Option B
+| Option A1 | Option A2
 
 | Clear, predictable contract
 | Nebulous, vague, ambiguous contract
@@ -40,7 +40,7 @@ This means that some use cases will not be addressed by this type. So this is th
 
 |===
 
-We propose to go with option A.
+We propose to go with option A1.
 
 
 ## The use case
