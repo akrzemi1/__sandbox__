@@ -26,12 +26,35 @@ A proposal should set out with a very clear goal statement, so that LEWG can eva
  * if the goal is worth pursuing;
  * if the proposed solution addresses the stated goal.
 
-"A lot of people ask for it" or "there is a lot of similar GitHub libraries" is not a sufficient motivation. As an illustration, a lot of people ask that C++ provides a `finally` keyword. The correct response in that case has been to educate the people on C++'s destructors rather than just fulfilling the request.
+"A lot of people ask for it" or "there is a lot of similar GitHub libraries" is not a sufficient motivation. As an illustration, 
+a lot of people ask that C\++ provides a `finally` keyword. The correct response in that case has been to educate the people on C++'s destructors rather than just fulfilling the request.
 
 The motivation that we have identified in https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html[P3655r4] is the experience where:
 
  1. The author of the function will be calling a system function, such as POSIX https://www.man7.org/linux/man-pages/man2/openat.2.html[`open`].
  2. The author wants to use `std::string_view` as the function parameter type rather than `const char*`.
+
+Such setup "compiles" and could work, but the callers would need to be communicated and then dyscyplined to only create `string_view` 's that happen to be zero-terminated. 
+We are talking about a _precondition_. Other options that the author has is to either use `const char*` as the function parameter type along with the C-string contract, or introduce a new type. In all three cases, 
+the fact that a pointer to a zero-terminated character array will be used in the implementation is exposed in the function's contract.
+
+So, given that the C-string contract will be used anyway, why not just use `const char *` as the function parameter type, rather than insisting on a new type? The answers could be:
+
+ 1. To reflect in the type the C-string contract: pointer must not be null, the array chall contain the zero character.
+ 2. To enable the type, if so configured, to runtime-enforce the C-string contract.
+ 3. To enable useful, harmless and cheap conversions, like from `std::string`.
+ 4. To correct the semantics of `operator==`.
+
+We do not understand the argument in https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html[P3655r4] which says, "to avoid the potential `strlen` overhead".
+Ultimately, the `const char*` will be passed to the system function https://www.man7.org/linux/man-pages/man2/openat.2.html[`open`] which will not care whether we know the string size or not:
+it will unconditionally iterate over the array until the zero terminator anyway. We cannot change that.
+
+
+## Design decisions
+
+
+
+<hr>
 
 
 ## Design criteria
