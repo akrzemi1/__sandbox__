@@ -28,9 +28,9 @@ A proposal should set out with a very clear goal statement, so that LEWG can eva
 
 "A lot of people ask for it" or "there is a lot of similar GitHub libraries" is not a sufficient motivation. As an illustration, a lot of people ask that C++ provides a `finally` keyword. The correct response in that case has been to educate the people on C++'s destructors rather than just fulfilling the request.
 
-The motivation that we have identified in [P3655r4](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html) is the experience where:
+The motivation that we have identified in https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html[P3655r4] is the experience where:
 
- 1. The author of the function will be calling a system function, such as POSIX [`open`](https://www.man7.org/linux/man-pages/man2/openat.2.html).
+ 1. The author of the function will be calling a system function, such as POSIX https://www.man7.org/linux/man-pages/man2/openat.2.html[`open`].
  2. The author wants to use `std::string_view` as the function parameter type rather than `const char*`.
 
 
