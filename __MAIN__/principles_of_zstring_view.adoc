@@ -1,4 +1,5 @@
-# The principles of `zstring_view`
+
+# The design goals for `zstring_view`
 
 ## Terminology
 
@@ -10,11 +11,11 @@ In this paper, whenever the word 'contract' is used, we _do not_ refer to the C+
 
 The term _C-string contract_ refers to the convention that the C programming language uses for representing strings:
 
- 1. The type is `const char*`
- 2. The pointer is not null.
- 3. The pointer points to a valid array of characters.
- 4. The iteration over the array is guaranteed to reach the zero character without hitting any undefined behavior. The position of this zero character determines the string size.
- 5. A zero-size string is a valid string value.
+1. The type is `const char*`
+2. The pointer is not null.
+3. The pointer points to a valid array of characters.
+4. The iteration over the array is guaranteed to reach the zero character without hitting any undefined behavior. The position of this zero character determines the string size.
+5. A zero-size string is a valid string value.
 
 Note that under this contract it is impossible for the string to have a zero character within its contents, as -- per the contract -- the first ocurrence of this character indicates the one-past-last character.
 
@@ -23,276 +24,220 @@ Note that under this contract it is impossible for the string to have a zero cha
 
 A proposal should set out with a very clear goal statement, so that LEWG can evaluate:
 
- * if the goal is worth pursuing;
- * if the proposed solution addresses the stated goal.
+* if the goal is worth pursuing;
+* if the proposed solution addresses the stated goal.
 
-"A lot of people ask for it" or "there is a lot of similar GitHub libraries" is not a sufficient motivation. As an illustration, 
+"A lot of people ask for it" or "there is a lot of similar GitHub libraries"
+or " `std` does not yet have a type wth this cobination of properties"
+is not a sufficient motivation. As an illustration,
 a lot of people ask that C\++ provides a `finally` keyword. The correct response in that case has been to educate the people on C++'s destructors rather than just fulfilling the request.
 
 The motivation that we have identified in https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html[P3655r4] is the experience where:
 
- 1. The author of the function will be calling a system function, such as POSIX https://www.man7.org/linux/man-pages/man2/openat.2.html[`open`].
- 2. The author wants to use `std::string_view` as the function parameter type rather than `const char*`.
+1. The author of the function will be calling a system function, such as POSIX
+   https://www.man7.org/linux/man-pages/man2/openat.2.html[`open`].
+2. The author wants to use `std::string_view` as the function parameter type rather than `const char*`.
 
-Such setup "compiles" and could work, but the callers would need to be communicated and then dyscyplined to only create `string_view` 's that happen to be zero-terminated. 
-We are talking about a _precondition_. Other options that the author has is to either use `const char*` as the function parameter type along with the C-string contract, or introduce a new type. In all three cases, 
+Such setup "compiles" and could work, but the callers would need to be communicated
+and then dyscyplined to only create `string_view` ojects that happen to be zero-terminated.
+We are talking about a _precondition_. Other options that the author has is to either use `const char*` as the function parameter type along with the C-string contract, or introduce a new type. In all three cases,
 the fact that a pointer to a zero-terminated character array will be used in the implementation is exposed in the function's contract.
 
 So, given that the C-string contract will be used anyway, why not just use `const char *` as the function parameter type, rather than insisting on a new type? The answers could be:
 
- 1. To reflect in the type the C-string contract: pointer must not be null, the array chall contain the zero character.
- 2. To enable the type, if so configured, to runtime-enforce the C-string contract.
- 3. To enable useful, harmless and cheap conversions, like from `std::string`.
- 4. To correct the semantics of `operator==`.
+1. To reflect in the type the C-string contract: pointer must not be null,
+   the array shall contain the zero character.
+2. To enable the type, if so configured, to runtime-enforce the C-string contract.
+3. To enable useful, harmless and cheap conversions, like from `std::string`.
+4. To avoid the misleading semantics of `operator==` for `const char*` with the C-string contract.
 
 We do not understand the argument in https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html[P3655r4] which says, "to avoid the potential `strlen` overhead".
 Ultimately, the `const char*` will be passed to the system function https://www.man7.org/linux/man-pages/man2/openat.2.html[`open`] which will not care whether we know the string size or not:
 it will unconditionally iterate over the array until the zero terminator anyway. We cannot change that.
 
+The reminder of the document assumes that the goal of the new type is to be a "C-string contract enforcer".
+
 
 ## Design decisions
 
 
+### Constructors
 
-<hr>
+The C-string contract enforcement would require three checks.
 
+1. Checking if the pointer is non-null is trivial.
+2. Checking if the pointer points to a valid character array is impossible.
+3. Checking for a zero character is tricky:
+we could iterate over the elements to look for it, but if it isn't there we will reach UB.
 
-## Design criteria
+The whole motivation for the type is to be able to test #3.
+This is doable if in the constructors we are additionally
+provided the limit for the iteration.
+It is easy to do for some constructors:
 
-Our goal is not to cover _all_ possible use cases for zero-terminated string views that programmers might ever come up with. 
-Instead, we identify a clear finite set of use cases, and design a type with a crystal-clear contract that addresses those use cases in a predictable way.
-This means that some use cases will not be addressed by this type. So this is the first engineering trade-off that we are doing:
+1. `zstring_view(string const& s)` -- `s` already guarantees the null terminator.
+2. `zstring_view(const char(&a)[N])` -- `N` (a template parameter) is the limit,
+and we can check for zero at `N - 1`.
 
-[cols="1,1"]  
-|===
-| Option A1 | Option A2
+3. Copy/move constructor -- it is safe to assume that we already performed the check when creating the original.
 
-| Clear, predictable contract
-| Nebulous, vague, ambiguous contract
-
-| Cover a smaller set of use cases
-| Cover a wider set of, possibly conflicting, use cases
-
-| More types, each simple and doing its clear job
-| Fewer types, with compromised contracts
-
-|===
-
-We propose to go with option A1.
-
-
-## The use case
-
-First, consider the following two different possible motivaitons for having a string view with a guaranteed zero terminator:
-
- 1. I just want to have a `const char*` but indicate in the type system that it encodes the C-string contract.
- 2. The full range of `std::string` interface with the non-owing semantics, and the zero terminator guarantee. 
-
-Depending on which of the two motivations we follow, we end up with different engineering trade-offs. For instance, motivation #1 does not require the ~80 member functions (inclusive of `find_last_not_of`), and can have the `sizeof` of one pointer.
-
-We poropose the following use case as motivation.
-
-We have, on one side (the caller side) a zero-terminated string: either as a string literal, or a `std::string` object, or a pointer returned by a system function compliant with the C-string contract. On the other side (the callee side) we have a system function expecting a pointer compliant with the C-string contract. In the middle, we have a function that needs to convey this C-string-contract with a minimum overhead, while additionally being able to verify the contract compliance via an optional runtime check, and clearly reflecting the contract via its type.
-
-The design is optimized for this use case. Any other additions are considered only inasmuch as the main use case is not compromised.
-
-
-## The class invariant
-
-Usually, the goal of having a class is to provide and maintain an _invariant_. This is typically achieved via the class interface making operations that would otherwise resulted in compromising the invariant inaccessible. In our case, the situation is special because we are dealing with a "reference" or a "view" type, where we do not control who and how modifies the content of the string. The obvious part of the invariant is "the sequence is zero-terminated", but we cannot guarantee even that:
+But we definately cannot accept `zstring_view(const char*)` -- we will not be able to verify the contract.
+This means that the simplest and intuitive use cases will not work:
 
 ```c++
-char name [9] = "file.txt";
-assert(name[8] == 0);
-
-const zstring_view sv = name;
-// or even `const zstring_view sv(name, strlen(name));`
-// runtime checks, if any, pass at this time
-
-name[8] = 'a'; // no zero character anymore
-read(sv);
-```
-
-Class `std::string` doesn't have this problem, as it controls the access to the character buffer. Class `std::string_view` doesn't have this problem, as it doesn't attempt to guarantee the presence of the zero character.
-
-Given that the class invariant cannot be guaranteed, one could wonder what is the value of having the new class type relative to -- as in https://eel.is/c++draft/meta.syn#3[[meta.syn]/3] -- preconditions and postconditions on functions that need/provide the zero-termination:
-
-```c++
-File(std::string_view fname)
-  // precondition: `fname.data()[fname.size()]` is valid and equal to zero
-;
-```
-
-The guarantee implied by `zstring_view` works in practice because these types are either short-lived, or point to immutable buffers. We formalize it by introducing the notion of a _coöperative-invariant_:
-whoever creates an object of type `zstring_view` guarantees that the characters in the buffer do not change during the life-time of the `zstring_view` object. It is easy to provide this guarantee when `zstring_view` is only used for function parameters. A coöperative-invariant, while requiring an additional commitment and caution from the programmer, still offers the benefits of invatiants: the condition is associated with the class, in one place, rather than with every function that needs it; it can engage the type system for the contract enforcement.
-
-
-## The design
-
-
-### String's length
-
-Recall our use case:
-
- * The callee will pass the stored pointer to the system function that expects a C-string contract: it will traverse the array in the search of the zero terminator anyway.
- * There is no need as for `string_view` (https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html[N3921]) to efficiently compute substrings. 
-
-For this purpose, the business logic does not benefit from `zstring_view` separately maintaining the stringth's length. It is unlike in the case of `string` and `string_view` where it is precisely this additional member that determines the length of the string (this is why these types can afford to have zero characters in the middle).
-
-The length may be needed for less frequent tasks, such as converting to `string` or `string_view`, as wel as for the runtime contract enforcements.
-
-
-### Enforcing the contract
-
-It may still be beneficial though to have the "size" parameter during thre construction. Not to determine the string length -- this will be determined by the zero character anyway -- but to be able to validate (part of) the constructor's precondition. Validating if the pointer is non-null is easy. Validating if the pointer points to a valid object or array is impossible. Validating if iterating over the array reaches a zero character or not requires the iteration to be finite. The additional "size" parameter would guarantee that the iteration stops (although it does not guarantee that we will not overflow past the array boundary).  
-
-It may be also desireable to allow the validation of the index value in `zstring_view::operator[]`, although access to characters will likely performed via the stored pointer and the built-in array index operator anyway. 
-
-
-### Rich vs modest interface
-
-One can envision two different APIs for `zstring_view`:
-
- 1. Modest: just the constructors and `.c_str()`, plus maybe some regular operations and conversion to `string_view` and `string`.
- 2. The full interface of `std::string`.
-
-We keep in mind that LEWG already decided in Kona 2019 that this problem domain shall not be pursued. Therefore we recommend the path that is substantially different from https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1402r0.pdf[P1402r0]. We propose a type with a minimalistic interface. If the full `string` interface is necessary, the user can always convert to `string_view`.
-
-
-### Member function `length()`
-
-It is not obvious if this member function is needed at all (see the previous subsection). If needed, it can be implemented by either looking for the zero character each time, so with linear complexity, or by keeping a separate field, initialized during the construction. We do not consider a lazy length computation (upon first use) as an option, as this would require synchronization on some platforms to avoid data races.
-
-Another quesiton would then had to be answered. Should the following guaranteed:
-
-```c++
-bool the_guarantee(zstring_view zv)
+catch(std::exception const& exc)
 {
-  return zv.length() == strlen(zv.data());
+  string s = exc.what();        // ok
+  string_view sv = exc.what();  // ok
+  zstring_view zv = exc.what(); // compiler error!
 }
 ```
 
-consider the following construction:
+If we allow a constructor from `const char*` we have failed to achieve
+the type's goal.
+
+If we only provide constructor `zstring_view(const char*, size_t)`, we either make the usage of this type impossible, or bug prone:
 
 ```c++
-void test(string s, string_view sv)
+catch(std::exception const& exc)
 {
-  zstring_view z1(s);
-  assert(z1.length() == s.length());   // should pass?
-  zstring_view z1(sv);
-  assert(z1.length() == sv.length());  // should pass?
+  size_t Max = 128;  // arbitrary size limit
+  zstring_view zv(exc.what(), Max); // compiles, but may be UB
 }
 ```
 
-It is perfectly fine for `string` and `string_view` to contain the zero character in the middle. This is wy the have the dedicated length value: so that the zero character does not determine the length of the string. `zstring_view` is differentg: it abides by the C-string contract. One of the three solutions are possible:
+How do the current implementations address this issue? We are not aware of
+many implementations of this tool. We also note the whoever decides to
+implement "something like `zstring_view` " is not obliged to state and follow any design goals.
+The Standard Library components, on the other hand, should be founded on principles.
 
- 1. A `zstring_view` created from `string` may be shorter than the source string.
- 2. The constructors of `zstring_view` have a precondition that the provided sequence of characters has no zeros in the middle.
- 3. `zstring_view` may return different values for `zv.length()` and `strlen(zv.data())`.
- 4. `zstring_view` not to provide functions `.length()` or `.size()`. 
-
-We recommend against #3. This would be highly confusing for `zstring_view`, which claims to encode the C-string contract, to have `.length()` return something else than what the C functions will see. In fact, we recommend that if `.length()` is provided, the class'es coöperative-invariant should be that `zv.length() == strlen(zv.data())`.
+Let's take a look at one interesting use case.
+https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html[P3655r4]
+quotes a revision of https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3081r1.pdf[P3081]:
 
 
-Option #1 introduces no new surprises relative to using naked `const char *`:
+> This [`zstring_view`] is one of the commonly-requested features from the
+> https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#gslview-views[[GSL]]
+> library that does not yet have a std:: equivalent. It was specifically requested by several reviewers of this work.
 
-[cols="1,1"]
-|====
+But if we look at the Microsoft's implementation of the
+https://github.com/microsoft/GSL/blob/main/include/gsl/zstring[GSL] library, `zstring` is just an alias on `char*`. Apparently, GSL does not aim at runtime-checking the violations of the C-string contract.
 
-a| 
-[source,cpp]
-----
-const char fname [] = "config.ini\0{metainfo}";
+The goal "C-string contract enforcement" seems unimplementable.
 
-fopen(fname, "w");
-----
-a|
-[source,cpp]
-----
-const char fname [] = "config.ini\0{metainfo}";
-zstring_view zv(fname);
-fopen(zv.data(), "w");
-----
-|====
+We could compromise the goal a bit, and say that the new type either allows
+a runtime-verifiable correct construction _or_ provides a very explicit syntax
+for uncheckable initialization that is easy to audit:
 
-But at the same time it does not allow `zstring_view` to offer its full value. 
-The constructor has now linear complexity instead of constant-time complexity, regardless of whether preconditions are checked or not. Also, the semantics of the program are not easily auditable: the trimming logic is hard to spot. 
+```c++
+catch (std::exception const& exc)
+{
+  auto zv = zstring_view::RISKY_convert(exc.what()); // ok
+}
+```
 
-Regarding option #2, often any mention of the word "precondition" triggers fear/uncertainty/doubt over "undefined behavior". The unhealthy tendency to mechanically avoid *any* UB at *any* cost results in components with unhelpful contracts where intentional hacks cannot be distinguished from inadvertent bugs. It should be noted that in our case the most optimized implementation of the function, one that does not attempt to perform any precondition validation, would end up with system functions being called with the string value truncated to the first zero character, which is equivalent to option #1 above. The only difference being that in some cases we would have `zv.length() != strlen(zv.data())`. *This is _not_ this UB that causes security vulnerabilities.* On the other hand, an implementation that performs contract validations or that adds platform-specific annotations in the declaration allows user bugs to be detected either at runtime or during static analysis.
-
-One could consider an alternative where passing middle zeros in constructor is legal and then throws an exception. We do not recommend such "half measures". The programmer does not get the functionality in #1 and the static analyzers cannot report a bug as in #2. This complicates the classification of the class into hosted versus freestanding. In `-fno-exceptions` compiler modes the exception would be turned into `std::abort()` which is not that bad, but the other problems remain.
-
-The following summarizes the engineering trade-off.
-
-[cols="1,1,1,1,1"]  
-|===
-| Option 1 | Option 2 | Option 3 | Option 4 | Option 5
-
-| Trimming
-| Precondition
-| Two lengths
-| No `.length()`
-| Throw
-
-| Consistent with `const char*` behavior.
-| Clear, simple contract.
-| Simple to implement.
-| Modest interface.
-| Guaranteed no execution past the point.
-
-| Middle zeros not a bug.
-| Middle zeros are a bug diagnosable by sanitizers and static analyzers.
-| Middle zeros not a bug.
-| Middle zeros not observable.
-| Middle zeros not a bug.
-
-| 𝒪(_n_) constructor.
-| 𝒪(1) constructor.
-| 𝒪(1) constructor.
-| Could be 𝒪(1).
-| 𝒪(_n_) constructor.
-
-| Class available in freestanding.
-| Class available in freestanding.
-| Class available in freestanding.
-| Class available in freestanding.
-| Class _not_ available in freestanding.
-
-| Invariant `zv.length() == strlen(zv.c_str())`.
-| Invariant `zv.length() == strlen(zv.c_str())`.
-| No invariant.
-| N/A.
-| Invariant `zv.length() == strlen(zv.c_str())`.
-
-|===
-
-We propose to go with either option 2 or 4.
-
-= = = = = = 
+It would still be far from being a drop-in replacement for `const char*` in function parameters.
 
 
 
+### The richness of the interface
+
+
+If the goal is to have a C-string interface with the ability to runtime-enforce it,
+then the excessive richness of the `std::string` interface
+(such as function `find_last_not_of`) is not necessary.
+
+This rich interface was not necessary in `std::string` in the first place.
+It made sense to reprise it in `std::string_view` as the latter's contract is
+"treat me as `string` except that I represent a section in the bigger character sequence":
+
+```
+                        begin       begin + size
+string_view:            ↓           ↓
+original sequence: |0|1|2|3|4|5|6|7|8|9|0|
+
+```
+
+But the contract of `zstring_view` (if it were to satisfy the indicated goal) is different.
+It is "I am a `const char*` that additionally verifies the C-string contract". Even `operator[]`
+is unnecessary: just call `.data()` and iterate over this array.
+
+In an unlikely case where the full interface of `string_view` is required,
+`zstring_view` can be cheaply converted to `string_view`.
+
+
+=== String’s length
+
+`string` stores its length explicitly, so that it can treat the zero-character
+as an ordinary character. `string_view` sores its length because this is necessary to
+represent a subsection of a longer character sequence.
+
+In contrast, the contract of `zstring_view` is that it will ultimately
+be passed to a function like POSIX
+https://www.man7.org/linux/man-pages/man2/openat.2.html[`open`] and its size will
+be determined by iterating throughout the sequence until the zero-character.
+The iteration will be performed, no matter what we do!
+Keeping this number doesn't add value here, but on the other hand would pose a new problem:
+this explicit size and the result of `strlen` would have to be kept in sync,
+and this is difficult when zero characters are present in the sequence before the end of explicit length.
+
+```c++
+string s("A\0B", 3);
+string_view sv("A\0B", 3);
+zstring_view zs("A\0B", 3);
+
+assert (s.length() != strlen(s.data()));   // ok: `strlen(s.data())` is not the length
+assert (sv.length() != strlen(sv.data())); // ok: `strlen(sv.data())` is not the length
+assert (zs.length() != strlen(zs.data())); // disaster: `strlen(zs.data())` is the length
+```
+
+Assuming the goal of `zstring_view` is "a `const char*` that additionally
+verifies the C-string contract", consistent solutions would be:
+
+ 1. Do not provide member `length()` or `size()`.
+ 2. Make these members equivalent to `strlen(data())`.
+ 3. Add a precondition, potentially runtime-enforced,
+    that zero-characters in the middle are not allowed.
+
+It may still make sense to have the `size_t` member but with a different interpretation.
+If `zstring_view` provides `operator[]`, this member could be used as help to runtime-enforce
+the precondition that the index is "in the right range".
+
+Option #2 still requires other questions to be answered: shall this value of length be computed upon construction?
+If so, this a waste in the very basic use case:
+
+```c++
+zstring_view zs("may contain a \0 char"); // 1st range iteration
+fopen(zs.data());                         // 2nd range iteration
+```
+
+We could compute the length when it is first needed and then cache the result.
+But this causes data-race issues.
+
+
+## Recommendations
+
+We recommend the following.
+
+ 1. LEWG shall not approve any paper proposing a library component
+    that does not clearly state its design goal. This is necessary for everyone in WG21
+    to be clear on what the goal is, to be able to assess ig the goal is worth pursuing,
+    and if the proposed solution actually addresses the goal.
+
+ 2. We observe that
+    https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html[P3655r4]
+    does not express the goal clearly enough. We described what we _believe_ to
+    be the goal: a `const char*` with the C-string contract enforcement.
+    Our further analysis is based on this assumed goal.
+
+ 3. Based on our assumption, we conclude that the design proposed in
+    https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html[P3655r4]
+    does not satisfy the goal. In fact, we cannot see any design that would.
 
 
 
+## References
 
-### Hardened precondition?
-
-Should the constructor precondition be hardened? https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3697r0.html[P3697r0] lists criteria for making the preconditions hardened:
-
- 1. Violating the precondition results in a memory safety issue (an out-of-bounds access or an access to uninitialized memory).
- 2. The call site has all the necessary data to perform the check.
- 3. The check can be done in constant time and imposes relatively little overhead.
-
-This represents a sound trade-off between preventing security vulnerabilities and compromising runtime performance.
-
-Regarding the condition that the pointer be not null, it matches all three criteria. We recommend that it be hardened.
-
-Regarding the condition that there be no middle zeros, criteria #1 and #3 are not satisfied. We recommend that it be _not_ hardened.
-
-
-# Bikeshedding
-
-We recommend the name `zstring_view`. It reflects the contract more clearly. It is a [z]ero-terminated string, as called in POSIX. Name `c_str()` is adequate for the member function in class `string`, as it says, "give me the pointer that has C-string contract". The same name is not adequate for the new type. The class `zstring_view` doesn't have the C-string contract: it is only its data member `.c_str()` that has the C-string contract.  
-
-
+ * https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2176r0.html
+ * https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html
+ * https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3697r0.html
