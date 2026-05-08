@@ -300,7 +300,20 @@ the "runtime-enforce the C-string contract" goal.</p>
 }
 </code></pre>
 
-<p>How do the current implementations address this issue? We are not aware of
+
+<p> How do the current implementations address this issue? </p>
+
+<p> Different implementations do different things and pursue 
+    — consciously or not — different design goals. In fact, whoever decides to
+    implement "something like <code>zstring_view</code>" is not obliged to 
+	state or follow any design goals. Therefore, there is a limit to how such
+    reasearch can help guide the design for a Standard Library component, 
+	where the design bar is higher: it should be founded on principles.
+	</p>
+	
+
+
+<p> We are not aware of
 many implementations of this tool. We also note the whoever decides to
 implement "something like <code>zstring_view</code>" is not obliged to state and follow any design goals.
 The Standard Library components, on the other hand, have a higher design bar: they should be founded on principles.</p>
