@@ -1,0 +1,562 @@
+
+
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+pre {font-family: "Consolas", "Lucida Console", monospace; margin-left:20pt; }
+code {font-family: "Consolas", "Lucida Console", monospace; }
+pre > i   { font-family: "Consolas", "Lucida Console", monospace;  font-style:italic; }
+code > i  { font-family: "Consolas", "Lucida Console", monospace;  font-style:italic; }
+pre > em  { font-family: "Consolas", "Lucida Console", monospace;  font-style:italic; }
+code > em { font-family: "Consolas", "Lucida Console", monospace;  font-style:italic; }
+dl > dt { font-style:italic; }
+body { font-family: "Calibri" }
+
+@media (prefers-color-scheme: dark) {
+	body { background: #111; color:  #ccc; }
+	a { color:  #38f; }
+	a:visited { color:  #a4d; }
+	.sect { color:  #ccc; }
+    del { text-decoration: line-through; color: #EE9999; }
+    ins { text-decoration: underline; color: #99EE99; }
+    blockquote.std    { color: #ccc; background-color: #2A2A2A;  border: 1px solid #3A3A3A;  padding-left: 0.5em; padding-right: 0.5em; }
+    blockquote.stddel { text-decoration: line-through;  color: #ccc; background-color: #221820;  border: 1px solid #332228;  padding-left: 0.5em; padding-right: 0.5em; ; }
+    blockquote.stdins { text-decoration: underline;  color: #ccc; background-color: #182220;  border: 1px solid #223328; padding: 0.5em; }
+    table { border: 1px solid #ccc; border-spacing: 0px;  margin-left: auto; margin-right: auto; }
+}
+
+@media (prefers-color-scheme: light) {
+	body { background:  white; color: black; }
+    del { text-decoration: line-through; color: #8B0040; }
+    ins { text-decoration: underline; color: #005100; }
+    blockquote.std    { color: #000000; background-color: #F1F1F1;  border: 1px solid #D1D1D1;  padding-left: 0.5em; padding-right: 0.5em; }
+    blockquote.stddel { text-decoration: line-through;  color: #000000; background-color: #FFEBFF;  border: 1px solid #ECD7EC;  padding-left: 0.5em; padding-right: 0.5em; ; }
+    blockquote.stdins { text-decoration: underline;  color: #000000; background-color: #C8FFC8;  border: 1px solid #B3EBB3; padding: 0.5em; }
+    table { border: 1px solid black; border-spacing: 1px;  margin-left: auto; margin-right: auto; }
+}
+
+
+.comment em { font-family: "Calibri"; font-style:italic; }
+p.example   { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+div.poll { margin-left: 2em; }
+
+code.extract { background-color: #F5F6A2; }
+pre.extract  { margin-left: 2em; background-color: #F5F6A2;  border: 1px solid #E1E28E; }
+
+p.function    { }
+.attribute    { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic;  padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+
+.editor { color: #4444BB; font-style: normal; background-color: #DDDDDD; }
+
+tab { padding-left: 4em; }
+tab3 { padding-left: 3em; }
+
+.link { float: right; font-family: "Consolas", "Lucida Console", monospace; font-size:80% }
+
+
+table.header { border: none; border-spacing: 0;  margin-left: 0px; font-style: normal; }
+td.header { border: none; border-spacing: 0;  margin-left: 0px; font-style: normal; }
+.header { border: none; border-spacing: 0;  margin-left: 0px; font-style: normal; }
+table.poll { border: 1px solid black; border-spacing: 0px;  margin-left: 0px; font-style: normal; }
+
+th { text-align: left; vertical-align: top;  padding-left: 0.4em;  /*padding-right: 0.4em; border-bottom:1px dashed;*/ }
+td { text-align: left;  padding-left: 0.4em; padding-right: 0.4em; /*border-right:1px dashed; */}
+tr { border: solid; border-width: 1px 0; border-bottom:1px solid blue }
+
+
+.revision   { /*color: #005599;*/ }
+.grammar { list-style-type:none }
+
+</style>
+
+<title>Design goals for `zstring_view`</title>
+
+</head>
+<body>
+
+<table class="header"><tbody>
+  <tr>
+    <th>Document number:&nbsp;&nbsp;</th><th> </th><td class="header">D4220R0</td>
+  </tr>
+  <tr>
+    <th>Date:&nbsp;&nbsp;</th><th> </th><td class="header">2026-05-08</td>
+  </tr>
+  <tr>
+    <th>Audience:&nbsp;&nbsp;</th><th> </th><td class="header">LEWG</td>
+  </tr>
+  <tr>
+    <th>Reply-to:&nbsp;&nbsp;</th><th> </th><td class="header">
+        <address>Andrzej Krzemieński &lt;akrzemi1 at gmail dot com&gt;</address>
+    </td>
+  </tr>
+</tbody></table>
+
+
+<h1>Design goals for <code>zstring_view</code></h1>
+
+
+<p> During the 2025 Sofia meeting, LEWG declared consensus to spend more time on <code>zstring_view</code>
+    (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html"
+       title="Peter Bindels, Hana Dusíková, Jeremy Rifkin, Marco Foco, Alexey Shevlyakov, &ldquo;std::cstring_view&rdquo;">[P3655R4]</a>).
+    This paper follows the direction. We want to make sure that the design goals for 
+    <code>zstring_view</code> are clearly understood before the decision
+	whether to even have it or not are made.
+	</p>
+	
+
+
+<h2>Terminology</h2>
+
+
+<h3>Contract</h3>
+
+<p>In this paper, whenever the word 'contract' is used, we <em>do not</em> refer to the C++26 feature known as "contract assertions", but instead refer to the methods of Library API specifications.</p>
+
+<h3>C-string contract</h3>
+
+<p>The term <em>C-string contract</em> refers to the convention that the C programming language uses for representing strings:</p>
+
+<ol>
+<li>The type is <code>const char*</code></li>
+<li>The pointer is not null.</li>
+<li>The pointer points to a valid array of characters.</li>
+<li>The iteration over the array is guaranteed to reach the zero character without hitting any undefined behavior. The position of this zero character determines the string size.</li>
+<li>A zero-size string is a valid string value.</li>
+</ol>
+
+<p> Note that under this contract it is impossible for the string to have a zero character
+    within its contents, as — per the contract — the first occurrence of this character 
+    indicates the one-past-last character.
+    </p>
+    
+<p> Note also that in the C library there are functions that take </p>
+
+<ul>
+<li>(<code>const char*</code>, <code>size_t</code>), like <code>strnlen</code>,
+    where the size of the string is determined as the smaller of "the distance from the closest zero character" and the explicit length;</li>
+<li>(<code>const void*</code>, <code>size_t</code>), like <code>fwrite</code>,
+    which can in particular work for arrays of <code>char</code> and where the length
+    is provided explicitly and zero characters can appear in the middle.</li>
+</ul>
+
+<p> They are excluded from the definition of the <em>C-string contract</em>. </p>
+
+<!-- TODO: a lot of people define it, but each with different semantics -->
+<!-- TODO: will i have string_view in some places and zstring_view in other places? Why?  -->
+<!-- TODO: alternative: use a function that converts to null-terminated, possibly allocating -->
+<!-- one zstring_view will not be enough and we will end up needing another one -->
+<!-- use case: get const char* from reflection, play with it as string_view, ultimately consume it as const char * -->
+<!--
+There are OS APIs that take a char* and size combination and allow for embedded nulls.
+You can implicitly obtain this type from string and string_view, which can contain embedded nulls.
+
+const char name [] = "name\0meta";
+open(name);
+open(zstring_view(name).data()); // same?
+-->
+
+<h2>The motivation</h2>
+
+<p>A proposal should set out with a very clear goal statement, so that LEWG can evaluate:</p>
+
+<ul>
+<li>if the goal is worth pursuing;</li>
+<li>if the proposed solution addresses the stated goal optimally.</li>
+</ul>
+
+<p> "A lot of people ask for it" or "there is a lot of similar GitHub libraries"
+    or "<code>std</code> does not yet have a type with this combination of properties"
+    is not a sufficient motivation.
+    </p>
+
+<p> A lot of people ask that C++ provides a <code>finally</code> keyword. 
+    The correct response in that case has been to educate the people on C++'s destructors 
+    rather than just fulfilling the request.
+    </p>
+    
+<p> Similarly, a lot of people may demand "a type like <code>cstring_view</code>",
+    but each of them may mean slightly different incompatible semantics, addressing 
+    slightly different incompatible goals.
+    </p>
+
+<p> The motivation that we have identified in <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html"
+       title="Peter Bindels, Hana Dusíková, Jeremy Rifkin, Marco Foco, Alexey Shevlyakov, &ldquo;std::cstring_view&rdquo;">[P3655R4]</a>
+	   is the experience where:</p>
+
+<ol>
+<li>The author of the function will be calling a system function, such as POSIX
+   <a href="https://www.man7.org/linux/man-pages/man2/openat.2.html"><code>open</code></a>.</li>
+<li>The author insists on using <code>std::string_view</code> as the function parameter type rather than <code>const char*</code>.</li>
+</ol>
+
+<p> Such setup "compiles" and could work, but the callers would need to be communicated
+    and then disciplined to only create <code>string_view</code> objects that happen to be zero-terminated.
+    This is called a <em>precondition</em>.
+
+    Other options that the author has is to either use <code>const char*</code> as the 
+    function parameter type along with the C-string contract, or introduce a new type that directly reflects the C-string contract.
+    In all three cases, the fact that a pointer to a zero-terminated character array will 
+    be used in the implementation is exposed in the function's contract, 
+    either as a precondition or as a dedicated type (because if it weren't, we would have just used <code>string_view</code>). 
+    </p>
+
+<p> So, given that the C-string contract will be used anyway, why not just use 
+    <code>const char*</code> as the function parameter type, rather than insisting on a new type?
+    The answers could be:
+    </p>
+
+<ol>
+<li> To reflect in the type the C-string contract: pointer must not be null,
+   the array shall contain the zero character. Even if this is just <code>const char*</code>,
+   let the people see the unusual new type name.</li>
+<li>To enable the type, if so configured, to runtime-enforce the C-string contract.</li>
+<li>To avoid the misleading semantics of <code>operator==</code> for <code>const char*</code> with the C-string contract.</li>
+<li>To offer a type with the C-string contract which additionally keeps the length explicitly, which may be obtained in 𝒪(<var>1</var>) 
+    time for some constructors. </li>
+</ol>
+
+
+<p>Let's illustrate the last bullet. This would be in the situation where a program receives a zero-terminated string from one C-style API, then plays with it 
+    using the <code>string_view</code> interface, and finally passes it to another C-style API that uses the C-string contract:
+    </p>       
+    
+<pre>
+void demonstration()
+{
+  const char * s = clib1::get_str();    <em> // #1</em>
+  play1(string_view(s).starts_with());
+  play2(string_view(s).find_last_not_of('_'));
+  clib2::use_str(s);                    <em> // #4</em> 
+}
+</pre>
+
+<p> If the string size could be computed in line #1, then in lines #2 and #3 we could use it for free. But
+    function <code>clib2::use_str</code> would still need to iterate through the entire sequence, so it is not clear what this use case buys us.
+    </p>
+
+    Ultimately, the <code>const char*</code> will be passed to the system function <a href="https://www.man7.org/linux/man-pages/man2/openat.2.html"><code>open</code></a> which will not care whether we know the string size or not:
+it will unconditionally iterate over the array until the zero terminator anyway. No design in <code>zstring_view</code> can change that.</p>
+
+<p> In the following analysis we often assume that the goal of the new type is to be a "C-string contract enforcer".
+    <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html"
+       title="Peter Bindels, Hana Dusíková, Jeremy Rifkin, Marco Foco, Alexey Shevlyakov, &ldquo;std::cstring_view&rdquo;">[P3655R4]</a>,
+    doesn't state its goal clearly enough.
+    </p>
+
+
+
+<h2>Design decisions</h2>
+
+
+<h3>Constructors</h3>
+
+<p>The C-string semantic contract consists of three parts.</p>
+
+<ol>
+<li>Checking if the pointer is non-null is trivial.</li>
+<li>Checking if the pointer points to a valid character array is impossible.</li>
+<li>Checking for a zero character is tricky:
+we could iterate over the elements to look for it, but if it isn't there we will reach UB.</li>
+</ol>
+
+<p>If the primary goal of <code>zstring_view</code> is to runtime-enforce the C-string contract, then the whole point is to be able to test #3 above.
+This is doable if in the constructors we are additionally provided the limit for the iteration.
+It is easy to do for some constructors:</p>
+
+<ol>
+<li><code>zstring_view(string const&amp; s)</code> — <code>s</code> already guarantees the null terminator.</li>
+<li><code>zstring_view(const char(&amp;a)[N])</code> — <code>N</code> (a template parameter) is the limit,
+and we can check for zero at <code>N - 1</code>.</li>
+<li>Copy/move constructor — it is safe to assume that we already performed the check when creating the original.</li>
+</ol>
+
+<p>But we definitely cannot accept <code>zstring_view(const char*)</code> — we will not be able to verify the contract.
+This means that the simplest and intuitive use cases will not work:</p>
+
+<pre><code>catch(std::exception const&amp; exc)
+{
+  string s = exc.what();        <em>// ok</em>
+  string_view sv = exc.what();  <em>// ok</em>
+  zstring_view zv = exc.what(); <em>// compiler error!</em>
+}
+</code></pre>
+
+<p>If we allow a constructor from <code>const char*</code> we have failed to achieve
+the "runtime-enforce the C-string contract" goal.</p>
+
+<p>If we only provide constructor <code>zstring_view(const char*, size_t)</code>, we either make the usage of this type impossible, or bug prone:</p>
+
+<pre><code>catch(std::exception const&amp; exc)
+{
+  size_t Max = 128;  <em>// arbitrary size limit</em>
+  zstring_view zv(exc.what(), Max); <em>// compiles, but may be UB</em>
+}
+</code></pre>
+
+<p>How do the current implementations address this issue? We are not aware of
+many implementations of this tool. We also note the whoever decides to
+implement "something like <code>zstring_view</code>" is not obliged to state and follow any design goals.
+The Standard Library components, on the other hand, have a higher design bar: they should be founded on principles.</p>
+
+<p>Let's take a look at one interesting use case.
+<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html"
+       title="Peter Bindels, Hana Dusíková, Jeremy Rifkin, Marco Foco, Alexey Shevlyakov, &ldquo;std::cstring_view&rdquo;">[P3655R4]</a>
+quotes a revision of     
+    <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3081r1.pdf"
+       title="Herb Sutter, &ldquo;Core safety profiles for C++26&rdquo;">[P3081R1]</a>:</p>
+
+<blockquote>
+<p>This [<code>zstring_view</code>] is one of the commonly-requested features from the
+<a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#gslview-views">[GSL]</a>
+library that does not yet have a std:: equivalent. It was specifically requested by several reviewers of this work.</p>
+</blockquote>
+
+<p>But if we look at the Microsoft's implementation of the
+<a href="https://github.com/microsoft/GSL/blob/main/include/gsl/zstring">GSL</a> library, <code>zstring</code> is just an alias on <code>char*</code>. Apparently, GSL does not aim at runtime-checking the violations of the C-string contract.</p>
+
+<p>The goal "C-string contract enforcement", if it is the goal, seems unimplementable.</p>
+
+<p>We could consider a slightly different goal instead, and say that the new type <em>either</em> allows
+a runtime-verifiable correct construction <em>or</em> provides a very explicit syntax
+for uncheckable initialization that is easy to audit:</p>
+
+<pre><code>catch (std::exception const&amp; exc)
+{
+  auto zv = zstring_view::RISKY_convert(exc.what()); <em>// ok</em>
+}
+</code></pre>
+
+<p>Such <code>zstring_view</code> would still be far from being a drop-in replacement for <code>const char*</code> in function parameters.</p>
+
+
+<p> Depending on what the goal of <code>zstring_view</code> is,
+    a different set of constructors may be optimal. But we will not be able to assess
+	which constructor set is optimal, until we know the design goal.
+	</p>
+
+
+
+<h3>The richness of the interface</h3>
+
+
+<p>If the goal is to have a C-string interface with the ability to runtime-enforce it,
+then the excessive richness of the <code>std::string</code> interface
+(such as function <code>find_last_not_of</code>) is not necessary.</p>
+
+<p> Compare the different contracts of <code>string</code>, <code>string_view</code> and <code>zstring_view</code>.
+    </p>
+
+<ol>
+<li><code>string</code> — a <code>char</code> container that additionally exposes the string-rich interface. Zero is a perfectly valid element value.</li>
+
+<li><code>string_view</code> — an arbitrary sub-sequence of another <code>char</code> sequence managed elsewhere, which also exposes string-rich interface. Zero is a perfectly valid element value.</li>
+
+<li><code>zstring_view</code> — a <code>const char*</code> which can additionally runtime-enforce the C-string contract. By contract definition, it cannot have zero characters in the middle, and it will only be passed to function <a href="https://www.man7.org/linux/man-pages/man2/openat.2.html"><code>open</code></a>.
+    </li>
+
+</ol>
+
+<!--
+<p>This rich interface was not necessary in <code>std::string</code> in the first place.
+It made sense to reprise it in <code>std::string_view</code> as the latter's contract is
+"treat me as <code>string</code> except that I represent a section in the bigger character sequence":</p>
+
+<pre><code>                        begin       begin + size
+string_view:            ↓           ↓
+original sequence: |0|1|2|3|4|5|6|7|8|9|0|
+</code></pre>
+
+<p>But the contract of <code>zstring_view</code> (if it were to satisfy the indicated goal) is different.
+It is "I am a <code>const char*</code> that additionally verifies the C-string contract". Even <code>operator[]</code>
+is unnecessary: just call <code>.data()</code> and iterate over this array.</p>
+
+-->
+
+<p> The only interface of <code>zstring_view</code> that will be used in practice
+    is its constructors and function <code>.data()</code>.
+	Even <code>operator[]</code> is unnecessary: just call <code>.data()</code> 
+	and iterate over this array.
+	</p>
+
+
+<p> We lose the string-rich interface, but do we need it? If so, we can convert to <code>string_view</code>.
+    This would be an 𝒪(<var>n</var>) cost if we goal for "C-string contract enforcer" or an
+    𝒪(<var>1</var>) cost if we goal for "C-string contract + precomputed size". In the latter case
+    we would penalize the most basic use case:
+    </p>
+    
+<pre>
+zstring_view zs = get_c_string(); <em>// 𝒪(<var>n</var>) pass</em>
+open(zs.data());          <em>// another 𝒪(<var>n</var>) pass</em>
+</pre>
+
+
+<p> Thus, the desision whether to provide the rich or the minimum interface hinges on selecting the 
+    design goal first.</p>
+
+
+<h3>String's length</h3>
+
+
+<p><code>string</code> stores its length explicitly, so that it can treat the zero-character
+as an ordinary character. <code>string_view</code> stores its length because this is necessary to
+represent a subsection of a longer character sequence, and because zero is a valid element of that sequence.</p>
+
+<p>In contrast, the contract of <code>zstring_view</code> is that it will ultimately
+be passed to a function like POSIX
+<a href="https://www.man7.org/linux/man-pages/man2/openat.2.html"><code>open</code></a> and its size will
+be determined by iterating throughout the sequence until the zero-character.
+The iteration will be performed, no matter what we do!
+Keeping the precomputed length doesn't add value here, but on the other hand would pose a new problem:
+this explicit size and the result of <code>strlen</code> would have to be kept in sync,
+and this is difficult when zero characters are present in the sequence before the end of explicit length.</p>
+
+<pre><code>string s("A\0B", 3);
+string_view sv("A\0B", 3);
+zstring_view zs("A\0B", 3);
+
+assert (s.length() != strlen(s.data()));   // ok: `strlen(s.data())` is not the length
+assert (sv.length() != strlen(sv.data())); // ok: `strlen(sv.data())` is not the length
+assert (zs.length() != strlen(zs.data())); // disaster: `strlen(zs.data())` is the length
+</code></pre>
+
+<p>Assuming the goal of <code>zstring_view</code> is "a <code>const char*</code> that additionally
+verifies the C-string contract", consistent solutions would be:</p>
+
+<ol>
+<li>Do not provide member <code>length()</code> or <code>size()</code>.</li>
+<li>Make these members equivalent to <code>strlen(data())</code>.</li>
+<li>Add a precondition, potentially runtime-enforced,
+   that zero-characters in the middle are not allowed.</li>
+</ol>
+
+<p>It may still make sense to have the <code>size_t</code> member but with a different interpretation.
+If <code>zstring_view</code> provides <code>operator[]</code>, this member could be used as an aid to runtime-enforce
+the precondition that the index is "in the right range".</p>
+
+<p>Option #2 still requires other questions to be answered: shall this value of length be computed upon construction?
+If so, this a waste in the very basic use case:</p>
+
+<pre><code>zstring_view zs("may contain a \0 char"); // 1st range iteration
+fopen(zs.data());                         // 2nd range iteration
+</code></pre>
+
+<p>We could compute the length when it is first needed and then cache the result.
+But this causes data-race issues.</p>
+
+<h2>Recommendations</h2>
+
+<p>LEWG should not approve any paper proposing a library component
+   that does not clearly state its design goal. This is necessary for everyone in WG21
+   to be clear on what the goal is, to be able to assess if the goal is worth pursuing,
+   and if the proposed solution actually addresses the goal.</p>
+
+<p> We observe that
+   <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html"
+       title="Peter Bindels, Hana Dusíková, Jeremy Rifkin, Marco Foco, Alexey Shevlyakov, &ldquo;std::cstring_view&rdquo;">[P3655R4]</a>
+   does not express the goal clearly enough. Without this LEWG cannot design the type properly. 
+   It can only poll who likes which function better. 
+   </p>
+   
+<p> The observation that many people demand to have a type called "zstring_view" and that
+    many people implemented their type called "zstring_view" is deceptive. 
+    These implementations by different parties have different semantics and serve different goals. As we have shown, 
+    designing for one goal compromises other possible goals.
+    </p>
+	
+<p> If the goal for <code>std::zstring_view</code> is not clearly stated 
+    the worst projected outcomes may be:</p>
+	
+<ol>
+<li>We end up with an uncoordinated combination of design choices that in total satisfy nobody.</li>
+<li>People will vote on the paper based on their private assumptions on what a "zstring_view" represents,
+    rather than based on what is actually proposed. </li>
+</ol>
+
+
+<h2>References</h2>
+
+<ul>
+
+<li>[GSL] &mdash; Bjarne Stroustrup, Herb Sutter,
+    "C++ Core Guidelines", <br>
+    (<a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#gslview-views">"https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#gslview-views"</a>).
+    </li>
+    <!--
+    <a href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#gslview-views"
+       title="Bjarne Stroustrup, Herb Sutter, &ldquo;C++ Core Guidelines&rdquo;">[GSL]</a>
+    -->
+
+<li>[N3442] &mdash; Jeffrey Yasskin,
+    "string_ref: a non-owning reference to a string", <br>
+    (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html">"https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html"</a>).
+    </li>
+    <!--
+    <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3442.html"
+       title="Jeffrey Yasskin, &ldquo;string_ref: a non-owning reference to a string&rdquo;">[N3442]</a>
+    -->
+	
+<li>[P2176R0] &mdash; Andrzej Krzemieński,
+    "A different take on inexpressible conditions", <br>
+    (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2176r0.html">"https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2176r0.html"</a>).
+    </li>
+    <!--
+    <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2176r0.html"
+       title="Andrzej Krzemieński, &ldquo;A different take on inexpressible conditions&rdquo;">[P2176R0]</a>
+    -->
+	
+<li>[P3081R1] &mdash; Herb Sutter,
+    "Core safety profiles for C++26", <br>
+    (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3081r1.pdf">"https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3081r1.pdf"</a>).
+    </li>
+    <!--
+    <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3081r1.pdf"
+       title="Herb Sutter, &ldquo;Core safety profiles for C++26&rdquo;">[P3081R1]</a>
+    -->
+
+<li>[P3655R4] &mdash; Peter Bindels, Hana Dusíková, Jeremy Rifkin, Marco Foco, Alexey Shevlyakov,
+    "std::cstring_view", <br>
+    (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html">"https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html"</a>).
+    </li>
+    <!--
+    <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2026/p3655r4.html"
+       title="Peter Bindels, Hana Dusíková, Jeremy Rifkin, Marco Foco, Alexey Shevlyakov, &ldquo;std::cstring_view&rdquo;">[P3655R4]</a>
+    -->
+
+<li>[P3697R0] &mdash; Konstantin Varlamov, Louis Dionne, Alisdair Meredith,
+    "Minor additions to C++26 standard library hardening", <br>
+    (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3697r0.html">"https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3697r0.html"</a>).
+    </li>
+    <!--
+    <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3697r0.html"
+       title="Konstantin Varlamov, Louis Dionne, Alisdair Meredith, &ldquo;Minor additions to C++26 standard library hardening&rdquo;">[P3697R0]</a>
+    -->
+
+<li>[P3705R2] &mdash; Eddie Nolan,
+    "A Sentinel for Null-Terminated Strings", <br>
+    (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3705r2.html">"https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3705r2.html"</a>).
+    </li>
+    <!--
+    <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3705r2.html"
+       title="Eddie Nolan, &ldquo;A Sentinel for Null-Terminated Strings&rdquo;">[P3705R2]</a>
+    -->
+    
+<li>[P3749R0] &mdash; Jan Schultke,
+    "Slides in response to P3655R2 Concerns regarding std::zstring_view", <br>
+    (<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3749r0.html">"https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3749r0.html"</a>).
+    </li>
+    <!--
+    <a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3749r0.html"
+       title="Jan Schultke, &ldquo;Slides in response to P3655R2 Concerns regarding std::zstring_view&rdquo;">[P3749R0]</a>
+    -->
+</ul>
+
+</body>
+</html>
