@@ -17,6 +17,22 @@ concept distance_computation = requires(Distance d, Weight w, Combine combine, C
 }; 
 ```
 
+```c++
+template <typename Distance, typename Weight, typename Combine, typename Compare>
+  requires copyable<Distance> &&
+        && strict_waeak_order<Compare, Distance>
+        && regular_invocable<Combine, Distance, Weight>
+void distance_computation(Combine combine, Compare better, Distance zero, Distance inf)
+{
+  Distance d = any<Distance>();
+  Weight w = any<Weight>();
+
+  assert(better(combine(d, w), d) == false);
+  assert(better(d, zero) == false);
+  assert(better(inf, d) == false);
+}
+```
+
 By the "maximum bandwidth path" problem I mean finding path between two indicated vertices that maximizes the minimum weight that can be found on the path edges.
 
 This problem can be solved by Dijkstra's Shortest Paths algorigh if we provide:
