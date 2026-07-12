@@ -17,7 +17,6 @@ concept distance_computation = requires(Distance d, Weight w, Combine combine, C
 }; 
 ```
 
-
 By the "maximum bandwidth path" problem I mean finding path between two indicated vertices that maximizes the minimum weight that can be found on the path edges.
 
 This problem can be solved by Dijkstra's Shortest Paths algorigh if we provide:
