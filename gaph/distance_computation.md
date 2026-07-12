@@ -8,7 +8,7 @@ These four elements expressed as a C++20 concept with additional `axiom` notatio
 template <typename Distance, typename Weight, typename Combine, typename Compare>
 concept distance_computation = requires(Distance d, Weight w, Combine combine, Compare better)
 {
-  requires semiregular<Distance>; 
+  requires copyable<Distance>; 
   requires strict_waeak_order<Compare, Distance>;
   requires regular_invocable<Combine, Distance, Weight>; 
   axion better(combine(d, w), d) == false;
