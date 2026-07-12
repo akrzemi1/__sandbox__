@@ -12,8 +12,8 @@ concept distance_computation = requires(Distance d, Weight w, Combine combine, C
   requires strict_waeak_order<Compare, Distance>;
   requires regular_invocable<Combine, Distance, Weight>; 
   axion better(combine(d, w), d) == false;
-  axiom better(d, zero<Distance>) == false;
-  axiom better(inf<Distance>, d) == false;
+  axiom better(d, zeroDistance()) == false;
+  axiom better(infDistance(), d) == false;
 }; 
 ```
 
