@@ -24,6 +24,10 @@ You also get the testing tools that allow you to test your asynchronous flows in
 While capy offers interfaces for dealing with I/O, it does not process I/O itself. For that, you will neet
 to use Capy in tandem with a Capy-conformant library. This can be either your home-grown one, or Corosio.
 
+== Quick example
+
+
+
 - - - - - - - - - - - - - - - - -
 
 Synchronization tools
