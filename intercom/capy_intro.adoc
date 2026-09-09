@@ -1,10 +1,26 @@
-The domain that Capy addresses is event-driven flows: _events_ -- such as I/O -- occur _asynchronously_; 
-portions of program's business logic are triggered by those events. A common pattern in the code are instructions that:
- 1. Request the backend to perform an operation (like I/O) at its discretion;
- 2. Indicate what piece of program shall be called when the requested operation finishes (asynchronously);
- 3. Yield control to other parts of the program.
+Capy's design is driven by the needs of the network I/O processing, 
+where a piece of the program, in order to continue, needs to wait for an I/O operation to finish,
+but when this happens is unpredictable. The challenge here is:
 
-Capy's solution to this task is driven by the following goals:
- 1. Express such patterns in the code as regular sequential control flows, where negular C++ constructs (branches, loops, exceptions) are used.
- 2. Programs shal compile fast (no excessive template instantiations).
- 3. Maximum run time performance.
+ 1. To utilize this time of as efficiently as possible, processing other tasks.
+ 2. To avoid any concurrency or lifetime management bugs.
+ 3. To have the user code be simple and intuitive.
+
+To achieve this, Capy utilizes the _proactor_ pattern hidden behind the coroutine `co_await` mechanism. I this pattern, 
+when the user needs an I/O operation to be performed to see its results, they:
+
+ 1. Schedule in the I/O runtime an operation to be performed.
+ 2. Register a piece of code to be invoked when the I/O operation finishes.
+
+This is exactly what happens when you write:
+
+[source,cpp]
+----
+process(co_await stream.read_some(buffer));  /*
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~     schedule I/O operation; register the cotorutine resumption when I/O finishes
+^~~~~~~                                       to be invoke after I/O finishes     
+                                              */
+----
+
+While the function body reads as sequential business logic, behind the coroutine mechanism, 
+a call is made to to an I/O runtime, and a "task" is registered in its queue. 
