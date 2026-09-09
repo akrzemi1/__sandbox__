@@ -18,7 +18,7 @@ This is exactly what happens when you write:
 ----
 process(co_await stream.read_some(buffer));  /*
         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~     schedule I/O operation; register the cotorutine resumption when I/O finishes
-^~~~~~~                                       to be invoke after I/O finishes     
+^~~~~~~                                       to be invoked after I/O finishes     
                                               */
 ----
 
