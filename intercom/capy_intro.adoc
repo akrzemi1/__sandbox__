@@ -1,1 +1,10 @@
-Capy is designed to represent control flows where external events -- such as I/O -- occur _asynchronously_ (at unpredictable points in time), and the programs need to respond to these events.
+The domain that Capy addresses is event-driven flows: _events_ -- such as I/O -- occur _asynchronously_; 
+portions of program's business logic are triggered by those events. A common pattern in the code are instructions that:
+ 1. Request the backend to perform an operation (like I/O) at its discretion;
+ 2. Indicate what piece of program shall be called when the requested operation finishes (asynchronously);
+ 3. Yield control to other parts of the program.
+
+Capy's solution to this task is driven by the following goals:
+ 1. Express such patterns in the code as regular sequential control flows, where negular C++ constructs (branches, loops, exceptions) are used.
+ 2. Programs shal compile fast (no excessive template instantiations).
+ 3. Maximum run time performance.
