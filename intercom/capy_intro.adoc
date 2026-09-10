@@ -29,3 +29,26 @@ process(co_await stream.read_some(buffer));    /*
 
 While all this registering happens hidden in the coroutine mechanism, the coroutine body
 reads as sequential business logic.
+
+
+'''
+
+== Capy-coroutines 🔧
+
+Coroutines with Capy's return types have special properties that allow them to propagate some context (`io_env`)
+through the `co_await` chains. We will call them Capy-coroutines. You can either use Capy's ready-to-use types:
+`capy::task` and `capy::quitter` that enable Capy-coroutines. In special cases, you may need to create your
+own coroutine return type. You will then need to manually ensure all the Capy-coroutine properties.
+
+=== `await_transform`
+
+In Capy-coroutines `co_await` exressions go through the promise type's `await_transform` transformation,
+which does the following.
+
+ 1. It statically verifies that the awaitable satisfies the requirements of `capy::IoAwaitable`.
+ 2. It returns the awaiter which upon suspension passes the `io_env` context to the resumed coroutine.
+
+When you use building blocks from the Capy library, they just work, and you need not pay attention to theese
+details. 
+
+
