@@ -16,11 +16,16 @@ This is exactly what happens when you write:
 
 [source,cpp]
 ----
-process(co_await stream.read_some(buffer));  /*
-        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~     schedule I/O operation; register the cotorutine resumption when I/O finishes
-^~~~~~~                                       to be invoked after I/O finishes     
-                                              */
+process(co_await stream.read_some(buffer));    /*
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <1>   *
+^~~~~~~ <2>                                     */
 ----
 
-While the function body reads as sequential business logic, behind the coroutine mechanism, 
-a call is made to to an I/O runtime, and a "task" is registered in its queue. 
+<1> The `co_await`-expression schedules an I/O operation to be called in the _execution context_, and registers
+    the resumption of the coroutine after the I/O operation finishes. Once the scheduling and registering is done, 
+    the coroutine is suspended, and the program thread switches to performing other tasks.
+<2> When the _execution_context_ finishes performing the scheduled I/O operation, it resumes the coroutine,
+    and the next instruction following the `co_await`-expression.
+
+While all this registering happens hidden in the coroutine mechanism, the coroutine body
+reads as sequential business logic.
