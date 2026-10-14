@@ -5,11 +5,11 @@
 template<typename T>
   concept __c-string-holder__ = 
     ranges::contiguous_range<T> &&
-    ranges::sized_range &&
+    ranges::sized_range<T> &&
     requires(const T & t) { 
       typename T::value_type;
-      { t.c_str() } -> std::same_as<const typename T::value_type*>;
-      requires is_same_v<ranges::range_value_t<T>, typename T::value_type>;
+      { t.c_str() } -> same_as<const typename T::value_type*>;
+      requires same_as<ranges::range_value_t<T>, typename T::value_type>;
     };
 ----
 
