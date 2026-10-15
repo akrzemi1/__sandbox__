@@ -1,0 +1,66 @@
+Bloom: https://www.boost.org/doc/libs/latest/libs/bloom/doc/html/bloom.html#filter_combine_with_and
+
+when an obviously incorrect input value should be specified as a precondition.
+
+The same arguments are often repeated:
+- It is obviously bad input, but we cannot make it a precondition because that would be undefined behavior and we do not want undefined behavior because [...].
+- So let's not define what happens but not call it undefined. Great idea, but how is that different from undefined?
+- Let's make it defined to whatever and make it EB. But we cannot have EB because:
+ * that might crash, and we do not want to crash on a simple bug, when we know what to do
+ * that might not crash and we do want a crash
+- Let's make it "hardened precondition", because we believe it is like an always enforced assertion, always "safe". But we keep forgetting the contract of hardened preconditions: they strike the right balance between preventing Common Security Vulnerabilities and performance. The moment you start putting expensive checks into hardened implementations, people will stop using hardened implementations in production. And also hardened preconditions are not guaranteed to be checked always: only in hardened implementations.
+- So maybe return an implementation-defined value,
+- Usually when you say  implementation-defined value, what you really want is an unspecified value.
+- Maybe it is the same because an implementation can specify that it does not specify when what happens?
+
+Arthur: be conservative about hardened
+
+Nathan:
+
+
+If it is implementation-defined, an implementation is free
+to say it is undefined. If you are sure you don't want it
+undefined, making it implementation-defined doesn't get you
+there.
+
+Generally, listing all the permissible outcomes is the only
+way to have a say in what happens. For most things, we list
+just one permissible outcome. We can say it is unspecified
+which happens. To encourage implementers to pick one, we can
+say the choice is implementation-defined, but an implementer's
+definition can be just "unspecified".
+
+Implementation definitions are not generally useful because
+you may not know which implementation will be used tomorrow
+to compile your code. An implementation is free to change their
+definition from one release to the next, from one target to
+the next, and from one compiler command line option to the
+next.
+
+Implementations are also free to define anything the Standard
+identifies as undefined, or even fails to identify as defined,
+and they do. Most usually that definition is extremely vague,
+on the order of "it will do what you would expect if you were
+to think it through". Any significant program relies on dozens
+or hundreds of those.
+
+When we are lucky, they have referred to some other Standard,
+such as Posix. That way, when we `mmap` a file and point a
+struct pointer at what was mapped, we rely on their implied,
+if vague, definition to trust that the lifetimes of all the
+pre-cooked objects we care to point at in the mapped memory
+have already begun; that works mostly just because optimizers
+can't definitively say they haven't.
+
+Nevin:
+
+The only open question I have is: once WG21 hardens a precondition, is unhardening or relaxing it later considered a breaking change?
+
+Matthew:
+
+No comment for WG21 but for ABI, if a relaxation means the function/thing is now specified to be able to receive inputs that were previously not allowed, it will probably break ABI to change the code to allow for those inputs in most cases.
+
+Why?
+
+While there are certainly other reasons not to do this (code that relies on a relaxed precondition in C++29 may be silently broken when recompiled or linked against a C++26 library), I don't see why it is an ABI issue.  Can you elaborate?
+
