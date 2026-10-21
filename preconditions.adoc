@@ -164,3 +164,16 @@ which cannot read their documentation.
 There is a reason why you are always reminded, "implementation-
 defined is almost certainly not what you want." Have you never
 before been curious why people take pains to say that?
+
+Davis:
+
+This is almost orthogonal: "when X, the behavior is unspecified" has the same problem as the implementation-defined case but worse, since at every occurrence there is the possibility of the std::unreachable() choice, which means you can rely on nothing.  Again, we need to say "an unspecified value on the interval [-5,256] is used" or so.  (Bonus points if anyone knows the significance of that interval of integers.)
+
+The difference is that there's never any reason to say "the behavior is unspecified" but you _can_ say "the behavior is implementation-defined" because generally implementations will be reasonable and define something useful.  (The [basic.compound]/5 example is a place where certain implementations might want to "define as undefined behavior", but most of the time that would be a hostile choice.)
+
+> Here is how I thought the standard defines the three terms (in [defns.*]):
+>     • Implementation-defined behavior: "behavior, for a well-formed program construct and correct data, that depends on the implementation and that each implementation documents."
+>     • Unspecified behavior: "behavior, for a well-formed program construct and correct data, that depends on the implementation. [The implementation is not required to document which behavior occurs. The range of possible behaviors is usually delineated by this document.]"
+>     • Undefined behavior: "behavior for which this document imposes no requirements."
+
+These are best understood as definitions of the three terms without the word "behavior": after all, the second one pertains to "an unspecified order" as well.  UB always has "behavior" because it's meaningless to constrain it to a value or an order or so, but we put the word "behavior" on all of them to make them noun phrases and have a label for each category.
