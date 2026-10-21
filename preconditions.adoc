@@ -2,6 +2,12 @@ Bloom: https://www.boost.org/doc/libs/latest/libs/bloom/doc/html/bloom.html#filt
 
 when an obviously incorrect input value should be specified as a precondition.
 
+Is this an ABI break:
+* distinguish chaning to a guaranteed behavior, like returning 0 or throwing
+* versus changing to non-hardened precond
+
+An implementation may ABI-tag all functions: not only those with hardened preconds. You can then unarden the precndition while keeping the ABI tag.
+
 The same arguments are often repeated:
 - It is obviously bad input, but we cannot make it a precondition because that would be undefined behavior and we do not want undefined behavior because [...].
 - So let's not define what happens but not call it undefined. Great idea, but how is that different from undefined?
@@ -63,4 +69,13 @@ No comment for WG21 but for ABI, if a relaxation means the function/thing is now
 Why?
 
 While there are certainly other reasons not to do this (code that relies on a relaxed precondition in C++29 may be silently broken when recompiled or linked against a C++26 library), I don't see why it is an ABI issue.  Can you elaborate?
+
+Arthur:
+
+Hardened Preconditions are used in the standard to guard against misuse-that-would-otherwise-cause-undefined-behavior.
+For a concrete if unrealistic example, suppose `vector::operator[]` was respecified to throw on out-of-bounds — then `vector::operator[]` would no longer have any Precondition, let alone a Hardened Precondition!  And that wouldn't be a problem, because now there wouldn't be any misuse-that-would-cause-undefined-behavior to guard against.
+
+What is a precondition, when the behavior is guaranteed?
+
+Can "an implementation-defined value" mean also an erroneous value?
 
