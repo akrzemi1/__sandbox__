@@ -79,3 +79,88 @@ What is a precondition, when the behavior is guaranteed?
 
 Can "an implementation-defined value" mean also an erroneous value?
 
+Davis:
+
+> If it is implementation-defined, an implementation is free
+> to say it is undefined. 
+
+
+That's true if we say that "when X, the behavior is
+implementation-defined" (which we occasionally do: see
+[basic.compound]/5, with or without P3347R6), since the implementation
+could specify that the effect is to call std::unreachable or end the
+lifetime of all objects or something.  This is why it's meaningless to
+ever say "the behavior is unspecified", since then those possibilities
+arise regardless of the implementation.
+
+But that's not what is said here: "an implementation-defined value" can
+be either "a value, fixed at least during one execution, that the
+implementation documents" or "a value chosen in a fashion that the
+implementation documents", but it can't be "LOL boom".  We should be
+better about distinguishing the two meanings of implementation-defined
+(as we have begun doing lately with "property of the implementation").
+
+> Implementation definitions are not generally useful because
+> you may not know which implementation will be used tomorrow
+> to compile your code.
+
+Of course, but if what I need is consistency within one execution, it's
+fine.  It's probably even fine in practice if I execute the same built
+program more than once, although the standard doesn't talk about
+repeated executions.
+
+Andrzej:
+The case of `optional` nullopt hash.
+
+Nikolas Klauser:
+
+libc++ adds the current ABI configuration to every _inline_ function as
+an ABI tag. I.e. you don't get broken, because you generate differently
+named functions depending on which configuration you asked for (and also
+different functions for different libc++ versions). The whole point of
+that is that we can change any functions as we please, because we know
+that callers with different configurations will get different symbol
+names. All callers have to generate their own weak version, so there
+will always be all the correct functions available.
+
+Nathan:
+
+Standards are not interpreted in the way that you wish they were.
+
+Standards are interpreted according to the text published. The
+published text in our Standards imposes no requirements on
+implementations' choices of definition beyond that they document
+the definitions they have chosen to use. Just as we are free to
+say an expression is undefined, so are they. When we constrain
+them via "implementation-specified", they are free to specify a
+choice that may vary from one release to the next, from one build
+to the next, or even one execution, if not one machine cycle, to
+the next--except where the Standard says otherwise.
+
+Implementations' users have their own preferences, and to a
+greater or lesser extent may vote with their dollars and their
+feet. Most are substantially locked in, obliged to adapt. Those
+whose code must work under more than one implementation, moreso.
+
+ANdrzej: we are not solving a general problem with dfinintions in the languae. Only for LEWG: when to say "precondition".
+
+Nathan:
+
+When the Standard says "unspecified", we are obliged to list
+behaviors X, Y, ... that satisfy the standard, but that does
+not place any requirement of consistency on implementations.
+They can do X sometimes, Y other times, without saying which
+happens when.
+
+When the Standard says "implementation-specified", then the
+implementation is obliged to say which X or Y it chooses, and
+in what circumstances. We may wish that implementation A must
+choose X in all circumstances, but the Standard does not
+require that. One may choose Y in the next release, or select
+X or Y according to a (documented) environment variable or
+command-line argument. All of this is hell on portable code,
+which cannot read their documentation.
+
+There is a reason why you are always reminded, "implementation-
+defined is almost certainly not what you want." Have you never
+before been curious why people take pains to say that?
