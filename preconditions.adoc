@@ -1,3 +1,8 @@
+Goal: have clear instructions on how to specify the wording when some function inputs are clearly unintended.
+
+
+ - - - - - -
+
 Bloom: https://www.boost.org/doc/libs/latest/libs/bloom/doc/html/bloom.html#filter_combine_with_and
 
 when an obviously incorrect input value should be specified as a precondition.
