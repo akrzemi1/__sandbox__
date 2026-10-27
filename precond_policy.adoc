@@ -35,3 +35,59 @@ about zero bytes read. One could ask, what the point is in calling the read func
 The answer: the buffer size (and the expected message size) may be obtained dynamically from reading the previous message.
 Sending "size zero" is a legitimate way of saying, "I have nothing more to send", and the user should not be forced to 
 put a branch in their code for a special value.
+
+
+=== Why not runtime-enforce preconditions? 
+
+Some preconditions can be declared, but they can never be runtime-checked. 
+For instance, when a function takes a pointer argument with the intention 
+to dereference it, there is no way to tell if the pointer points to valid,
+type-compatible memory.
+
+Even if a funciton could runtime-check whenther its precondition is satisfied,
+as the first thing in its body, it may be a bad idea to force all implementations
+to do this. One reason is performance. Consider a binary search function. It has
+a precondition that the iput sequence is sorted with repsect to the predicate.
+Runtime-checking it is conceptually simple, you just need to perform a linear algorithm.
+But when you force implementations to perform a linear algorithm in a function that 
+advertizes logarithmic complexity, you break the the function's contract.
+
+This is an extreme example. But even in the cases were the computational complexity is not 
+changed, forcing all implementations to penalize users who make sure they call their functions
+correctly removes the implementaiton freedom and may compromise the performance requirements
+of user programs.
+
+Even in the cases where the runtime-check imposed on the implementations 
+has negligible runtime cost compared with the function execution time,
+there are reasons to keep the precondition.
+
+Supposing that all implementaitons are forced to runtime-check the condition,
+what are they supposed to do when they discover it has been violated?
+
+Abort the program? Many consider it a reasonable "safe" default. But some domains
+consider it unacceptable to kill the program only because it is runtime-confirmed 
+to be incorrect.
+
+Report "error" via an exception or special error-code object or `std::expected`?
+But all these error recovery mechanism work under the assumption that a correct
+program correctly responds to a forseen, adverse state in the environment.
+These assumptions no longer hold when we are dealing with a provably buggy program.
+
+Another cost is that 
+
+
+
+    The only thing to do is to trust that the caller made sure that the pointer is not
+    pointing to dead memory.
+
+The definition of a precondition (strictly sppeaking, of the __Preconditions:__ clause) 
+in the standard library is that if a function is called and any of the preconditions is violated
+the behavior of the program is undefined. This is also partially the case with hardened preconditions.
+The potential to trigger undefined behavior (UB) causes concerns for some. So why even have them?
+
+ 1. Sometimes there is no other way. When a function takes a pointer argument 
+    with the intention to dereference it, there is no way to tell if the pointer is valid.
+    The only thing to do is to trust that the caller made sure that the pointer is not
+    pointing to dead memory.
+
+ 2. Sometimes a function can test at runtime if a precondition holds
