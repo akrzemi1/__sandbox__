@@ -27,3 +27,11 @@ void cap_replicate(inplace_vector<byte, 1024>& target, vector<byte> const& sourc
 
 Note that in an empty `vector` `.data()` is a null pointer, and would cause undefined behavior (UB) 
 in function `cap_replicate` for no good reason. This is why the precondition in `std::memcpy` is wrong. 
+
+Accepting suspicious-but-valid zero-size input may warrant a branch in the function, as is the case for ASIO's type requirements https://www.boost.org/doc/libs/latest/doc/html/boost_asio/reference/AsyncReadStream.html[`AsyncReadStream`]. The read operation
+guarantees that it only resumes the suspended operation when there is either an error to report or at least one byte read. 
+The guarantee is different when a zero-sized buffer is provided. In that case the function returns immedialtely with the information
+about zero bytes read. One could ask, what the point is in calling the read function with a zero-sized buffer.
+The answer: the buffer size (and the expected message size) may be obtained dynamically from reading the previous message.
+Sending "size zero" is a legitimate way of saying, "I have nothing more to send", and the user should not be forced to 
+put a branch in their code for a special value.
