@@ -1,0 +1,26 @@
+= Policy for preconditions
+
+== Motivation
+
+== Discussion
+
+=== Zero size is often valid input
+
+While the idea of "invalid input" overlaps with the observation "nobody ever needs to pass this value", 
+thery are not the same and there are good reasons to allow "suspicious" values as long as the behavior
+of the function can be meaningfully scaled to cover that input. This is often the case when we are taling about ranges
+of size zero. Consider https://en.cppreference.com/cpp/string/byte/memcpy[`std::memcpy`]. It takes two pointers and a size. 
+It has a precondition that neither of these pointers is a null pointer. 
+This seems reasonable at first glance: how could copying even work when you cannot dereference either pointer?
+But you do not need to dereference any pointers when the size of the range to copy is zero. But who would
+ever request the copying if they new the size was zero? The answer is: sometimes you do not know the size of the range you want to copy:
+
+[source,cpp]
+----
+void replicate(inplace_vector<byte, 1024>& target, vector<byte> const& source)
+  // precondition: source.size() <= 1024
+{
+  target.resize(source.size());
+  memcpy(target.data(), source.data(), source.size());
+}
+----
