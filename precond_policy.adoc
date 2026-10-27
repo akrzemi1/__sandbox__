@@ -24,3 +24,6 @@ void cap_replicate(inplace_vector<byte, 1024>& target, vector<byte> const& sourc
   memcpy(target.data(), source.data(), size);
 }
 ----
+
+Note that in an empty `vector` `.data()` is a null pointer, and would cause undefined behavior (UB) 
+in function `cap_replicate` for no good reason. This is why the precondition in `std::memcpy` is wrong. 
