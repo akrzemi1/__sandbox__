@@ -17,10 +17,10 @@ ever request the copying if they new the size was zero? The answer is: sometimes
 
 [source,cpp]
 ----
-void replicate(inplace_vector<byte, 1024>& target, vector<byte> const& source)
-  // precondition: source.size() <= 1024
+void cap_replicate(inplace_vector<byte, 1024>& target, vector<byte> const& source)
 {
-  target.resize(source.size());
-  memcpy(target.data(), source.data(), source.size());
+  size_t size = min(source.size(), 1024);
+  target.resize(size);
+  memcpy(target.data(), source.data(), size);
 }
 ----
