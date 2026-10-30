@@ -37,6 +37,12 @@ Sending "size zero" is a legitimate way of saying, "I have nothing more to send"
 put a branch in their code for a special value.
 
 
+=== What is invalid input?
+
+In most cases the _invalid input_ situation reflects the _abstraction gap_ between the abstraction we want to describe and
+the types that we have to use.
+
+
 === Why not runtime-enforce preconditions? 
 
 Some preconditions can be declared, but they can never be runtime-checked. 
