@@ -43,6 +43,29 @@ In most cases the _invalid input_ situation reflects the _abstraction gap_ betwe
 the types that we have to use.
 
 
+=== Why we need preconditions?
+
+==== For corretness
+
+To formally and unambiguously define what function calls are a symptom of an incorrect program.
+This helps humans and tools detect bugs more easily.
+
+==== For close-to-metal performance
+
+We want our abstractions represented by functions to map directly onto processor instructions or lower level abstractions,
+without any overhead. And our abstactions map onto hardware instructions only within certain limits.
+
+Often the detection of an invalid input at run-time is possible but costs the evaluation of additional code and a branch.
+For a language that is advertised as being "close to metal" this cost may not be acceptable.
+
+=== Specification tools
+
+==== "Preconditions" clause
+
+This satisfies both correctness and performance goals of preconditions. The cost is that The users do not get portable 
+guarantees as to how the progrnm behaves upon invalid input. 
+
+
 === Why not runtime-enforce preconditions? 
 
 Some preconditions can be declared, but they can never be runtime-checked. 
